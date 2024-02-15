@@ -17,9 +17,21 @@ export const formatDate = (
 ) => {
 	if (!value) return value;
 
-	return new Intl.DateTimeFormat("en-US", formatting).format(
-		new Date(dateFromString(value))
-	);
+	try {
+		var date =
+			typeof value == "string"
+				? new Date(dateFromString(value))
+				: value?.seconds
+				? value.seconds * 1000
+				: "";
+
+		value = new Intl.DateTimeFormat("en-US", formatting).format(date);
+	} catch (error) {
+		console.log("Date error: ", error, value, typeof value);
+		value = "";
+	}
+
+	return value;
 };
 
 export const simulateClick = (cb) => {

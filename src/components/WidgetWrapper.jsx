@@ -4,6 +4,7 @@ export default function WidgetWrapper({
 	width,
 	aspectRatio,
 	flex,
+	columnSpan = 2,
 }) {
 	return (
 		<div
@@ -11,6 +12,7 @@ export default function WidgetWrapper({
 			style={{
 				width,
 				flex,
+				gridColumn: `span ${columnSpan} / span ${columnSpan}`,
 				aspectRatio,
 				...(aspectRatio === undefined
 					? {

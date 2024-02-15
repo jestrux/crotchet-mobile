@@ -3,9 +3,15 @@
 import { motion } from "framer-motion";
 import { clsx } from "clsx";
 import { BottomSheet } from "./BottomSheet";
+import { useAppContext } from "@/providers/app";
 
 export function BottomNav() {
+	const { currentPage, setCurrentPage } = useAppContext();
 	const navHeight = 56;
+
+	const activeClass =
+		"bg-content/5 dark:bg-content/10 border-content/5 dark:border-content/15 text-content";
+	const inActiveClass = "opacity-70 border-transparent";
 
 	return (
 		<div
@@ -44,9 +50,17 @@ export function BottomNav() {
 								height: navHeight + "px",
 							}}
 						>
-							<button className="flex-shrink-0 focus:outline-none rounded-full border inline-flex items-center justify-center h-9 w-16 px-2.5 text-center text-xs uppercase font-bold opacity-70 border-transparent">
+							<button
+								className={clsx(
+									"flex-shrink-0 focus:outline-none rounded-full border inline-flex items-center justify-center h-9 w-16 px-2.5 text-center text-xs uppercase font-bold",
+									currentPage == "widgets"
+										? activeClass
+										: inActiveClass
+								)}
+								onClick={() => setCurrentPage("widgets")}
+							>
 								<svg
-									className="w-6"
+									className="h-6"
 									fill="none"
 									viewBox="0 0 24 24"
 									strokeWidth={1.5}
@@ -61,8 +75,17 @@ export function BottomNav() {
 							</button>
 
 							<button
-								className="flex-shrink-0 focus:outline-none rounded-full border inline-flex items-center justify-center h-9 w-16 px-2.5 text-center text-xs uppercase font-bold bg-content/5 dark:bg-content/10 border-content/5 dark:border-content/15 text-content"
-								onClick={expand}
+								className={clsx(
+									"flex-shrink-0 focus:outline-none rounded-full border inline-flex items-center justify-center h-9 w-16 px-2.5 text-center text-xs uppercase font-bold",
+									currentPage == "home"
+										? activeClass
+										: inActiveClass
+								)}
+								onClick={() =>
+									currentPage == "home"
+										? expand()
+										: setCurrentPage("home")
+								}
 							>
 								<svg
 									fill="none"
@@ -79,9 +102,17 @@ export function BottomNav() {
 								</svg>
 							</button>
 
-							<button className="flex-shrink-0 focus:outline-none rounded-full border inline-flex items-center justify-center h-9 w-16 px-2.5 text-center text-xs uppercase font-bold opacity-70 border-transparent">
+							<button
+								className={clsx(
+									"flex-shrink-0 focus:outline-none rounded-full border inline-flex items-center justify-center h-9 w-16 px-2.5 text-center text-xs uppercase font-bold",
+									currentPage == "settings"
+										? activeClass
+										: inActiveClass
+								)}
+								onClick={() => setCurrentPage("settings")}
+							>
 								<svg
-									className="w-6"
+									className="h-6"
 									fill="none"
 									viewBox="0 0 24 24"
 									strokeWidth={1.5}

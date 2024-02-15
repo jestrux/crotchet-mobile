@@ -7,6 +7,8 @@
 	--canvas-color: 240 240 240;
 	--card-color: 255 255 255;
 	--content-color: 0 0 0;
+	--primary-color: 102 51 153;
+	--primary-light-color: 246 173 85;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -15,6 +17,9 @@
 		--canvas-color: 24 24 24;
 		--card-color: 37 37 37;
 		--content-color: 255 255 255;
+
+		--primary-color: 176 112 241;
+		--primary-light-color: 246 173 85;
 	}
 
 	input[type="date"] {

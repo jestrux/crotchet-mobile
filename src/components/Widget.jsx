@@ -1,9 +1,21 @@
-import { PlusCircleIcon, PlusIcon } from "@heroicons/react/24/outline";
+import {
+	PhotoIcon,
+	MagnifyingGlassIcon,
+	PlusCircleIcon,
+	PlusIcon,
+	ArrowPathIcon,
+} from "@heroicons/react/24/outline";
+import { PlayIcon, ShareIcon } from "@heroicons/react/24/solid";
 import { useAppContext } from "@/providers/app";
 
 const WidgetIcons = {
+	share: <ShareIcon className="w-3" />,
+	shuffle: <ArrowPathIcon className="w-3.5" />,
+	play: <PlayIcon className="w-3.5" />,
+	image: <PhotoIcon className="w-3.5" />,
 	add: <PlusIcon className="w-3.5" />,
 	"add-circle": <PlusCircleIcon className="w-5" />,
+	search: <MagnifyingGlassIcon className="w-3.5" />,
 };
 
 const Widget = ({
@@ -31,10 +43,16 @@ const Widget = ({
 	};
 
 	return (
-		<div className="h-full flex flex-col relative">
-			{title?.length && (
-				<div className="rounded-t-2xl relative z-30 flex-shrink-0 h-10 flex items-center px-3.5 bg-content/5 text-content/40">
-					<span className="uppercase tracking-wide text-xs font-bold">
+		<div className="h-full flex flex-col relative text-content/60">
+			{(icon || title?.length > 0) && (
+				<div className="rounded-t-2xl relative z-30 flex-shrink-0 h-10 flex items-center gap-1.5 px-3.5 bg-content/5">
+					{icon && (
+						<span className="-ml-1.5 w-6 h-6 bg-content/10 rounded-full flex items-center justify-center">
+							{typeof icon == "string" ? WidgetIcons[icon] : icon}
+						</span>
+					)}
+
+					<span className="uppercase tracking-wide text-xs font-bold opacity-80">
 						{title}
 					</span>
 				</div>
@@ -50,7 +68,7 @@ const Widget = ({
 				{children}
 			</div>
 
-			{(icon || actions?.length) && (
+			{actions?.length > 0 && (
 				<div className="absolute right-2 top-2 z-30 flex items-center gap-2">
 					<div className="flex items-center gap-2">
 						{actions &&
@@ -59,7 +77,7 @@ const Widget = ({
 									<button
 										title={action.label}
 										key={index}
-										className="focus:outline-none w-6 h-6 border border-content/10 hover:bg-content/5 transition-colors text-content rounded-full flex items-center justify-center"
+										className="focus:outline-none w-6 h-6 border border-content/10 bg-content/10 dark:bg-content/15 transition-colors rounded-full flex items-center justify-center"
 										onClick={() =>
 											handleActionClick(action)
 										}
@@ -71,11 +89,6 @@ const Widget = ({
 								);
 							})}
 					</div>
-					{icon && (
-						<div className="w-6 h-6 bg-content/10 text-content rounded-full flex items-center justify-center">
-							{icon}
-						</div>
-					)}
 				</div>
 			)}
 

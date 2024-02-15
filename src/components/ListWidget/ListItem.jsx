@@ -187,6 +187,7 @@ const ListItem = ({
 	// progress = "progress",
 	checkbox,
 	removable,
+	onClick,
 }) => {
 	const [removed, setRemoved] = useState(false);
 
@@ -202,8 +203,11 @@ const ListItem = ({
 
 	return (
 		<a
-			{...(!action?.length ? {} : { href: action })}
-			target="_blank"
+			{...(onClick
+				? { onClick }
+				: !action?.length
+				? {}
+				: { href: action, target: "_blank" })}
 			className={`group py-2 w-full text-left flex items-center relative`}
 			rel="noreferrer"
 		>

@@ -12,20 +12,15 @@ import {
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Clipboard } from "@capacitor/clipboard";
-import { SendIntent } from "send-intent";
 import { Toast } from "@capacitor/toast";
 import { Preferences } from "@capacitor/preferences";
 
-import { db } from "@/providers/firebaseApp";
+import { db } from "@/providers/firebase";
 import DragDropList from "@/components/DragDropList";
 import Loader from "@/components/Loader";
-
-// const fromColor = "#8BC34A";
-// const fromColor = "#2196F3";
-// const toColor = "#4CAF50";
-
-const fromColor = "#d3ffff";
-const toColor = "#f2ddb0";
+import Widget from "@/components/Widget";
+import ListItem from "@/components/ListWidget/ListItem";
+import WidgetWrapper from "@/components/WidgetWrapper";
 
 function isValidHttpUrl(string) {
 	let url;
@@ -128,7 +123,7 @@ const NewEntry = ({ __id, url, group, onSave }) => {
 	);
 };
 
-export default function Reader() {
+export default function ReaderWidget() {
 	const randomId = () => Math.random().toString(36).substring(7);
 	const [newEntries, setNewEntries] = useState([]);
 	const [entries, setEntries] = useState(null);
@@ -170,20 +165,6 @@ export default function Reader() {
 		},
 	});
 
-	const listenForShare = async () => {
-		try {
-			const result = await SendIntent.checkSendIntentReceived();
-			if (result?.title?.length) {
-				handleAddEntry({
-					url: decodeURIComponent(result.title),
-					fromShareSheet: true,
-				});
-			}
-		} catch (error) {
-			alert("Share process failed: ", error);
-		}
-	};
-
 	useEffect(() => {
 		const groupId = groupFilter ?? "All";
 		const filterButton = document.querySelector(
@@ -197,22 +178,12 @@ export default function Reader() {
 
 		document.addEventListener("focus", refreshData, false);
 
-		listenForShare();
-
-		window.addEventListener("sendIntentReceived", listenForShare, false);
-
 		const cancelSnapshotListener = onSnapshot(
 			collection(db, "reader"),
 			() => refreshData()
 		);
 
 		return () => {
-			document.removeEventListener("focus", refreshData);
-			window.removeEventListener(
-				"sendIntentReceived",
-				listenForShare,
-				false
-			);
 			cancelSnapshotListener();
 		};
 	}, []);
@@ -275,276 +246,265 @@ export default function Reader() {
 		await deleteDoc(doc(db, "reader", docId));
 	}
 
-	const onElectron = document.body.classList.contains("on-electron");
-
 	return (
-		<div className="min-h-screen bg-canvas text-content relative">
-			<style>
-				{
-					/*css*/ `
-						:root {
-							--gradient-bg: linear-gradient(45deg, ${fromColor}, ${toColor});
-							--gradient-bg-text: #3E3215;
-						}
-					`
-				}
-			</style>
-
-			<button
-				id="fab"
-				className="fixed inset-x-0 mx-auto z-10 shadow border border-content/5 dark:border-content/20 h-12 w-32 flex items-center justify-center gap-2 rounded-full px-3.5 focus:outline-none"
-				onClick={handleAddEntry}
-				style={{
-					// bottom: onElectron ? "1.2rem" : "5.8rem",
-					bottom: onElectron ? "1.2rem" : "7.5rem",
-				}}
-			>
-				<svg className="h-4 mb-px" viewBox="0 0 24 24">
-					<defs>
-						<linearGradient
-							id="gradientMask"
-							x1="0%"
-							y1="0%"
-							x2="100%"
-							y2="100%"
-						>
-							<stop
-								offset="0%"
-								style={{
-									stopColor: fromColor,
-									stopOpacity: 1,
-								}}
-							/>
-							<stop
-								offset="100%"
-								style={{
-									stopColor: toColor,
-									stopOpacity: 1,
-								}}
-							/>
-						</linearGradient>
-					</defs>
-
+		<Widget
+			title="Reader"
+			icon={
+				<svg
+					className="w-3.5"
+					fill="currentColor"
+					viewBox="0 0 24 24"
+					// strokeWidth={1.5}
+					// stroke="currentColor"
+				>
 					<path
-						d="M12 4.5v15m7.5-7.5h-15"
-						fill="none"
-						strokeWidth="3.5"
 						strokeLinecap="round"
+						strokeLinejoin="round"
+						d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"
 					/>
 				</svg>
-				<span className="mr-0.5 text-base/none tracking-wide font-semibold uppercase">
-					Add
-				</span>
-			</button>
-
-			<div className="pb-24">
-				<div
-					id="appBar"
-					className={`sticky shadow-sm border-b top-0 z-20 w-screen overflow-auto`}
-				>
-					<div
-						className="px-4 max-w-4xl mx-auto flex items-center gap-2"
-						style={{
-							marginTop: "env(safe-area-inset-top)",
-							height: "60px",
-						}}
-					>
-						<button
-							data-group-filter="All"
-							className={`${
-								!groupFilter
-									? "bg-white border-white/20 text-[--appbar-color] dark:bg-white/10 dark:border-white/10 dark:text-white"
-									: "opacity-70 border-transparent"
-							} flex-shrink-0 focus:outline-none rounded-lg border inline-flex items-center justify-center h-8 px-2.5 text-center text-xs uppercase font-bold`}
-							onClick={() => setGroupFilter("")}
-						>
-							All
-						</button>
-						{groups.map((group) => (
-							<button
-								key={group}
-								data-group-filter={group}
-								className={`${
-									groupFilter == group
-										? "bg-white border-white/20 text-[--appbar-color] dark:bg-white/10 dark:border-white/10 dark:text-white"
-										: "opacity-70 border-transparent"
-								} flex-shrink-0 focus:outline-none rounded-lg border inline-flex items-center justify-center h-8 px-2.5 text-center text-xs uppercase font-bold`}
-								style={{ wordSpacing: "0.25rem" }}
-								onClick={() => setGroupFilter(group)}
-							>
-								{group}
-							</button>
-						))}
-
-						<span>&nbsp;</span>
-					</div>
+			}
+		>
+			{!entries?.length && loading ? (
+				<div className="relative h-8">
+					<Loader scrimColor="transparent" size={25} />
 				</div>
+			) : (
+				<div className="pb-2">
+					{entries &&
+						entries.map((doc, index) => {
+							var data = doc.data();
 
-				<div className="max-w-4xl mx-auto p-4">
-					{newEntries.map((entry, index) => (
-						<div
-							key={index}
-							style={{
-								display:
-									!groupFilter?.length ||
-									entry.group == groupFilter
-										? ""
-										: "none",
-							}}
-						>
-							<NewEntry
-								{...entry}
-								onSave={(__id) =>
-									setNewEntries((newEntries) =>
-										newEntries.filter((e) => e.__id != __id)
-									)
-								}
-							/>
-						</div>
-					))}
-
-					<div className="text-center">
-						{error && (
-							<strong>Error: {JSON.stringify(error)}</strong>
-						)}
-						{!entries && loading && (
-							<div className="py-4 flex justify-center text-content/20">
-								<Loader
-									color="currentColor"
-									size={60}
-									thickness={3.5}
+							return (
+								<ListItem
+									key={index}
+									data={data}
+									subtitle="description"
+									// table={table}
+									// {...props}
+									onClick={() =>
+										window.open(data.url, "_blank")
+									}
 								/>
-							</div>
-						)}
-					</div>
-
-					{entries && (
-						<DragDropList
-							key={cacheKey}
-							items={entries}
-							onChange={setState}
-						>
-							{({ item: doc }) => {
-								var data = doc.data();
-
-								return (
-									<div
-										key={doc.id}
-										className={`pb-2 ${
-											onElectron ? "group" : "lg:group"
-										}`}
-									>
-										<div
-											className="relative w-full text-left bg-card rounded-md p-2 lg:p-4 border border-stroke shadow-sm flex items-center gap-3 lg:gap-6 focus:outline-none"
-											onClick={() => {
-												onElectron
-													? window.dispatchEvent(
-															new CustomEvent(
-																"open-url",
-																{
-																	detail: data.url,
-																}
-															)
-													  )
-													: window.open(
-															data.url,
-															"_blank"
-													  );
-											}}
-										>
-											<div className="flex-shrink-0 h-20 w-24 bg-content/5 rounded relative flex items-center justify-center">
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													fill="none"
-													viewBox="0 0 24 24"
-													strokeWidth={1.5}
-													stroke="currentColor"
-													className="size-8 opacity-50"
-												>
-													<path
-														strokeLinecap="round"
-														strokeLinejoin="round"
-														d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"
-													/>
-												</svg>
-
-												{data.image && (
-													<img
-														src={data.image}
-														alt=""
-														className="absolute inset-0 size-full object-cover rounded bg-card"
-														onError={(e) =>
-															(e.target.style.opacity = 0)
-														}
-													/>
-												)}
-											</div>
-
-											<div className="flex flex-col">
-												<label
-													className="relative self-start"
-													title="Change group"
-												>
-													<select
-														className="focus:outline-none appearance-none bg-transparent inline-flex items-center text-[10px] font-bold uppercase tracking-wider"
-														defaultValue={
-															data.group
-														}
-														onClick={(e) =>
-															e.stopPropagation()
-														}
-														onChange={(e) =>
-															setGroup(
-																doc.id,
-																e.target.value
-															)
-														}
-													>
-														{groups.map((group) => (
-															<option key={group}>
-																{group}
-															</option>
-														))}
-													</select>
-												</label>
-												<h3 className="font-medium truncate">
-													{data.title}
-												</h3>
-												<p className="text-sm/relaxed opacity-50 truncate">
-													{data.description}
-												</p>
-											</div>
-
-											<label
-												title="Remove"
-												className="cursor-pointer absolute right-2 top-2 size-8 focus:outline-none flex items-center justify-center opacity-0 group-hover:opacity-70"
-												onClick={(e) =>
-													removeEntry(e, doc.id)
-												}
-											>
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													fill="none"
-													viewBox="0 0 24 24"
-													strokeWidth={1.5}
-													stroke="currentColor"
-													className="size-5"
-												>
-													<path
-														strokeLinecap="round"
-														strokeLinejoin="round"
-														d="M6 18 18 6M6 6l12 12"
-													/>
-												</svg>
-											</label>
-										</div>
-									</div>
-								);
-							}}
-						</DragDropList>
-					)}
+							);
+						})}
 				</div>
-			</div>
-		</div>
+			)}
+		</Widget>
 	);
+
+	// const onElectron = document.body.classList.contains("on-electron");
+
+	// return (
+	// 	<div className="relative">
+	// 		<div>
+	// 			<div
+	// 				id="appBar"
+	// 				className={`sticky shadow-sm border-b top-0 z-20 w-screen overflow-auto`}
+	// 			>
+	// 				<div
+	// 					className="px-4 max-w-4xl mx-auto flex items-center gap-2"
+	// 					style={{
+	// 						marginTop: "-env(safe-area-inset-top)",
+	// 						height: "60px",
+	// 					}}
+	// 				>
+	// 					<button
+	// 						data-group-filter="All"
+	// 						className={`${
+	// 							!groupFilter
+	// 								? "bg-white border-white/20 text-[--appbar-color] dark:bg-white/10 dark:border-white/10 dark:text-white"
+	// 								: "opacity-70 border-transparent"
+	// 						} flex-shrink-0 focus:outline-none rounded-lg border inline-flex items-center justify-center h-8 px-2.5 text-center text-xs uppercase font-bold`}
+	// 						onClick={() => setGroupFilter("")}
+	// 					>
+	// 						All
+	// 					</button>
+	// 					{groups.map((group) => (
+	// 						<button
+	// 							key={group}
+	// 							data-group-filter={group}
+	// 							className={`${
+	// 								groupFilter == group
+	// 									? "bg-white border-white/20 text-[--appbar-color] dark:bg-white/10 dark:border-white/10 dark:text-white"
+	// 									: "opacity-70 border-transparent"
+	// 							} flex-shrink-0 focus:outline-none rounded-lg border inline-flex items-center justify-center h-8 px-2.5 text-center text-xs uppercase font-bold`}
+	// 							style={{ wordSpacing: "0.25rem" }}
+	// 							onClick={() => setGroupFilter(group)}
+	// 						>
+	// 							{group}
+	// 						</button>
+	// 					))}
+
+	// 					<span>&nbsp;</span>
+	// 				</div>
+	// 			</div>
+
+	// 			<div className="max-w-4xl mx-auto p-4">
+	// 				{newEntries.map((entry, index) => (
+	// 					<div
+	// 						key={index}
+	// 						style={{
+	// 							display:
+	// 								!groupFilter?.length ||
+	// 								entry.group == groupFilter
+	// 									? ""
+	// 									: "none",
+	// 						}}
+	// 					>
+	// 						<NewEntry
+	// 							{...entry}
+	// 							onSave={(__id) =>
+	// 								setNewEntries((newEntries) =>
+	// 									newEntries.filter((e) => e.__id != __id)
+	// 								)
+	// 							}
+	// 						/>
+	// 					</div>
+	// 				))}
+
+	// 				<div className="text-center">
+	// 					{error && (
+	// 						<strong>Error: {JSON.stringify(error)}</strong>
+	// 					)}
+	// 					{!entries && loading && (
+	// 						<div className="py-4 flex justify-center text-content/20">
+	// 							<Loader
+	// 								color="currentColor"
+	// 								size={60}
+	// 								thickness={3.5}
+	// 							/>
+	// 						</div>
+	// 					)}
+	// 				</div>
+
+	// 				{entries && (
+	// 					<DragDropList
+	// 						key={cacheKey}
+	// 						items={entries}
+	// 						onChange={setState}
+	// 					>
+	// 						{({ item: doc }) => {
+	// 							var data = doc.data();
+
+	// 							return (
+	// 								<div
+	// 									key={doc.id}
+	// 									className={`pb-2 ${
+	// 										onElectron ? "group" : "lg:group"
+	// 									}`}
+	// 								>
+	// 									<div
+	// 										className="relative w-full text-left bg-card rounded-md p-2 lg:p-4 border border-stroke shadow-sm flex items-center gap-3 lg:gap-6 focus:outline-none"
+	// 										onClick={() => {
+	// 											onElectron
+	// 												? window.dispatchEvent(
+	// 														new CustomEvent(
+	// 															"open-url",
+	// 															{
+	// 																detail: data.url,
+	// 															}
+	// 														)
+	// 												  )
+	// 												: window.open(
+	// 														data.url,
+	// 														"_blank"
+	// 												  );
+	// 										}}
+	// 									>
+	// 										<div className="flex-shrink-0 h-20 w-24 bg-content/5 rounded relative flex items-center justify-center">
+	// 											<svg
+	// 												xmlns="http://www.w3.org/2000/svg"
+	// 												fill="none"
+	// 												viewBox="0 0 24 24"
+	// 												strokeWidth={1.5}
+	// 												stroke="currentColor"
+	// 												className="size-8 opacity-50"
+	// 											>
+	// 												<path
+	// 													strokeLinecap="round"
+	// 													strokeLinejoin="round"
+	// 													d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"
+	// 												/>
+	// 											</svg>
+
+	// 											{data.image && (
+	// 												<img
+	// 													src={data.image}
+	// 													alt=""
+	// 													className="absolute inset-0 size-full object-cover rounded bg-card"
+	// 													onError={(e) =>
+	// 														(e.target.style.opacity = 0)
+	// 													}
+	// 												/>
+	// 											)}
+	// 										</div>
+
+	// 										<div className="flex flex-col">
+	// 											<label
+	// 												className="relative self-start"
+	// 												title="Change group"
+	// 											>
+	// 												<select
+	// 													className="focus:outline-none appearance-none bg-transparent inline-flex items-center text-[10px] font-bold uppercase tracking-wider"
+	// 													defaultValue={
+	// 														data.group
+	// 													}
+	// 													onClick={(e) =>
+	// 														e.stopPropagation()
+	// 													}
+	// 													onChange={(e) =>
+	// 														setGroup(
+	// 															doc.id,
+	// 															e.target.value
+	// 														)
+	// 													}
+	// 												>
+	// 													{groups.map((group) => (
+	// 														<option key={group}>
+	// 															{group}
+	// 														</option>
+	// 													))}
+	// 												</select>
+	// 											</label>
+	// 											<h3 className="font-medium truncate">
+	// 												{data.title}
+	// 											</h3>
+	// 											<p className="text-sm/relaxed opacity-50 truncate">
+	// 												{data.description}
+	// 											</p>
+	// 										</div>
+
+	// 										<label
+	// 											title="Remove"
+	// 											className="cursor-pointer absolute right-2 top-2 size-8 focus:outline-none flex items-center justify-center opacity-0 group-hover:opacity-70"
+	// 											onClick={(e) =>
+	// 												removeEntry(e, doc.id)
+	// 											}
+	// 										>
+	// 											<svg
+	// 												xmlns="http://www.w3.org/2000/svg"
+	// 												fill="none"
+	// 												viewBox="0 0 24 24"
+	// 												strokeWidth={1.5}
+	// 												stroke="currentColor"
+	// 												className="size-5"
+	// 											>
+	// 												<path
+	// 													strokeLinecap="round"
+	// 													strokeLinejoin="round"
+	// 													d="M6 18 18 6M6 6l12 12"
+	// 												/>
+	// 											</svg>
+	// 										</label>
+	// 									</div>
+	// 								</div>
+	// 							);
+	// 						}}
+	// 					</DragDropList>
+	// 				)}
+	// 			</div>
+	// 		</div>
+	// 	</div>
+	// );
 }
