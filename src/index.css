@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	--stroke-color: 226 232 240;
+	--canvas-color: 240 240 240;
+	--card-color: 255 255 255;
+	--content-color: 0 0 0;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--stroke-color: 53 53 53;
+		--canvas-color: 24 24 24;
+		--card-color: 37 37 37;
+		--content-color: 255 255 255;
+	}
+
+	input[type="date"] {
+		color-scheme: dark;
+	}
+}
+
+* {
+	border-color: rgb(var(--stroke-color));
+}
+
+.flex > * {
+	min-width: 0;
+}
+
+#appBar {
+	background: var(--gradient-bg);
+	color: var(--gradient-bg-text);
+}
+
+#fab {
+	background: var(--gradient-bg-text);
+}
+
+#fab path {
+	stroke: url(#gradientMask);
+}
+
+@supports (background-clip: text) {
+	#fab span {
+		background: var(--gradient-bg);
+		background-clip: text;
+		--webkit-background-clip: text;
+		color: transparent;
+	}
+}
+
+@media (prefers-color-scheme: dark) {
+	#appBar {
+		background: rgb(var(--card-color));
+		color: rgb(var(--content-color));
+	}
+
+	#fab {
+		background: var(--gradient-bg);
+		color: var(--gradient-bg-text);
+	}
+
+	#fab path {
+		stroke: currentColor;
+	}
+
+	@supports (background-clip: text) {
+		#fab span {
+			background: var(--gradient-bg-text);
+			background-clip: text;
+			--webkit-background-clip: text;
+		}
+	}
+}
