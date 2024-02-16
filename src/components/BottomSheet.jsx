@@ -61,12 +61,16 @@ export function BottomSheet({ peekSize = 0, children }) {
 	};
 
 	useEffect(() => {
-		Keyboard.setAccessoryBarVisible({
-			isVisible: false,
-		});
-		Keyboard.setResizeMode({
-			mode: "none",
-		});
+		try {
+			Keyboard.setAccessoryBarVisible({
+				isVisible: false,
+			});
+			Keyboard.setResizeMode({
+				mode: "none",
+			});
+		} catch (error) {
+			//
+		}
 	}, []);
 
 	return (

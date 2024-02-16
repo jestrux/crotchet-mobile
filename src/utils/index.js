@@ -80,6 +80,10 @@ export const objectAsLabelValue = (object) => {
 	return Object.entries(object).map(([label, value]) => ({ label, value }));
 };
 
+export const shuffle = (array) => {
+	return [...array].sort(() => Math.random() - 0.5);
+};
+
 export const camelCaseToSentenceCase = (text) => {
 	if (!text || !text.length) return "";
 	const result = text.replace(/([A-Z]{1,})/g, " $1");

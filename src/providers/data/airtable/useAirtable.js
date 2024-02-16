@@ -219,6 +219,18 @@ const processAirtableData = ({ data = [], limit = 500, first }) => {
 	return data.slice(0, limit);
 };
 
+export const airtableFetcher = async (props) => {
+	const airtableInstance = new AirtableService({
+		table: props.table,
+		appContext: props.appContext,
+	});
+
+	return await airtableInstance.fetch({
+		filters: props.filters,
+		orderBy: props.orderBy,
+	});
+};
+
 export function useAirtableFetch({
 	table,
 	cacheKey,

@@ -1,7 +1,7 @@
 import { Fragment, useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
-import { useAirtableMutation } from "@/providers/airtable/useAirtable";
+import { useAirtableMutation } from "@/providers/data/airtable/useAirtable";
 import { useAppContext } from "@/providers/app";
 import { formatDate } from "@/utils";
 

@@ -136,7 +136,7 @@ const Toner = () => {
 	};
 };
 
-const TimerWidget = ({ widget }) => {
+const TimerWidget = () => {
 	const introTone = ["F4", "G4", "A4", "B4", "C5"];
 	const outroTone = ["G2", "A2", "B2", "C3"].reverse();
 
@@ -149,13 +149,12 @@ const TimerWidget = ({ widget }) => {
 		current: { play: playTone },
 	} = useRef(Toner());
 	const [duration, setDuration] = useState(15);
-	const { progress, value, runInterval, cancelInterval, reset } =
-		useIntervalWithPercent(
-			() => {
-				handleReset(reset);
-			},
-			{ delay: duration * 1000, autoStart: false }
-		);
+	const { progress, value, runInterval, reset } = useIntervalWithPercent(
+		() => {
+			handleReset(reset);
+		},
+		{ delay: duration * 1000, autoStart: false }
+	);
 
 	const icon = (
 		// <svg

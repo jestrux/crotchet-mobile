@@ -148,15 +148,19 @@ export function BottomNav() {
 									  }
 							}
 						>
-							<div className="max-w-md mx-auto">
+							<div className="-mx-1">
 								{dragRatio ? (
-									<div className="w-full h-12 px-5 rounded-full border-2 border-content/10 bg-transparent placeholder:text-content/30"></div>
+									<div className="w-full flex items-center h-12 px-5 rounded-full border border-content/5 bg-content/5 text-xl/none placeholder:text-content/30">
+										<span className="text-content/30">
+											Type to search...
+										</span>
+									</div>
 								) : (
 									!collapsed && (
 										<input
 											autoFocus
 											type="search"
-											className="w-full h-12 px-5 rounded-full border-2 border-content/10 bg-transparent placeholder:text-content/30"
+											className="w-full h-12 px-5 rounded-full border border-content/5 bg-content/5 text-xl/none placeholder:text-content/30 focus:outline-none"
 											placeholder="Type to search..."
 										/>
 									)

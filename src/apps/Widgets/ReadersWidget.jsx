@@ -15,7 +15,7 @@ import { Clipboard } from "@capacitor/clipboard";
 import { Toast } from "@capacitor/toast";
 import { Preferences } from "@capacitor/preferences";
 
-import { db } from "@/providers/firebase";
+import { db } from "@/providers/data/firebase";
 import DragDropList from "@/components/DragDropList";
 import Loader from "@/components/Loader";
 import Widget from "@/components/Widget";

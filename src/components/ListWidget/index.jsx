@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { useAirtableFetch } from "@/providers/airtable/useAirtable";
+import { useAirtableFetch } from "@/providers/data/airtable/useAirtable";
 // import useLocalStorageState from "@/hooks/useLocalStorageState";
 
 import Loader from "@/components/Loader";
