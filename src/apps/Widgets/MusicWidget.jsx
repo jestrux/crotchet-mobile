@@ -319,7 +319,7 @@ const MusicWidget = () => {
 							</p>
 						</div> */}
 
-						<div className="mt-4 flex items-center font-semibold gap-1">
+						<div className="mt-4 flex items-center justify-center flex-wrap font-semibold gap-2">
 							<button
 								className="uppercase bg-gradient-to-br from-green-300 to-yellow-300 text-black text-xs py-3 px-5 rounded-full flex items-center justify-center"
 								onClick={() => handleSetMood("Chill")}

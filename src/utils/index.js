@@ -34,6 +34,19 @@ export const formatDate = (
 	return value;
 };
 
+export const toHms = (number) => {
+	const sec_num = parseInt(number, 10); // don't forget the second param
+	let hrs = Math.floor(sec_num / 3600);
+	let mins = Math.floor((sec_num - hrs * 3600) / 60);
+	let secs = sec_num - hrs * 3600 - mins * 60;
+
+	return [
+		...(hrs > 0 ? [hrs.toString().padStart(2, "0")] : []),
+		mins.toString().padStart(2, "0"),
+		secs.toString().padStart(2, "0"),
+	].join(":");
+};
+
 export const simulateClick = (cb) => {
 	const btn = document.createElement("button");
 	btn.innerText = "Button";

@@ -1,26 +1,158 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Widget from "@/components/Widget";
 import { useIntervalWithPercent } from "@/hooks/useInterval";
+import { toHms } from "@/utils";
 
-const toHms = (number) => {
-	const sec_num = parseInt(number, 10); // don't forget the second param
-	let hrs = Math.floor(sec_num / 3600);
-	let mins = Math.floor((sec_num - hrs * 3600) / 60);
-	let secs = sec_num - hrs * 3600 - mins * 60;
+// https://developer.mozilla.org/en-US/play
+const Toner = () => {
+	const tones = {
+		A0: 27.5,
+		"A#0": 29.13523509488062,
+		B0: 30.867706328507754,
+		C1: 32.70319566257483,
+		"C#1": 34.64782887210901,
+		D1: 36.70809598967595,
+		"D#1": 38.890872965260115,
+		E1: 41.20344461410874,
+		F1: 43.653528929125486,
+		"F#1": 46.2493028389543,
+		G1: 48.99942949771866,
+		"G#1": 51.91308719749314,
+		A1: 55,
+		"A#1": 58.27047018976124,
+		B1: 61.735412657015516,
+		C2: 65.40639132514966,
+		"C#2": 69.29565774421802,
+		D2: 73.4161919793519,
+		"D#2": 77.78174593052023,
+		E2: 82.40688922821748,
+		F2: 87.30705785825097,
+		"F#2": 92.4986056779086,
+		G2: 97.99885899543732,
+		"G#2": 103.82617439498628,
+		A2: 110,
+		"A#2": 116.54094037952248,
+		B2: 123.47082531403103,
+		C3: 130.8127826502993,
+		"C#3": 138.59131548843604,
+		D3: 146.8323839587038,
+		"D#3": 155.56349186104046,
+		E3: 164.81377845643496,
+		F3: 174.61411571650194,
+		"F#3": 184.9972113558172,
+		G3: 195.99771799087463,
+		"G#3": 207.65234878997256,
+		A3: 220,
+		"A#3": 233.08188075904496,
+		B3: 246.94165062806206,
+		C4: 261.6255653005986,
+		"C#4": 277.1826309768721,
+		D4: 293.6647679174076,
+		"D#4": 311.1269837220809,
+		E4: 329.6275569128699,
+		F4: 349.2282314330039,
+		"F#4": 369.9944227116344,
+		G4: 391.99543598174927,
+		"G#4": 415.3046975799451,
+		A4: 440,
+		"A#4": 466.1637615180899,
+		B4: 493.8833012561241,
+		C5: 523.2511306011972,
+		"C#5": 554.3652619537442,
+		D5: 587.3295358348151,
+		"D#5": 622.2539674441618,
+		E5: 659.2551138257398,
+		F5: 698.4564628660078,
+		"F#5": 739.9888454232688,
+		G5: 783.9908719634985,
+		"G#5": 830.6093951598903,
+		A5: 880,
+		"A#5": 932.3275230361799,
+		B5: 987.7666025122483,
+		C6: 1046.5022612023945,
+		"C#6": 1108.7305239074883,
+		D6: 1174.6590716696303,
+		"D#6": 1244.5079348883237,
+		E6: 1318.5102276514797,
+		F6: 1396.9129257320155,
+		"F#6": 1479.9776908465376,
+		G6: 1567.981743926997,
+		"G#6": 1661.2187903197805,
+		A6: 1760,
+		"A#6": 1864.6550460723597,
+		B6: 1975.5332050244965,
+		C7: 2093.004522404789,
+		"C#7": 2217.4610478149766,
+		D7: 2349.3181433392606,
+		"D#7": 2489.0158697766474,
+		E7: 2637.0204553029594,
+		F7: 2793.825851464031,
+		"F#7": 2959.955381693075,
+		G7: 3135.963487853994,
+		"G#7": 3322.437580639561,
+		A7: 3520,
+		"A#7": 3729.3100921447194,
+		B7: 3951.066410048993,
+		C8: 4186.009044809578,
+	};
+	const audioContext = new AudioContext();
+	let mainGainNode = audioContext.createGain();
+	mainGainNode.connect(audioContext.destination);
+	mainGainNode.gain.value = 0.2;
 
-	return [
-		...(hrs > 0 ? [hrs.toString().padStart(2, "0")] : []),
-		mins.toString().padStart(2, "0"),
-		secs.toString().padStart(2, "0"),
-	].join(":");
+	const sineTerms = new Float32Array([0, 0, 1, 0, 1]);
+	const cosineTerms = new Float32Array(sineTerms.length);
+	const customWaveform = audioContext.createPeriodicWave(
+		cosineTerms,
+		sineTerms
+	);
+
+	const playTone = (freq) => {
+		const osc = audioContext.createOscillator();
+		osc.connect(mainGainNode);
+		// osc.type = "triangle";
+		osc.setPeriodicWave(customWaveform);
+
+		osc.frequency.value = freq;
+		osc.start();
+
+		return new Promise((res) => {
+			setTimeout(() => {
+				osc.stop();
+				res();
+			}, 100);
+		});
+	};
+
+	return {
+		play: async (notes) => {
+			for (const note of notes) {
+				await playTone(tones[note]);
+			}
+			// tones.forEach(element => {
+
+			// });
+		},
+	};
 };
 
 const TimerWidget = ({ widget }) => {
-	const [duration, setDuration] = useState(30);
+	const introTone = ["F4", "G4", "A4", "B4", "C5"];
+	const outroTone = ["G2", "A2", "B2", "C3"].reverse();
+
+	const handleReset = (reset) => {
+		reset();
+		playTone(outroTone);
+	};
+
+	const {
+		current: { play: playTone },
+	} = useRef(Toner());
+	const [duration, setDuration] = useState(15);
 	const { progress, value, runInterval, cancelInterval, reset } =
 		useIntervalWithPercent(
 			() => {
-				reset();
+				handleReset(reset);
 			},
 			{ delay: duration * 1000, autoStart: false }
 		);
@@ -67,7 +199,10 @@ const TimerWidget = ({ widget }) => {
 					),
 					label: "Start timer",
 					// fixed: false,
-					onClick: runInterval,
+					onClick: () => {
+						playTone(introTone);
+						runInterval();
+					},
 			  }
 			: {
 					icon: (
@@ -85,7 +220,7 @@ const TimerWidget = ({ widget }) => {
 					),
 					label: "Stop timer",
 					// fixed: false,
-					onClick: reset,
+					onClick: () => handleReset(reset),
 			  },
 	];
 
@@ -113,7 +248,7 @@ const TimerWidget = ({ widget }) => {
 				</div>
 
 				<div className="mb-3 px-5 border-t border-content/20 mt-3 pt-4 grid grid-cols-2 gap-2">
-					{[30, 60, 300, 600, 900, 1800].map((dur) => {
+					{[15, 30, 60, 300, 600, 900, 1800].map((dur) => {
 						return (
 							<button
 								key={dur}

@@ -77,7 +77,7 @@ const Widget = ({
 									<button
 										title={action.label}
 										key={index}
-										className="focus:outline-none w-6 h-6 border border-content/10 bg-content/10 dark:bg-content/15 transition-colors rounded-full flex items-center justify-center"
+										className="focus:outline-none w-6 h-6 border border-content/10 bg-content/5 dark:bg-content/15 transition-colors rounded-full flex items-center justify-center"
 										onClick={() =>
 											handleActionClick(action)
 										}
