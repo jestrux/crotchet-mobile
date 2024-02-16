@@ -1,8 +1,9 @@
 "use client";
 
 import { clsx } from "clsx";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { Keyboard } from "@capacitor/keyboard";
 
 export function BottomSheet({ peekSize = 0, children }) {
 	const maxHeight = Math.min(window.innerHeight * 0.9, 700);
@@ -25,11 +26,11 @@ export function BottomSheet({ peekSize = 0, children }) {
 		drag: "y",
 		dragConstraints: wrapper,
 		dragElastic: {
-			top: collapsed ? 0.1 : false,
-			bottom: 0.1,
+			top: collapsed ? 0.5 : false,
+			bottom: !collapsed ? 0.5 : 0.1,
 		},
 		dragTransition: {
-			bounceDamping: 500,
+			bounceDamping: 10000,
 			bounceStiffness: 10000,
 		},
 		onDrag: (_, info) => {
@@ -59,6 +60,15 @@ export function BottomSheet({ peekSize = 0, children }) {
 		},
 	};
 
+	useEffect(() => {
+		Keyboard.setAccessoryBarVisible({
+			isVisible: false,
+		});
+		Keyboard.setResizeMode({
+			mode: "none",
+		});
+	}, []);
+
 	return (
 		<>
 			<motion.div
@@ -81,11 +91,14 @@ export function BottomSheet({ peekSize = 0, children }) {
 
 			<motion.div
 				ref={wrapper}
-				className="fixed inset-x-0  bottom-0 flex items-end z-50 pointer-events-none"
+				className="fixed inset-x-0 bottom-0 flex items-end z-50 pointer-events-none"
 				animate={collapsedTransform}
 				initial={collapsedTransform}
 				transition={{
-					y: { bounce: 0, duration: 0.2 },
+					y: {
+						bounce: 0.5,
+						duration: 0.1,
+					},
 				}}
 			>
 				<motion.div
