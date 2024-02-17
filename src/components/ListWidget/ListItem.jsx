@@ -4,38 +4,53 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useAirtableMutation } from "@/providers/data/airtable/useAirtable";
 import { useAppContext } from "@/providers/app";
 import { formatDate } from "@/utils";
+import { Clipboard } from "@capacitor/clipboard";
 
-export const _parse = function (text, data) {
-	if (!text?.length) return "";
-
-	let parsedText = text.split("::").map((t) => {
+export const _format = function (data, t) {
+	try {
 		t = t.trim();
 		let [text, format] = t.split("|").map((t) => t.trim());
 		text = _get(data, text);
 
 		if (format === "date") return formatDate(text);
 
+		if (format === "cleanString")
+			return text.replaceAll("-", " ").replaceAll("_", " ");
+
 		return text;
+	} catch (error) {
+		//
+	}
+};
+
+export const _parse = function (text, data) {
+	if (!text?.length) return "";
+
+	let parsedText = text.split("::").map((t) => {
+		return _format(data, t);
 	});
 
 	return parsedText;
 };
 
-export const _get = function (o, s) {
-	if (!o || !s) return null;
+export const _get = function (o, _s) {
+	if (!o || !_s) return null;
 
-	s = s.replace(/\[(\w+)\]/g, ".$1"); // convert indexes to properties
+	let s = _s.replace(/\[(\w+)\]/g, ".$1"); // convert indexes to properties
 	s = s.replace(/^\./, ""); // strip a leading dot
 	var a = s.split(".");
+	var matched = false;
 	for (var i = 0, n = a.length; i < n; ++i) {
 		var k = a[i];
 		if (k in o) {
 			o = o[k];
+			matched = true;
 		} else {
 			return;
 		}
 	}
-	return o;
+
+	return matched ? o : _s;
 };
 
 const Status = ({ status }) => {
@@ -176,13 +191,14 @@ const Progress = ({ value }) => {
 const ListItem = ({
 	table,
 	data,
+	icon = "icon",
 	image = "image",
 	title = "title",
 	subtitle,
 	status,
 	// status = "status",
 	leading,
-	action,
+	action: _action,
 	progress,
 	// progress = "progress",
 	checkbox,
@@ -191,20 +207,34 @@ const ListItem = ({
 }) => {
 	const [removed, setRemoved] = useState(false);
 
-	image = _get(data, image);
-	title = _get(data, title);
+	icon = _get(data, icon);
+	image = _format(data, image);
+	title = _format(data, title);
 	subtitle = (_parse(subtitle, data) || []).filter((s) => s ?? false);
 	leading = _get(data, leading);
 	status = _get(data, status);
-	action = _get(data, action);
+	const action = _get(data, _action);
 	progress = _get(data, progress);
 
 	if (removed) return null;
 
+	const clickHandlerSet = typeof onClick == "function";
+	const actionIsCopy = _action && _action.indexOf("copy://") != -1;
+
+	const handleClick =
+		!clickHandlerSet && !actionIsCopy
+			? null
+			: clickHandlerSet
+			? onClick
+			: () =>
+					Clipboard.write({
+						string: _get(data, _action.replace("copy://", "")),
+					});
+
 	return (
 		<a
-			{...(onClick
-				? { onClick }
+			{...(handleClick
+				? { onClick: handleClick }
 				: !action?.length
 				? {}
 				: { href: action, target: "_blank" })}
@@ -219,26 +249,35 @@ const ListItem = ({
 				<Checkbox table={table} row={data} field={checkbox} />
 			)}
 
-			{image?.length && (
-				<img
-					className={`${
-						subtitle?.length && "mt-0.5s"
-					} mr-2 flex-shrink-0 bg-content/10 border border-content/10 rounded-full w-8 h-8 object-cover`}
-					src={image}
-					alt=""
+			{icon?.length ? (
+				<div
+					className="mr-2"
+					dangerouslySetInnerHTML={{ __html: icon }}
 				/>
+			) : (
+				image?.length && (
+					<img
+						className={`${
+							subtitle?.length && "mt-0.5s"
+						} mr-2 flex-shrink-0 bg-content/10 border border-content/10 rounded-full w-8 h-8 object-cover`}
+						src={image}
+						alt=""
+					/>
+				)
 			)}
 
 			<div className="flex-1 mr-3 min-w-0">
 				{title?.length > 0 && (
-					<h5 className="text-sm leading-none font-medium truncate mb-1.5">
+					<h5 className="text-sm leading-none font-medium truncate first-letter:capitalize">
 						{title}
 					</h5>
 				)}
 				{subtitle?.length > 0 && (
 					<p
 						className={`${
-							title?.length ? "text-xs opacity-60" : "text-sm"
+							title?.length
+								? "mt-1.5 text-xs opacity-60"
+								: "text-sm"
 						} leading-none truncate`}
 					>
 						{subtitle.map((s, i) => {

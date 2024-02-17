@@ -5,84 +5,147 @@ import { useEffect, useRef, useState } from "react";
 import { firebaseFetcher } from "./firebase/useFirebase";
 import { webFetcher } from "./web/useWeb";
 import { airtableFetcher } from "./airtable/useAirtable";
-import { loadDb, sqlFetcher } from "./sql";
+import CrotchetCrawler from "./crawler";
+import CrotchetSQL from "./sql";
 
-export const dataSources = {
+export const dataSource = {
 	web: ({
 		url,
-		body = {},
 		bearerToken,
 		responseType = "json",
 		responseField,
+		searchParam = "q",
+		params = {},
+		headers,
+		filters,
+		search,
+		...otherProps
 	} = {}) => {
 		return {
 			provider: "web",
 			url,
-			body,
 			bearerToken,
 			responseType,
 			responseField,
+			searchParam,
+			filters,
+			headers,
+			params,
+			search,
+			...(otherProps || {}),
 		};
 	},
-	airtable: ({ table, filters, orderBy = "created_at|asc" } = {}) => {
+	airtable: ({
+		table,
+		filters,
+		orderBy = "created_at|asc",
+		search,
+		...otherProps
+	} = {}) => {
 		return {
 			provider: "airtable",
 			table,
 			filters,
 			orderBy,
+			search,
+			...(otherProps || {}),
 		};
 	},
-	firebase: ({ collection, orderBy } = {}) => {
+	firebase: ({ collection, orderBy, search, ...otherProps } = {}) => {
 		return {
 			provider: "firebase",
 			collection,
 			orderBy,
+			search,
+			...(otherProps || {}),
 		};
 	},
-	sql: ({
-		dbUrl = "https://firebasestorage.googleapis.com/v0/b/letterplace-c103c.appspot.com/o/dev.db?alt=media&token=9493e08d-9b41-4760-8d86-20be77393280",
-		query,
-	} = {}) => {
+	sql: ({ dbUrl, query, search, ...otherProps } = {}) => {
 		return {
 			provider: "sql",
 			dbUrl,
 			query,
+			search,
+			...(otherProps || {}),
+		};
+	},
+	crawler: ({
+		url,
+		query,
+		searchable,
+		searchableFields,
+		search,
+		...otherProps
+	} = {}) => {
+		return {
+			provider: "crawler",
+			url,
+			query,
+			searchable,
+			searchableFields,
+			search,
+			...(otherProps || {}),
+		};
+	},
+	crotchet: (name, { q, filters, search, ...otherProps } = {}) => {
+		return {
+			provider: "crotchet",
+			name,
+			q,
+			filters,
+			search,
+			...(otherProps || {}),
 		};
 	},
 };
 
-export default function useDataFetch({
+export function dataSourceProviders(source, appContext = { user: {} }) {
+	return {
+		airtable: () => airtableFetcher({ ...source, appContext }),
+		firebase: () => firebaseFetcher(source),
+		web: () => webFetcher(source),
+		sql: ({ query } = {}) =>
+			new CrotchetSQL(source).exec(query || source.query),
+		crawler: ({ query } = {}) =>
+			new CrotchetCrawler(source).match(query || source.query),
+	}[source.provider];
+}
+
+export function useDataFetch({
+	inSearch,
 	source,
+	q,
+	filters,
 	limit = 100,
 	first = false,
 	shuffle: shuffleData,
 }) {
-	const dbRef = useRef();
-	const [data, setData] = useState(null);
 	const appContext = useAppContext();
-	const processors = {
-		airtable: () => airtableFetcher({ ...source, appContext }),
-		firebase: () => firebaseFetcher(source),
-		web: () => webFetcher(source),
-		sql: async () => {
-			let db = dbRef.current;
-			if (!db) {
-				const res = await loadDb(source.dbUrl);
-				dbRef.current = res;
-				db = res;
-			}
-
-			return sqlFetcher({ ...source, db });
-		},
+	const crotchetDataSource = appContext.dataSources?.[source?.name];
+	const crotchetProvider = inSearch
+		? crotchetDataSource?.searchHandler || crotchetDataSource?.handler
+		: crotchetDataSource?.handler;
+	const processedSource = {
+		...(source?.provider == "crotchet" && crotchetDataSource
+			? crotchetDataSource
+			: {}),
+		...source,
 	};
+
+	const sourceProviderRef = useRef(
+		source?.provider == "crotchet"
+			? crotchetProvider ?? (() => [])
+			: dataSourceProviders(source, appContext)
+	);
+	const [data, setData] = useState(null);
 
 	const query = useMutation({
 		mutationKey: [],
-		mutationFn: processors[source.provider],
+		mutationFn: sourceProviderRef.current,
 	});
 
 	const handleFetch = async () => {
-		let res = await query.mutateAsync();
+		let res = await query.mutateAsync({ ...processedSource, q, filters });
 
 		if (res?.length && shuffleData) res = doShuffle(res);
 
@@ -99,10 +162,12 @@ export default function useDataFetch({
 
 	useEffect(() => {
 		handleFetch();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	return {
 		...query,
+		fieldMap: processedSource.fieldMap,
 		data: processData(data),
 		isLoading: query.isLoading || query.isRefetching,
 		shuffle: () => setData(doShuffle(doShuffle(data))),

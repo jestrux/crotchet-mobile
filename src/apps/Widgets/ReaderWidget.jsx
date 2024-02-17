@@ -1,6 +1,6 @@
 import Loader from "@/components/Loader";
 import Widget from "@/components/Widget";
-import { dataSources } from "@/providers/data";
+import { dataSource } from "@/providers/data";
 import DataFetcher from "@/providers/data/DataFetcher";
 
 export default function ReaderWidget() {
@@ -32,7 +32,7 @@ export default function ReaderWidget() {
 
 	return (
 		<DataFetcher
-			source={dataSources.firebase({
+			source={dataSource.firebase({
 				collection: "reader",
 				orderBy: "index,desc",
 			})}

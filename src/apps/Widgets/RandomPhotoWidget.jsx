@@ -1,6 +1,6 @@
 import Loader from "@/components/Loader";
 import Widget from "@/components/Widget";
-import { dataSources } from "@/providers/data";
+import { dataSource } from "@/providers/data";
 import DataFetcher from "@/providers/data/DataFetcher";
 
 export default function RandomPhotoWidget() {
@@ -29,21 +29,7 @@ export default function RandomPhotoWidget() {
 	});
 
 	return (
-		<DataFetcher
-			source={dataSources.web({
-				// url: "https://api.unsplash.com/search/photos",
-				url: "https://api.unsplash.com/photos/random",
-				body: {
-					client_id: import.meta.env.VITE_unsplashClientId,
-					count: 24,
-					// query: "girl",
-					// per_page: 24,
-				},
-				// responseField: "results",
-			})}
-			first
-			shuffle
-		>
+		<DataFetcher source={dataSource.crotchet("unsplash")} first shuffle>
 			{({ data, isLoading, shuffle }) => {
 				if (isLoading) {
 					return (

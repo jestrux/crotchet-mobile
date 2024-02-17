@@ -1,16 +1,15 @@
-import Loader from "../Loader";
-import Widget from "../Widget";
-import ListItem from "./ListItem";
+import Loader from "./Loader";
+import Widget from "./Widget";
+import ListItem from "./ListWidget/ListItem";
+import DataFetcher from "@/providers/data/DataFetcher";
 
-export default function GenericListWidget({
+function DataWidgetContent({
 	data,
 	isLoading,
 	refetch = () => {},
 	widgetProps,
 	children,
-	image,
-	title,
-	subtitle,
+	fieldMap = {},
 	...props
 }) {
 	let content = (
@@ -31,12 +30,8 @@ export default function GenericListWidget({
 							<ListItem
 								key={index}
 								data={entry}
-								{...{
-									image,
-									title,
-									subtitle,
-									...props,
-								}}
+								{...fieldMap}
+								{...props}
 							/>
 						))}
 					</div>
@@ -49,4 +44,15 @@ export default function GenericListWidget({
 			{content}
 		</Widget>
 	);
+}
+
+export default function DataWidget({ source, ...props }) {
+	if (source) {
+		return (
+			<DataFetcher source={source} {...props}>
+				<DataWidgetContent {...props} />
+			</DataFetcher>
+		);
+	}
+	return <DataWidgetContent {...props} />;
 }

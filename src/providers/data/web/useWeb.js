@@ -4,21 +4,28 @@ import { useRef } from "react";
 
 export const webFetcher = ({
 	url,
-	body = {},
 	bearerToken,
 	responseType = "json",
 	responseField,
+	searchParam = "q",
+	q,
+	filters = {},
+	headers = {},
+	params = {},
 }) => {
 	const fetchHeaders = {
 		Accept: "application/json",
 		"Content-Type": "application/json",
 		Authorization: `Bearer ${bearerToken}`,
+		...headers,
 	};
 
 	let fullUrl = new URL(url);
 	try {
-		Object.entries(body).forEach(([key, value]) =>
-			fullUrl.searchParams.append(key, value)
+		Object.entries({ ...params, [searchParam]: q, ...filters }).forEach(
+			([key, value]) => {
+				if (value != undefined) fullUrl.searchParams.append(key, value);
+			}
 		);
 	} catch (error) {
 		console.log("Error: ", error);

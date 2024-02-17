@@ -84,7 +84,7 @@ const App = () => {
 					<WidgetWrapper columnSpan={1}>
 						<Widget title="Airtable | Pings">
 							<DataFetcher
-								source={dataSources.airtable({
+								source={dataSource.airtable({
 									table: "pings",
 									filters: {
 										recepient_name: user.name,
@@ -115,7 +115,7 @@ const App = () => {
 					<WidgetWrapper columnSpan={1}>
 						<Widget title="Firebase - YT Clips">
 							<DataFetcher
-								source={dataSources.firebase({
+								source={dataSource.firebase({
 									collection: "videos",
 									orderBy: "updatedAt,desc",
 								})}
@@ -145,7 +145,7 @@ const App = () => {
 					<WidgetWrapper columnSpan={1}>
 						<Widget title="Web - Unsplash">
 							<DataFetcher
-								source={dataSources.web({
+								source={dataSource.web({
 									// url: "https://api.unsplash.com/search/photos",
 									url: "https://api.unsplash.com/photos/random",
 									body: {
@@ -182,7 +182,7 @@ const App = () => {
 					<WidgetWrapper columnSpan={1}>
 						<Widget title="SQL - Renters">
 							<DataFetcher
-								source={dataSources.sql({
+								source={dataSource.sql({
 									query: "SELECT * from renter",
 								})}
 								first

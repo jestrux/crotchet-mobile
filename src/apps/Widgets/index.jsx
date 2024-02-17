@@ -5,13 +5,14 @@ import MusicWidget from "@/apps/Widgets/MusicWidget";
 import TimerWidget from "@/apps/Widgets/TimerWidget";
 import YtClipsWidget from "@/apps/Widgets/YtClipsWidget";
 import RandomPhotoWidget from "@/apps/Widgets/RandomPhotoWidget";
-import PingsWidget from "@/apps/Widgets/PingsWidget";
+import PinnedItemsWidget from "@/apps/Widgets/PinnedItemsWidget";
 import RentersWidget from "@/apps/Widgets/RentersWidget";
+import HeroIconsWidget from "./HeroIconsWidget";
 
 export default function Widgets() {
 	return (
 		<div className="p-3 grid items-start grid-cols-2 gap-3">
-			<WidgetWrapper aspectRatio={5 / 1} widget={PingsWidget} />
+			<WidgetWrapper aspectRatio={5 / 1} widget={PinnedItemsWidget} />
 
 			<WidgetWrapper
 				columnSpan="1"
@@ -37,11 +38,9 @@ export default function Widgets() {
 				widget={ReaderWidget}
 			/>
 
-			<WidgetWrapper
-				// columnSpan="1"
-				aspectRatio={2 / 1}
-				widget={MusicWidget}
-			/>
+			<WidgetWrapper aspectRatio={2 / 1} widget={HeroIconsWidget} />
+
+			<WidgetWrapper aspectRatio={2 / 1} widget={MusicWidget} />
 
 			<WidgetWrapper aspectRatio={2 / 1} widget={RentersWidget} />
 

@@ -1,22 +1,14 @@
-import { dataSources } from "@/providers/data";
-import DataFetcher from "@/providers/data/DataFetcher";
-import GenericListWidget from "../../components/ListWidget/GenericListWidget";
+import { dataSource } from "@/providers/data";
+import DataWidget from "../../components/DataWidget";
 
 export default function RentersWidget() {
 	return (
-		<DataFetcher
-			source={dataSources.sql({
-				query: "SELECT * from renter",
-			})}
-		>
-			<GenericListWidget
-				title="name"
-				subtitle="due_date|date"
-				widgetProps={{
-					icon: "user",
-					title: "Renters",
-				}}
-			/>
-		</DataFetcher>
+		<DataWidget
+			source={dataSource.crotchet("renters")}
+			widgetProps={{
+				icon: "user",
+				title: "Renters",
+			}}
+		/>
 	);
 }

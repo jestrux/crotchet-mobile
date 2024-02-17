@@ -1,5 +1,6 @@
 import { Children, cloneElement } from "react";
-import useDataFetch from ".";
+import { useDataFetch } from ".";
+import { useAppContext } from "../app";
 
 export default function DataFetcher({
 	children,
@@ -10,6 +11,15 @@ export default function DataFetcher({
 	first,
 	shuffle: shuffleData,
 }) {
+	const appContext = useAppContext();
+	const crotchetDataSource = appContext.dataSources?.[source?.name];
+	source = {
+		...(source?.provider == "crotchet" && crotchetDataSource
+			? crotchetDataSource
+			: {}),
+		...source,
+	};
+
 	const { isLoading, isPending, data, refetch, shuffle } = useDataFetch({
 		source,
 		limit,
@@ -18,19 +28,23 @@ export default function DataFetcher({
 	});
 
 	if (typeof children != "function") {
-		const mappedChildren = Children.map(children, (child) =>
-			cloneElement(child, {
+		const mappedChildren = Children.map(children, (child) => {
+			if (!child?.type) return null;
+
+			return cloneElement(child, {
+				fieldMap: source.fieldMap,
 				isLoading: isLoading || isPending,
 				data,
 				refetch,
 				shuffle,
-			})
-		);
+			});
+		});
 
 		return mappedChildren;
 	}
 
 	return children({
+		fieldMap: source.fieldMap,
 		isLoading: isLoading || isPending,
 		data,
 		refetch,

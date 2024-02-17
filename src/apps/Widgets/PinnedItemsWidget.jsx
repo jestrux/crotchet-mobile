@@ -2,7 +2,7 @@ import Widget from "@/components/Widget";
 import { useAppContext } from "@/providers/app";
 import { useAirtableFetch } from "@/providers/data/airtable/useAirtable";
 
-export default function PingsWidget() {
+export default function PinnedItemsWidget() {
 	const { user } = useAppContext();
 	const { data } = useAirtableFetch({
 		table: "pings",
@@ -14,7 +14,7 @@ export default function PingsWidget() {
 	return (
 		<Widget>
 			<div className="h-full flex items-center">
-				<div className="ml-1 mr-2 font-semibold">Recent pings</div>
+				<div className="ml-1 mr-2 font-semibold">Pinned items</div>
 				<div className="flex-1 flex justify-end items-center space-x-2">
 					{data?.map(({ sender_image }, i) => {
 						return (
