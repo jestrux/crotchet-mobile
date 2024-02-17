@@ -1,6 +1,9 @@
 import { Preferences } from "@capacitor/preferences";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import * as defaultDataSources from "./data/defaultDataSources";
+import * as defaultActions from "./actions/defaultActions";
+import { BottomSheet } from "@/components/BottomSheet";
+import { camelCaseToSentenceCase, randomId } from "@/utils";
 import { dataSourceProviders } from "./data";
 
 const STORE_KEY = "crotchet-app";
@@ -13,6 +16,10 @@ const AppContext = createContext({
 	// eslint-disable-next-line no-unused-vars
 	setPref: (key, value) => {},
 	dataSources: {},
+	actions: {},
+	bottomSheets: [],
+	// eslint-disable-next-line no-unused-vars
+	openBottomSheet: ({ title, content } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
 	registerDataSource: (name, source, version) => {},
 	user: {
@@ -89,10 +96,27 @@ const getDefaultDataSources = () => {
 	return sources;
 };
 
+const getDefaultActions = (appContextValue) => {
+	const actions = {};
+
+	Object.entries(defaultActions).forEach(([key, action]) => {
+		const { label, handler } = action(appContextValue);
+		actions[key] = {
+			_id: randomId(),
+			label: camelCaseToSentenceCase(label || key),
+			handler: (payload = {}) => handler(appContextValue, payload),
+		};
+	});
+
+	return actions;
+};
+
 export default function AppProvider({ children }) {
 	const [prefs, setPrefs] = useState();
+	const [bottomSheets, setBottomSheets] = useState([]);
 	const dataSourcesRef = useRef(getDefaultDataSources());
 	const dataSources = dataSourcesRef.current ?? {};
+	const actionsRef = useRef();
 	const registerDataSource = (name, source) => {
 		dataSourcesRef.current[name] = registerSingleSource(
 			dataSourcesRef.current,
@@ -124,28 +148,66 @@ export default function AppProvider({ children }) {
 		});
 	};
 
+	const openBottomSheet = (sheet) => {
+		setBottomSheets((sheets) => [...sheets, { ...sheet, _id: randomId() }]);
+	};
+
 	if (!prefs) return null;
+
+	const appContextValue = {
+		prefs,
+		setPref,
+		currentPage: prefs.currentPage ?? "home",
+		setCurrentPage: (page) => setPref("currentPage", page),
+		dataSources,
+		registerDataSource,
+		bottomSheets,
+		openBottomSheet,
+		user: {
+			name: "Walter Kimaro",
+			email: "wakyj07@gmail.com",
+			preferences: {
+				wallpaper: false,
+				simpleGrid: false,
+			},
+		},
+	};
+
+	if (!actionsRef.current) {
+		actionsRef.current = getDefaultActions(appContextValue);
+	}
 
 	return (
 		<AppContext.Provider
-			value={{
-				prefs,
-				setPref,
-				currentPage: prefs.currentPage ?? "home",
-				setCurrentPage: (page) => setPref("currentPage", page),
-				dataSources,
-				registerDataSource,
-				user: {
-					name: "Walter Kimaro",
-					email: "wakyj07@gmail.com",
-					preferences: {
-						wallpaper: false,
-						simpleGrid: false,
-					},
-				},
-			}}
+			value={{ ...appContextValue, actions: actionsRef.current }}
 		>
 			{children}
+
+			{bottomSheets.map((sheet) => (
+				<BottomSheet
+					key={sheet._id}
+					open
+					title={bottomSheets[0].title}
+					peekSize={40}
+					onClose={() =>
+						setTimeout(() => {
+							setBottomSheets((sheets) =>
+								sheets.filter((s) => s._id != sheet._id)
+							);
+						}, 50)
+					}
+				>
+					{({ maxHeight }) => (
+						<div
+							style={{
+								minHeight: maxHeight * 0.5 + "px",
+							}}
+						>
+							{bottomSheets[0].content}
+						</div>
+					)}
+				</BottomSheet>
+			))}
 		</AppContext.Provider>
 	);
 }

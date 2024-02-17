@@ -5,10 +5,19 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Keyboard } from "@capacitor/keyboard";
 
-export function BottomSheet({ peekSize = 0, children }) {
+export function BottomSheet({
+	hidden,
+	open,
+	title,
+	peekSize = 0,
+	children,
+	onClose = () => {},
+}) {
 	const maxHeight = Math.min(window.innerHeight * 0.9, 700);
 	const [dragRatio, setDragRatio] = useState(0);
-	const [collapsed, setCollapsed] = useState(true);
+	const [_collapsed, setCollapsed] = useState(!open);
+	const collapsed = _collapsed || hidden;
+	const initialized = useRef(null);
 	const wrapper = useRef(null);
 	const borderRadius = dragRatio
 		? 32 * (collapsed ? dragRatio : 1 - dragRatio)
@@ -61,6 +70,20 @@ export function BottomSheet({ peekSize = 0, children }) {
 	};
 
 	useEffect(() => {
+		const parent = document.querySelector("#crotchetAppWrapper");
+		if (parent) {
+			parent.style.overflow = collapsed ? "" : "hidden";
+		}
+
+		if (!initialized.current) {
+			initialized.current = true;
+			return;
+		}
+
+		if (collapsed) onClose();
+	}, [collapsed]);
+
+	useEffect(() => {
 		try {
 			Keyboard.setAccessoryBarVisible({
 				isVisible: false,
@@ -91,6 +114,10 @@ export function BottomSheet({ peekSize = 0, children }) {
 						: 1,
 				}}
 				onClick={() => setCollapsed(true)}
+				onScroll={(e) => {
+					console.log("Scroll: ", e);
+					e.stopPropagation();
+				}}
 			/>
 
 			<motion.div
@@ -107,7 +134,7 @@ export function BottomSheet({ peekSize = 0, children }) {
 			>
 				<motion.div
 					className={clsx(
-						"relative pointer-events-auto focus:outline-none w-full backdrop-blur",
+						"relative pointer-events-auto focus:outline-none w-full backdrop-blur overflow-hidden",
 						collapsed
 							? "bg-stone-100/85 dark:bg-card/85"
 							: "bg-stone-100/90 dark:bg-card/90"
@@ -118,14 +145,23 @@ export function BottomSheet({ peekSize = 0, children }) {
 					}}
 					{...dragDetails}
 				>
-					{typeof children == "function"
-						? children({
-								dragRatio,
-								collapsed,
-								expand: () => setCollapsed(false),
-								collapse: () => setCollapsed(true),
-						  })
-						: children}
+					{title && (
+						<h3 className="text-lg font-bold mt-6 mb-1 px-5">
+							{title}
+						</h3>
+					)}
+
+					<div>
+						{typeof children == "function"
+							? children({
+									maxHeight,
+									dragRatio,
+									collapsed,
+									expand: () => setCollapsed(false),
+									collapse: () => setCollapsed(true),
+							  })
+							: children}
+					</div>
 				</motion.div>
 			</motion.div>
 		</>

@@ -4,23 +4,74 @@ import { motion } from "framer-motion";
 import { clsx } from "clsx";
 import { BottomSheet } from "./BottomSheet";
 import { useAppContext } from "@/providers/app";
+import { useRef, useState } from "react";
+import Loader from "./Loader";
 
-export function BottomNav() {
-	const { currentPage, setCurrentPage } = useAppContext();
+const BottomNavAction = ({ action }) => {
+	const [loading, setLoading] = useState(false);
+	const handleClick = async () => {
+		setLoading(true);
+		await action.handler();
+		setLoading(false);
+	};
+
+	return (
+		<button
+			key={action._id}
+			onClick={handleClick}
+			className="w-full text-left outline:focus-none h-12 flex items-center gap-2 text-base leading-none"
+		>
+			{
+				<div className="w-5 flex-shrink-0">
+					<svg
+						className="mt-0.5 w-4 h-4 opacity-80"
+						fill="none"
+						viewBox="0 0 24 24"
+						strokeWidth={1.5}
+						stroke="currentColor"
+					>
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"
+						/>
+					</svg>
+				</div>
+			}
+			<div className="flex-1">{action.label}</div>
+
+			{loading && <Loader className="opacity-50" size={25} />}
+		</button>
+	);
+};
+
+export function BottomNav({ hidden }) {
+	const wrapperRef = useRef(null);
+	const { currentPage, setCurrentPage, actions } = useAppContext();
 	const navHeight = 56;
 
 	const activeClass =
 		"bg-content/5 dark:bg-content/10 border-content/5 dark:border-content/15 text-content";
 	const inActiveClass = "opacity-70 border-transparent";
 
+	const refocusInput = () => {
+		if (!wrapperRef.current) return;
+
+		console.log("Handle click...");
+		const input = wrapperRef.current.querySelector("#searchbar");
+		if (input) input.focus();
+	};
+
 	return (
 		<div
+			ref={wrapperRef}
 			className="sticky bottom-0 z-50"
 			style={{ height: navHeight + "px" }}
+			onClick={refocusInput}
 		>
-			<BottomSheet peekSize={navHeight}>
-				{({ collapsed, expand, dragRatio }) => (
-					<>
+			<BottomSheet hidden={hidden} peekSize={navHeight}>
+				{({ collapsed, expand, dragRatio, maxHeight }) => (
+					<div>
 						<motion.div
 							className={clsx(
 								"px-8 absolute top-0 inset-x-0 flex items-center justify-between gap-4",
@@ -128,11 +179,12 @@ export function BottomNav() {
 						</motion.div>
 
 						<motion.div
-							className={clsx("relative p-5 ", {
+							className={clsx("relative ", {
 								"pointer-events-none": collapsed,
 							})}
 							style={{
-								height: "800px",
+								height: Math.min(800, maxHeight) + "px",
+								overflow: "auto",
 							}}
 							animate={{
 								opacity: !collapsed
@@ -148,7 +200,7 @@ export function BottomNav() {
 									  }
 							}
 						>
-							<div className="-mx-1">
+							<div className="pt-5 px-4 sticky top-0 z-10 backdrop-blur">
 								{dragRatio ? (
 									<div className="w-full flex items-center h-12 px-5 rounded-full border border-content/5 bg-content/5 text-xl/none placeholder:text-content/30">
 										<span className="text-content/30">
@@ -158,6 +210,7 @@ export function BottomNav() {
 								) : (
 									!collapsed && (
 										<input
+											id="searchbar"
 											autoFocus
 											type="search"
 											className="w-full h-12 px-5 rounded-full border border-content/5 bg-content/5 text-xl/none placeholder:text-content/30 focus:outline-none"
@@ -166,8 +219,23 @@ export function BottomNav() {
 									)
 								)}
 							</div>
+
+							<div className="p-5">
+								<h3 className="mb-1 text-content/50">
+									Quick Actions
+								</h3>
+
+								{Object.entries(actions ?? {}).map(
+									([, action]) => (
+										<BottomNavAction
+											key={action._id}
+											action={action}
+										/>
+									)
+								)}
+							</div>
 						</motion.div>
-					</>
+					</div>
 				)}
 			</BottomSheet>
 		</div>

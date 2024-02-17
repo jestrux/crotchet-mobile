@@ -12,7 +12,7 @@ Reader-darwin-x64
 dist
 dist-ssr
 *.local
-src/assets/sql-wasm.wasm
+*.wasm
 
 # Editor directories and files
 .vscode/*

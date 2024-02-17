@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import clsx from "clsx";
 
 const App = () => {
-	const { currentPage } = useAppContext();
+	const { currentPage, bottomSheets } = useAppContext();
 	const listenForShare = async () => {
 		try {
 			const result = await SendIntent.checkSendIntentReceived();
@@ -38,6 +38,7 @@ const App = () => {
 
 	return (
 		<div
+			id="crotchetAppWrapper"
 			className="h-[100dvh] overflow-auto relative"
 			style={{
 				paddingTop: "env(safe-area-inset-top)",
@@ -209,7 +210,7 @@ const App = () => {
 				</div> */}
 			</div>
 
-			<BottomNav />
+			<BottomNav hidden={bottomSheets.length} />
 		</div>
 	);
 };
