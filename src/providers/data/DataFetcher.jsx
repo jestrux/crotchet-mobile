@@ -1,6 +1,7 @@
 import { Children, cloneElement } from "react";
 import { useDataFetch } from ".";
 import { useAppContext } from "../app";
+import Loader from "@/components/Loader";
 
 export default function DataFetcher({
 	children,
@@ -10,6 +11,9 @@ export default function DataFetcher({
 	limit = 500,
 	first,
 	shuffle: shuffleData,
+	contentOnly = false,
+	showLoader = false,
+	...props
 }) {
 	const appContext = useAppContext();
 	const crotchetDataSource = appContext.dataSources?.[source?.name];
@@ -25,10 +29,23 @@ export default function DataFetcher({
 		limit,
 		first,
 		shuffle: shuffleData,
+		...props,
 	});
 
+	if (contentOnly) {
+		if (isLoading && showLoader) {
+			return (
+				<div className="relative h-8 min-w-full min-h-full flex items-center justify-center">
+					<Loader scrimColor="transparent" size={25} />
+				</div>
+			);
+		}
+
+		if (!data) return null;
+	}
+
 	if (typeof children != "function") {
-		const mappedChildren = Children.map(children, (child) => {
+		return Children.map(children, (child) => {
 			if (!child?.type) return null;
 
 			return cloneElement(child, {
@@ -39,8 +56,6 @@ export default function DataFetcher({
 				shuffle,
 			});
 		});
-
-		return mappedChildren;
 	}
 
 	return children({

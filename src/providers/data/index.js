@@ -7,6 +7,7 @@ import { webFetcher } from "./web/useWeb";
 import { airtableFetcher } from "./airtable/useAirtable";
 import CrotchetCrawler from "./crawler";
 import CrotchetSQL from "./sql";
+import unsplashFetcher from "./unsplash";
 
 export const dataSource = {
 	web: ({
@@ -32,6 +33,21 @@ export const dataSource = {
 			headers,
 			params,
 			search,
+			...(otherProps || {}),
+		};
+	},
+	unsplash: (collection, { query, fieldMap, ...otherProps } = {}) => {
+		return {
+			provider: "unsplash",
+			collection,
+			query,
+			fieldMap: {
+				title: "alt_description",
+				subtitle: "description",
+				image: "urls.regular",
+				action: "copy://urls.regular",
+				...(fieldMap || {}),
+			},
 			...(otherProps || {}),
 		};
 	},
@@ -71,7 +87,7 @@ export const dataSource = {
 	},
 	crawler: ({
 		url,
-		query,
+		match,
 		searchable,
 		searchableFields,
 		search,
@@ -80,7 +96,7 @@ export const dataSource = {
 		return {
 			provider: "crawler",
 			url,
-			query,
+			match,
 			searchable,
 			searchableFields,
 			search,
@@ -103,11 +119,16 @@ export function dataSourceProviders(source, appContext = { user: {} }) {
 	return {
 		airtable: () => airtableFetcher({ ...source, appContext }),
 		firebase: () => firebaseFetcher(source),
+		unsplash: ({ query }) =>
+			unsplashFetcher({ ...source, query: query || source.query }),
 		web: () => webFetcher(source),
 		sql: ({ query } = {}) =>
 			new CrotchetSQL(source).exec(query || source.query),
-		crawler: ({ query } = {}) =>
-			new CrotchetCrawler(source).match(query || source.query),
+		crawler: ({ match, query } = {}) =>
+			new CrotchetCrawler(source).match(
+				match || source.match,
+				query || source.query
+			),
 	}[source.provider];
 }
 
@@ -119,6 +140,7 @@ export function useDataFetch({
 	limit = 100,
 	first = false,
 	shuffle: shuffleData,
+	...props
 }) {
 	const appContext = useAppContext();
 	const crotchetDataSource = appContext.dataSources?.[source?.name];
@@ -145,7 +167,12 @@ export function useDataFetch({
 	});
 
 	const handleFetch = async () => {
-		let res = await query.mutateAsync({ ...processedSource, q, filters });
+		let res = await query.mutateAsync({
+			...processedSource,
+			q,
+			filters,
+			...props,
+		});
 
 		if (res?.length && shuffleData) res = doShuffle(res);
 
@@ -153,7 +180,7 @@ export function useDataFetch({
 	};
 
 	const processData = (data) => {
-		if (!data?.length) return data;
+		if (!data?.length) return null;
 
 		if (first) return data[0];
 

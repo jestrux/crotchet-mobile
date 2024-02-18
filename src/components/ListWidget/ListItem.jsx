@@ -3,8 +3,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 
 import { useAirtableMutation } from "@/providers/data/airtable/useAirtable";
 import { useAppContext } from "@/providers/app";
-import { formatDate } from "@/utils";
-import { Clipboard } from "@capacitor/clipboard";
+import { formatDate, toHms } from "@/utils";
 
 export const _format = function (data, t) {
 	try {
@@ -13,6 +12,8 @@ export const _format = function (data, t) {
 		text = _get(data, text);
 
 		if (format === "date") return formatDate(text);
+
+		if (format === "time") return toHms(text);
 
 		if (format === "cleanString")
 			return text.replaceAll("-", " ").replaceAll("_", " ");
@@ -54,14 +55,29 @@ export const _get = function (o, _s) {
 };
 
 const Status = ({ status }) => {
+	const positive = [
+		"verified",
+		"approved",
+		"completed",
+		"complete",
+		"done",
+		"true",
+		1,
+		"1",
+	].includes(status);
+
+	const negative = ["blocked", "0", 0, false, "false"].includes(status);
+
+	const pending = ["in progress", "pending"].includes(status);
+
 	return (
 		<div
 			className={`
-			${status == "complete" && "bg-green-500 text-white"}
-			${status == "in progress" && "bg-yellow-300 text-black"}
-			${status == "blocked" && "bg-red-500 text-white"}
+			${positive && "bg-green-500 text-white"}
+			${pending && "bg-yellow-300 text-black"}
+			${negative && "bg-red-500 text-white"}
 			${
-				!["in progress", "complete", "blocked"].includes(status)
+				![positive, pending, negative].includes(true)
 					? "bg-content/5 dark:bg-content/10 border-content/10"
 					: "border-transparent"
 			}
@@ -197,7 +213,7 @@ const ListItem = ({
 	subtitle,
 	status,
 	// status = "status",
-	leading,
+	trailing,
 	action: _action,
 	progress,
 	// progress = "progress",
@@ -205,13 +221,14 @@ const ListItem = ({
 	removable,
 	onClick,
 }) => {
+	const { copyToClipboard, copyImage } = useAppContext();
 	const [removed, setRemoved] = useState(false);
 
 	icon = _get(data, icon);
 	image = _format(data, image);
 	title = _format(data, title);
 	subtitle = (_parse(subtitle, data) || []).filter((s) => s ?? false);
-	leading = _get(data, leading);
+	trailing = _format(data, trailing);
 	status = _get(data, status);
 	const action = _get(data, _action);
 	progress = _get(data, progress);
@@ -226,10 +243,12 @@ const ListItem = ({
 			? null
 			: clickHandlerSet
 			? onClick
-			: () =>
-					Clipboard.write({
-						string: _get(data, _action.replace("copy://", "")),
-					});
+			: async () => {
+					const field = _action.replace("copy://", "");
+					const value = _get(data, field);
+
+					value == image ? copyImage(value) : copyToClipboard(value);
+			  };
 
 	return (
 		<a
@@ -238,7 +257,7 @@ const ListItem = ({
 				: !action?.length
 				? {}
 				: { href: action, target: "_blank" })}
-			className={`group py-2 w-full text-left flex items-center relative`}
+			className={`lg:group py-2 w-full text-left flex items-center relative`}
 			rel="noreferrer"
 		>
 			{action?.length > 0 && (
@@ -306,7 +325,7 @@ const ListItem = ({
 				)}
 			</div>
 
-			<div className="self-stretch flex-shrink-0 ml-auto flex items-center">
+			<div className="self-stretch flex-shrink-0 ml-auto flex items-center gap-2">
 				{status?.toString().length && (
 					<div className="self-start">
 						<Status status={status} />
@@ -319,12 +338,12 @@ const ListItem = ({
 					</div>
 				)}
 
-				{leading?.toString().length && (
-					<span className="text-sm opacity-60">{leading}</span>
+				{trailing?.toString().length && (
+					<span className="text-sm opacity-60">{trailing}</span>
 				)}
 
 				{action?.toString().length > 0 &&
-					(action.indexOf("whatsapp") !== -1 ? (
+					(action.indexOf("whatsapp") !== -1 && !trailing ? (
 						<svg
 							fill="currentColor"
 							className="w-4 h-4 opacity-30 group-hover:opacity-60 transition"

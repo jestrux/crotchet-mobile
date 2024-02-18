@@ -4,6 +4,7 @@ import {
 	PlusCircleIcon,
 	PlusIcon,
 	ArrowPathIcon,
+	ListBulletIcon,
 } from "@heroicons/react/24/outline";
 import { PlayIcon, ShareIcon, UserCircleIcon } from "@heroicons/react/24/solid";
 import { useAppContext } from "@/providers/app";
@@ -17,6 +18,7 @@ const WidgetIcons = {
 	"add-circle": <PlusCircleIcon className="w-5" />,
 	search: <MagnifyingGlassIcon className="w-3.5" />,
 	user: <UserCircleIcon className="w-4" />,
+	list: <ListBulletIcon className="w-4" />,
 };
 
 const Widget = ({

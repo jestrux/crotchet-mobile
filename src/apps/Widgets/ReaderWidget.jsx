@@ -1,10 +1,17 @@
 import Loader from "@/components/Loader";
 import Widget from "@/components/Widget";
+import { useAppContext } from "@/providers/app";
 import { dataSource } from "@/providers/data";
 import DataFetcher from "@/providers/data/DataFetcher";
 
 export default function ReaderWidget() {
-	const widgetProps = ({ shuffle }) => ({
+	const { openPage } = useAppContext();
+	const source = dataSource.firebase({
+		collection: "reader",
+		orderBy: "index,desc",
+		action: "url",
+	});
+	const widgetProps = ({ shuffle, entry, isVideo }) => ({
 		noPadding: true,
 		// title: "Reader",
 		// icon: (
@@ -27,18 +34,33 @@ export default function ReaderWidget() {
 				icon: "shuffle",
 				onClick: shuffle,
 			},
+			{
+				icon: "list",
+				onClick() {
+					openPage({
+						title: entry.title,
+						subtitle: entry.description,
+						content: [
+							{
+								type: isVideo ? "video" : "image",
+								value: entry.image,
+								url: entry.url,
+							},
+							{
+								type: "data",
+								title: "All entries",
+								wrapped: false,
+								source,
+							},
+						],
+					});
+				},
+			},
 		],
 	});
 
 	return (
-		<DataFetcher
-			source={dataSource.firebase({
-				collection: "reader",
-				orderBy: "index,desc",
-			})}
-			shuffle
-			first
-		>
+		<DataFetcher source={source} shuffle first>
 			{({ data: entry, isLoading, shuffle }) => {
 				if (isLoading) {
 					return (
@@ -56,7 +78,7 @@ export default function ReaderWidget() {
 					entry.group.toLowerCase().indexOf("watch") != -1;
 
 				return (
-					<Widget {...widgetProps({ shuffle })}>
+					<Widget {...widgetProps({ shuffle, entry, isVideo })}>
 						<a
 							href={entry.url}
 							target="_blank"

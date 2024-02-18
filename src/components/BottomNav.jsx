@@ -57,7 +57,6 @@ export function BottomNav({ hidden }) {
 	const refocusInput = () => {
 		if (!wrapperRef.current) return;
 
-		console.log("Handle click...");
 		const input = wrapperRef.current.querySelector("#searchbar");
 		if (input) input.focus();
 	};

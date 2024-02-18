@@ -3,8 +3,16 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import * as defaultDataSources from "./data/defaultDataSources";
 import * as defaultActions from "./actions/defaultActions";
 import { BottomSheet } from "@/components/BottomSheet";
-import { camelCaseToSentenceCase, randomId } from "@/utils";
+import {
+	camelCaseToSentenceCase,
+	copyToClipboard,
+	copyImage,
+	randomId,
+	showToast,
+} from "@/utils";
 import { dataSourceProviders } from "./data";
+import GenericPage from "@/components/Pages/GenericPage";
+import SearchPage from "@/components/Pages/SearchPage";
 
 const STORE_KEY = "crotchet-app";
 
@@ -19,7 +27,11 @@ const AppContext = createContext({
 	actions: {},
 	bottomSheets: [],
 	// eslint-disable-next-line no-unused-vars
-	openBottomSheet: ({ title, content } = {}) => {},
+	openBottomSheet: ({ title, subtitle, content, fullHeight } = {}) => {},
+	// eslint-disable-next-line no-unused-vars
+	openPage: ({ image, title, subtitle, content = [], source } = {}) => {},
+	// eslint-disable-next-line no-unused-vars
+	openSearchPage: ({ title, source, placeholder } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
 	registerDataSource: (name, source, version) => {},
 	user: {
@@ -30,6 +42,14 @@ const AppContext = createContext({
 			simpleGrid: true,
 		},
 	},
+	// eslint-disable-next-line no-unused-vars
+	showToast: (message) => {},
+	// eslint-disable-next-line no-unused-vars
+	copyToClipboard: (content) => {},
+	// eslint-disable-next-line no-unused-vars
+	copyImage: (url) => {},
+	// eslint-disable-next-line no-unused-vars
+	actualSource: (source) => {},
 });
 
 export const useAppContext = () => {
@@ -99,8 +119,17 @@ const getDefaultDataSources = () => {
 const getDefaultActions = (appContextValue) => {
 	const actions = {};
 
-	Object.entries(defaultActions).forEach(([key, action]) => {
-		const { label, handler } = action(appContextValue);
+	Object.entries(defaultActions).forEach(([key, _action]) => {
+		const action = _action(appContextValue);
+
+		let label = key,
+			handler = action;
+
+		if (typeof action != "function") {
+			label = action.label;
+			handler = action.handler;
+		}
+
 		actions[key] = {
 			_id: randomId(),
 			label: camelCaseToSentenceCase(label || key),
@@ -148,9 +177,43 @@ export default function AppProvider({ children }) {
 		});
 	};
 
-	const openBottomSheet = (sheet) => {
-		setBottomSheets((sheets) => [...sheets, { ...sheet, _id: randomId() }]);
+	const openBottomSheet = ({ minHeight = 250, ...sheet }) => {
+		setBottomSheets((sheets) => [
+			...sheets,
+			{ ...sheet, minHeight, _id: randomId() },
+		]);
 	};
+
+	const openPage = ({
+		image,
+		title,
+		content,
+		source,
+		fullHeight = true,
+		type = "custom",
+		...props
+	}) => {
+		openBottomSheet({
+			...props,
+			image,
+			fullHeight,
+			dismissible: !fullHeight,
+			content:
+				type == "search" ? (
+					<SearchPage title={title} source={source} {...props} />
+				) : (
+					<GenericPage
+						image={image}
+						title={title}
+						content={content}
+						source={source}
+						{...props}
+					/>
+				),
+		});
+	};
+
+	const openSearchPage = (props) => openPage({ ...props, type: "search" });
 
 	if (!prefs) return null;
 
@@ -163,6 +226,8 @@ export default function AppProvider({ children }) {
 		registerDataSource,
 		bottomSheets,
 		openBottomSheet,
+		openPage,
+		openSearchPage,
 		user: {
 			name: "Walter Kimaro",
 			email: "wakyj07@gmail.com",
@@ -171,7 +236,19 @@ export default function AppProvider({ children }) {
 				simpleGrid: false,
 			},
 		},
+		showToast,
+		copyToClipboard,
+		copyImage,
 	};
+
+	if (!appContextValue.actualSource) {
+		appContextValue.actualSource = (source) => {
+			const crotchetDataSource = dataSources?.[source?.name];
+			return source?.provider == "crotchet" && crotchetDataSource
+				? crotchetDataSource
+				: source;
+		};
+	}
 
 	if (!actionsRef.current) {
 		actionsRef.current = getDefaultActions(appContextValue);
@@ -187,7 +264,7 @@ export default function AppProvider({ children }) {
 				<BottomSheet
 					key={sheet._id}
 					open
-					title={bottomSheets[0].title}
+					{...sheet}
 					peekSize={40}
 					onClose={() =>
 						setTimeout(() => {
@@ -197,15 +274,27 @@ export default function AppProvider({ children }) {
 						}, 50)
 					}
 				>
-					{({ maxHeight }) => (
+					{sheet.content}
+					{/* {({ maxHeight, collapse, ...props }) => (
 						<div
 							style={{
-								minHeight: maxHeight * 0.5 + "px",
+								minHeight: sheet.fullHeight
+									? maxHeight
+									: maxHeight * 0.5 + "px",
+								overflow: "auto",
 							}}
 						>
-							{bottomSheets[0].content}
+							{Children.map(sheet.content, (child) => {
+								if (!child?.type) return null;
+
+								return cloneElement(child, {
+									maxHeight,
+									collapse,
+									...props,
+								});
+							})}
 						</div>
-					)}
+					)} */}
 				</BottomSheet>
 			))}
 		</AppContext.Provider>

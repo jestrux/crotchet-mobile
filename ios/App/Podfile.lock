@@ -4,6 +4,8 @@ PODS:
   - CapacitorClipboard (5.0.7):
     - Capacitor
   - CapacitorCordova (5.6.0)
+  - CapacitorFilesystem (5.2.1):
+    - Capacitor
   - CapacitorKeyboard (5.0.8):
     - Capacitor
   - CapacitorPreferences (5.0.7):
@@ -19,6 +21,7 @@ DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorClipboard (from `../../node_modules/@capacitor/clipboard`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorFilesystem (from `../../node_modules/@capacitor/filesystem`)"
   - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
   - "CapacitorPreferences (from `../../node_modules/@capacitor/preferences`)"
   - "CapacitorShare (from `../../node_modules/@capacitor/share`)"
@@ -32,6 +35,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/clipboard"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorFilesystem:
+    :path: "../../node_modules/@capacitor/filesystem"
   CapacitorKeyboard:
     :path: "../../node_modules/@capacitor/keyboard"
   CapacitorPreferences:
@@ -47,12 +52,13 @@ SPEC CHECKSUMS:
   Capacitor: ebfc16cdb8116d04c101686b080342872da42d43
   CapacitorClipboard: 45e5e25f2271f98712985d422776cdc5a779cca1
   CapacitorCordova: 931b48fcdbc9bc985fc2f16cec9f77c794a27729
+  CapacitorFilesystem: 9f3e3c7fea2fff12f46dd5b07a2914f2103e4cfc
   CapacitorKeyboard: aec619a578235c6ce279075009a2689c2cf5c42c
   CapacitorPreferences: 77ac427e98db83bace772455f8ba447430382c4c
   CapacitorShare: c6a1ebbf0114ff9e863b966cd6052678fa25d480
   CapacitorToast: c8bb89eeb59a23c1fc298f138cc06c8ff4d90ac1
   SendIntent: 0a17b6984c4f27e9dfa56513267ba2c044a5a6c8
 
-PODFILE CHECKSUM: a3deaf8044d5fc8bb5707906dd99b49bd2ebc84a
+PODFILE CHECKSUM: 8f5f3b0d70d041487e24899d9f24caae68c48e4a
 
 COCOAPODS: 1.12.0

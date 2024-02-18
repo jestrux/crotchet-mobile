@@ -2,7 +2,11 @@ import { dataSource } from "..";
 
 export const heroicons = dataSource.crawler({
 	url: "https://heroicons.com/",
-	query: "main [role='tabpanel']:first-child .grid:first-child .group => name::div:last-child|icon::svg::outerHTML",
+	match: "main [role='tabpanel']:first-child .grid:first-child .group => name::div:last-child|icon::svg::outerHTML",
+	fieldMap: {
+		title: "name|cleanString",
+		action: "copy://icon",
+	},
 	icon: `<svg viewBox="0 0 24 24" fill="currentColor">
 			<path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
 		</svg>`,
@@ -13,33 +17,15 @@ export const pier = dataSource.sql({
 });
 
 export const renters = dataSource.crotchet("pier", {
-	query: "SELECT * from renter",
+	query: /*sql*/ `
+		SELECT r.image, r.name, r.due_date, (case when r.verified = 1 then 'verified' else 'pending' end) as verified, json_object('name', a.name, 'image', a.image) as apartment
+		FROM renter as r 
+		LEFT JOIN apartment as a
+		ON r.apartment = a._id;
+	`,
 	fieldMap: {
 		title: "name",
 		subtitle: "due_date|date",
+		status: "verified",
 	},
-});
-
-export const unsplash = dataSource.web({
-	url: "https://api.unsplash.com/photos/random",
-	params: {
-		client_id: import.meta.env.VITE_unsplashClientId,
-		count: 24,
-	},
-	fieldMap: {
-		title: "alt_description",
-		image: "urls.regular",
-	},
-	icon: `<svg viewBox="0 0 24 24" fill="currentColor">
-			<path d="M7.5 6.75V0h9v6.75h-9zm9 3.75H24V24H0V10.5h7.5v6.75h9V10.5z" />
-		</svg>`,
-	search: dataSource.web({
-		url: "https://api.unsplash.com/search/photos",
-		searchParam: "query",
-		params: {
-			client_id: import.meta.env.VITE_unsplashClientId,
-			per_page: 24,
-		},
-		responseField: "results",
-	}),
 });

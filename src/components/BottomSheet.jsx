@@ -1,7 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
-import { useEffect, useRef, useState } from "react";
+import { Children, cloneElement, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Keyboard } from "@capacitor/keyboard";
 
@@ -10,10 +10,15 @@ export function BottomSheet({
 	open,
 	title,
 	peekSize = 0,
+	dismissible = true,
+	fullHeight = false,
+	minHeight,
 	children,
 	onClose = () => {},
 }) {
-	const maxHeight = Math.min(window.innerHeight * 0.9, 700);
+	const maxHeight = fullHeight
+		? window.innerHeight * 0.93
+		: Math.min(window.innerHeight * 0.93, 700);
 	const [dragRatio, setDragRatio] = useState(0);
 	const [_collapsed, setCollapsed] = useState(!open);
 	const collapsed = _collapsed || hidden;
@@ -114,10 +119,6 @@ export function BottomSheet({
 						: 1,
 				}}
 				onClick={() => setCollapsed(true)}
-				onScroll={(e) => {
-					console.log("Scroll: ", e);
-					e.stopPropagation();
-				}}
 			/>
 
 			<motion.div
@@ -143,7 +144,14 @@ export function BottomSheet({
 						minHeight: peekSize + "px",
 						maxHeight: maxHeight + "px",
 					}}
-					{...dragDetails}
+					{...(dismissible
+						? dragDetails
+						: {
+								initial: {
+									borderTopLeftRadius: 32,
+									borderTopRightRadius: 32,
+								},
+						  })}
 				>
 					{title && (
 						<h3 className="text-lg font-bold mt-6 mb-1 px-5">
@@ -151,16 +159,32 @@ export function BottomSheet({
 						</h3>
 					)}
 
-					<div>
+					<div
+						style={{ minHeight: minHeight ? `${minHeight}px` : "" }}
+					>
 						{typeof children == "function"
 							? children({
+									fullHeight,
+									minHeight,
 									maxHeight,
 									dragRatio,
 									collapsed,
 									expand: () => setCollapsed(false),
 									collapse: () => setCollapsed(true),
 							  })
-							: children}
+							: Children.map(children, (child) => {
+									if (!child?.type) return null;
+
+									return cloneElement(child, {
+										fullHeight,
+										minHeight,
+										maxHeight,
+										dragRatio,
+										collapsed,
+										expand: () => setCollapsed(false),
+										collapse: () => setCollapsed(true),
+									});
+							  })}
 					</div>
 				</motion.div>
 			</motion.div>

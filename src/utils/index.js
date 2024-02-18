@@ -1,6 +1,22 @@
+import { gradients } from "@/constants";
+import { Clipboard } from "@capacitor/clipboard";
+import { Toast } from "@capacitor/toast";
+
 export const randomId = () => Math.random().toString(36).slice(2);
 
 export const isEmptyObj = (obj) => Object.keys(obj).length === 0;
+
+export const getGradient = (name = "Butterbeer") => {
+	name = name == true ? "Butterbeer" : name;
+	const gradient = gradients[name] || shuffle(Object.values(gradients))[0];
+	const gradientString = gradient
+		.map((color, idx) => {
+			return `${color} ${(idx * 100) / (gradient.length - 1)}%`;
+		})
+		.join(", ");
+
+	return `linear-gradient(90deg, ${gradientString})`;
+};
 
 export const dateFromString = (date) => {
 	const parsed = Date.parse(date);
@@ -32,6 +48,35 @@ export const formatDate = (
 	}
 
 	return value;
+};
+
+export const showToast = (text) =>
+	Toast.show({
+		text,
+	});
+
+export const copyToClipboard = (content) => {
+	return Clipboard.write({
+		string: content,
+		url: content,
+	})
+		.then(() => showToast("Copied"))
+		.catch((e) => showToast(`Copy failed: ${e}`));
+};
+
+export const copyImage = async (url) => {
+	const blob = await fetch(url).then((response) => response.blob());
+	const reader = new FileReader();
+
+	reader.onload = async () => {
+		return Clipboard.write({
+			image: reader.result,
+		})
+			.then(() => showToast("Image copied"))
+			.catch((e) => showToast(`Image copy failed: ${e}`));
+	};
+
+	reader.readAsDataURL(blob);
 };
 
 export const toHms = (number) => {

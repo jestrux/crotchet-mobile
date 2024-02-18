@@ -1,12 +1,14 @@
 import { dataSource } from "@/providers/data";
 import DataWidget from "../../components/DataWidget";
+import { useAppContext } from "@/providers/app";
 
 export default function HeroIconsWidget() {
+	const { openSearchPage } = useAppContext();
+	const source = dataSource.crotchet("heroicons");
+
 	return (
 		<DataWidget
-			source={dataSource.crotchet("heroicons")}
-			title="name|cleanString"
-			action="copy://icon"
+			source={source}
 			widgetProps={{
 				icon: (
 					<svg
@@ -23,7 +25,10 @@ export default function HeroIconsWidget() {
 						icon: "search",
 						label: "search",
 						onClick() {
-							alert("Search icons");
+							openSearchPage({
+								title: "Search Heroicons",
+								source,
+							});
 						},
 					},
 				],

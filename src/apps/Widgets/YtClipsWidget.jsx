@@ -1,11 +1,24 @@
 import Loader from "@/components/Loader";
 import Widget from "@/components/Widget";
+import { useAppContext } from "@/providers/app";
 import { dataSource } from "@/providers/data";
 import DataFetcher from "@/providers/data/DataFetcher";
 import { toHms } from "@/utils";
 
 export default function YtClipsWidget() {
-	const widgetProps = ({ shuffle }) => ({
+	const { openPage } = useAppContext();
+	const source = dataSource.firebase({
+		collection: "videos",
+		orderBy: "updatedAt,desc",
+		fieldMap: {
+			image: "poster",
+			title: "name",
+			subtitle: "crop.0|time::crop.1|time::duration|time",
+			action: "url",
+		},
+	});
+
+	const widgetProps = ({ shuffle, video }) => ({
 		noPadding: true,
 		// icon: "image",
 		title: "Yt Clips",
@@ -25,38 +38,31 @@ export default function YtClipsWidget() {
 				onClick: shuffle,
 			},
 			{
-				// icon: "play",
-				icon: (
-					<svg
-						className="w-3.5"
-						fill="none"
-						viewBox="0 0 24 24"
-						strokeWidth={1.5}
-						stroke="currentColor"
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
-						/>
-					</svg>
-				),
+				icon: "list",
 				onClick() {
-					alert("Play");
+					openPage({
+						title: video.name,
+						content: [
+							{
+								type: "video",
+								value: video.poster,
+								url: video.url,
+							},
+							{
+								type: "data",
+								title: "All videos",
+								wrapped: false,
+								source,
+							},
+						],
+					});
 				},
 			},
 		],
 	});
 
 	return (
-		<DataFetcher
-			source={dataSource.firebase({
-				collection: "videos",
-				orderBy: "updatedAt,desc",
-			})}
-			first
-			shuffle
-		>
+		<DataFetcher source={source} first shuffle>
 			{({ data: video, isLoading, shuffle }) => {
 				if (isLoading) {
 					return (
@@ -69,7 +75,7 @@ export default function YtClipsWidget() {
 				if (!video) return null;
 
 				return (
-					<Widget {...widgetProps({ shuffle })}>
+					<Widget {...widgetProps({ shuffle, video })}>
 						<a
 							href={video.url}
 							target="_blank"
