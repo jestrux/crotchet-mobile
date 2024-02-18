@@ -1,13 +1,14 @@
 import { dataSource } from "@/providers/data";
+import unsplashFetcher from "@/providers/data/unsplash";
 import { shuffle } from "@/utils";
-import { Clipboard } from "@capacitor/clipboard";
-import { Share } from "@capacitor/share";
 
 export const rentersByStatus = ({ openPage, actualSource }) => {
 	const source = actualSource(dataSource.crotchet("renters"));
 
 	return () =>
 		openPage({
+			image: "gradient",
+			// gradient: "random",
 			content: [
 				{
 					title: "Pending approval",
@@ -42,8 +43,7 @@ export const rentersByStatus = ({ openPage, actualSource }) => {
 export const overdueRenters = ({ openPage }) => {
 	return () =>
 		openPage({
-			image: "gradient",
-			// gradient: "random",
+			image: "random",
 			title: "Overdue renters",
 			subtitle: "Click a renter to chat with them on Whatsapp.",
 			content: [
@@ -69,51 +69,9 @@ export const overdueRenters = ({ openPage }) => {
 		});
 };
 
-export const shareRandomPicture = ({ dataSources }) => {
+export const getRandomPicture = ({ copyImage }) => {
 	return async () => {
-		const data = await dataSources.unsplash.handler();
-		const image = shuffle(data)[0];
-
-		const url = image.urls.regular;
-		const title = image.alt_description;
-		const description = image.description;
-		fetch(url)
-			.then((response) => response.blob())
-			.then((blob) => {
-				const reader = new FileReader();
-
-				reader.onload = async () => {
-					const image = reader.result;
-
-					try {
-						await Clipboard.write({
-							image,
-						});
-
-						await Share.share({
-							title,
-							text: description,
-							url,
-							dialogTitle: "A cool image for ya!",
-						});
-
-						// setTimeout(() => {
-						// 	alert("Copied!");
-						// }, 50);
-					} catch (error) {
-						// alert(error);
-					}
-				};
-
-				reader.readAsDataURL(blob);
-			});
-	};
-};
-
-export const getRandomPicture = ({ dataSources, copyImage }) => {
-	return async () => {
-		const data = await dataSources.unsplash.handler();
-		const image = shuffle(data)[0];
-		copyImage(image);
+		const data = await unsplashFetcher();
+		return copyImage(shuffle(data)[0].urls.regular);
 	};
 };

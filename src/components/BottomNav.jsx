@@ -10,16 +10,22 @@ import Loader from "./Loader";
 const BottomNavAction = ({ action }) => {
 	const [loading, setLoading] = useState(false);
 	const handleClick = async () => {
-		setLoading(true);
-		await action.handler();
-		setLoading(false);
+		try {
+			setLoading(true);
+			await action.handler();
+			setLoading(false);
+		} catch (error) {
+			setLoading(false);
+			alert(`Error: ${error}`);
+		}
 	};
 
 	return (
 		<button
 			key={action._id}
+			disabled={loading}
 			onClick={handleClick}
-			className="w-full text-left outline:focus-none h-12 flex items-center gap-2 text-base leading-none"
+			className="w-full text-left outline:focus-none h-12 flex items-center gap-2 text-base leading-none disabled:opacity-50"
 		>
 			{
 				<div className="w-5 flex-shrink-0">
@@ -68,7 +74,7 @@ export function BottomNav({ hidden }) {
 			style={{ height: navHeight + "px" }}
 			onClick={refocusInput}
 		>
-			<BottomSheet hidden={hidden} peekSize={navHeight}>
+			<BottomSheet peekSize={navHeight}>
 				{({ collapsed, expand, dragRatio, maxHeight }) => (
 					<div>
 						<motion.div
@@ -207,7 +213,8 @@ export function BottomNav({ hidden }) {
 										</span>
 									</div>
 								) : (
-									!collapsed && (
+									!collapsed &&
+									!hidden && (
 										<input
 											id="searchbar"
 											autoFocus

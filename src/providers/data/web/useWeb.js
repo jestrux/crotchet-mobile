@@ -12,7 +12,7 @@ export const webFetcher = ({
 	filters = {},
 	headers = {},
 	params = {},
-}) => {
+} = {}) => {
 	const fetchHeaders = {
 		Accept: "application/json",
 		"Content-Type": "application/json",

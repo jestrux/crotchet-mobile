@@ -4,7 +4,7 @@ export default function unsplashFetcher({
 	search,
 	query,
 	collection = "random",
-}) {
+} = {}) {
 	if (search || query) {
 		return webFetcher({
 			url: "https://api.unsplash.com/search/photos",
