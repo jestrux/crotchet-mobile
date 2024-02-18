@@ -11,6 +11,15 @@
 	--primary-light-color: 246 173 85;
 }
 
+.max-lines {
+	--max-lines: 2;
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-line-clamp: var(--max-lines); /* number of lines to show */
+	line-clamp: var(--max-lines);
+	-webkit-box-orient: vertical;
+}
+
 @media (prefers-color-scheme: dark) {
 	:root {
 		--stroke-color: 53 53 53;

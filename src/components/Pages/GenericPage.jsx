@@ -109,7 +109,12 @@ export default function GenericPage({
 						)}
 
 						{subtitle && (
-							<p className="mb-2 text-base/relaxed text-content/80">
+							<p
+								className="mb-2 text-base/relaxed text-content/80 max-lines"
+								style={{
+									"--max-lines": 3,
+								}}
+							>
 								{subtitle}
 							</p>
 						)}
@@ -163,7 +168,7 @@ export default function GenericPage({
 												<div className="relative w-12 h-12 flex items-center justify-center rounded-full overflow-hidden bg-card">
 													<div className="absolute inset-0 bg-white text-black"></div>
 													<svg
-														className="w-7 ml-0.5 relative"
+														className="w-7 ml-0.5 relative text-black"
 														viewBox="0 0 24 24"
 														fill="currentColor"
 													>
