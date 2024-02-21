@@ -119,15 +119,18 @@ export function dataSourceProviders(source, appContext = { user: {} }) {
 	return {
 		airtable: () => airtableFetcher({ ...source, appContext }),
 		firebase: () => firebaseFetcher(source),
-		unsplash: ({ query }) =>
-			unsplashFetcher({ ...source, query: query || source.query }),
+		unsplash: ({ searchQuery }) =>
+			unsplashFetcher({
+				...source,
+				query: searchQuery || source.searchQuery,
+			}),
 		web: () => webFetcher(source),
 		sql: ({ query } = {}) =>
 			new CrotchetSQL(source).exec(query || source.query),
-		crawler: ({ match, query } = {}) =>
+		crawler: ({ match, searchQuery } = {}) =>
 			new CrotchetCrawler(source).match(
 				match || source.match,
-				query || source.query
+				searchQuery || source.searchQuery
 			),
 	}[source.provider];
 }
@@ -166,13 +169,17 @@ export function useDataFetch({
 		mutationFn: sourceProviderRef.current,
 	});
 
-	const handleFetch = async () => {
-		let res = await query.mutateAsync({
-			...processedSource,
-			q,
-			filters,
-			...props,
-		});
+	const handleFetch = async (newData) => {
+		let res = await query.mutateAsync(
+			newData
+				? newData
+				: {
+						...processedSource,
+						q,
+						filters,
+						...props,
+				  }
+		);
 
 		if (res?.length && shuffleData) res = doShuffle(res);
 

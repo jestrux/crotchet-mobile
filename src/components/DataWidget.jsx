@@ -2,8 +2,10 @@ import Loader from "./Loader";
 import Widget from "./Widget";
 import ListItem from "./ListWidget/ListItem";
 import DataFetcher from "@/providers/data/DataFetcher";
+import { useEffect } from "react";
 
 function DataWidgetContent({
+	searchQuery,
 	data,
 	isLoading,
 	refetch = () => {},
@@ -12,6 +14,10 @@ function DataWidgetContent({
 	fieldMap = {},
 	...props
 }) {
+	useEffect(() => {
+		refetch({ searchQuery });
+	}, [searchQuery]);
+
 	let content = (
 		<div className="relative h-8 min-w-full min-h-full flex items-center justify-center">
 			<Loader scrimColor="transparent" size={25} />

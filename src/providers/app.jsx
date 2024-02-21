@@ -56,7 +56,7 @@ export const useAppContext = () => {
 	return useContext(AppContext);
 };
 
-const registerSingleSource = (sources, { search, fieldMap, ...source }) => {
+const registerSingleSource = (sources, { fieldMap, ...source }) => {
 	return {
 		...(source.provider == "crotchet" ? sources[source.name] : {}),
 		...source,
@@ -65,18 +65,6 @@ const registerSingleSource = (sources, { search, fieldMap, ...source }) => {
 			source.provider == "crotchet"
 				? sources[source.name]?.handler
 				: dataSourceProviders(source),
-		...(!search
-			? {}
-			: {
-					...(search.provider == "crotchet"
-						? sources[search.name]
-						: {}),
-					searchFieldMap: search.fieldMap || fieldMap,
-					searchHandler:
-						search.provider == "crotchet"
-							? sources[search.name].handler
-							: dataSourceProviders(search),
-			  }),
 	};
 };
 
@@ -84,27 +72,18 @@ const getDefaultDataSources = () => {
 	const sources = {};
 	const pending = {};
 
-	const processSource = ([name, { search, ...source }]) => {
+	const processSource = ([name, { ...source }]) => {
 		const handlerNotSet =
 			source.provider == "crotchet" && !sources[source.name];
-		const searchHandlerNotSet =
-			search?.provider == "crotchet" && !sources[search?.name];
 
-		if (handlerNotSet || searchHandlerNotSet) {
-			if (handlerNotSet) {
-				if (!pending[source.name]) pending[source.name] = [];
-				pending[source.name].push({ name, search, source });
-			}
-
-			if (searchHandlerNotSet) {
-				if (!pending[search.name]) pending[search.name] = [];
-				pending[source.name].push({ name, search, source });
-			}
+		if (handlerNotSet) {
+			if (!pending[source.name]) pending[source.name] = [];
+			pending[source.name].push({ name, source });
 
 			return;
 		}
 
-		sources[name] = registerSingleSource(sources, { search, ...source });
+		sources[name] = registerSingleSource(sources, source);
 
 		while (pending[name]?.length) {
 			processSource(pending[name].pop());

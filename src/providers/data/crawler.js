@@ -1,13 +1,33 @@
+const CrotchetCrawlerCache = {};
+
 export default class CrotchetCrawler {
 	url;
 	siteContent;
 	htmlString;
 
-	constructor({ url } = {}) {
+	constructor(options) {
+		const { url, search } = options;
 		this.url = url;
+		this.search = search;
 	}
 
+	_search = (results, query) => {
+		if (!query?.length) return results;
+
+		if (typeof this.search == "function")
+			return this.search(results, query);
+
+		return results.filter((e) => {
+			return Object.entries(e).some(([, value]) =>
+				value.toString().toLowerCase().includes(query.toString())
+			);
+		});
+	};
+
 	crawl = async () => {
+		if (CrotchetCrawlerCache[this.url])
+			return CrotchetCrawlerCache[this.url];
+
 		const res = await fetch(
 			`https://us-central1-letterplace-c103c.cloudfunctions.net/api/crawl/${encodeURIComponent(
 				this.url
@@ -17,18 +37,18 @@ export default class CrotchetCrawler {
 		const siteContent = document.createElement("div");
 		siteContent.innerHTML = res.data;
 
-		this.siteContent = siteContent;
+		CrotchetCrawlerCache[this.url] = siteContent;
 
 		return siteContent;
 	};
 
 	match = async (matcher, query) => {
-		this.siteContent = this.siteContent || (await this.crawl());
+		const content = await this.crawl();
 
 		if (matcher.indexOf("=>") == -1) {
 			const [matcherQuery, attribute = "innerText"] = matcher.split("::");
 			const results = Array.from(
-				this.siteContent.querySelectorAll(matcherQuery.trim())
+				content.querySelectorAll(matcherQuery.trim())
 			).map((node) => {
 				return node[attribute] || getComputedStyle(node)[attribute];
 			});
@@ -43,31 +63,24 @@ export default class CrotchetCrawler {
 		}
 
 		const [parent, childrenMatchers] = matcher.split("=>");
-		const results = Array.from(
-			this.siteContent.querySelectorAll(parent)
-		).reduce((agg, node) => {
-			const row = {};
-			const children = childrenMatchers.split("|");
-			children.forEach((child) => {
-				const [key, matcher, attribute = "innerText"] =
-					child.split("::");
-				const childNode = node.querySelector(matcher);
-				row[key.trim()] =
-					childNode[attribute] ||
-					getComputedStyle(childNode)[attribute];
-			});
+		const results = Array.from(content.querySelectorAll(parent)).reduce(
+			(agg, node) => {
+				const row = {};
+				const children = childrenMatchers.split("|");
+				children.forEach((child) => {
+					const [key, matcher, attribute = "innerText"] =
+						child.split("::");
+					const childNode = node.querySelector(matcher);
+					row[key.trim()] =
+						childNode[attribute] ||
+						getComputedStyle(childNode)[attribute];
+				});
 
-			return [...agg, row];
-		}, []);
+				return [...agg, row];
+			},
+			[]
+		);
 
-		if (query?.length) {
-			return results.filter((e) => {
-				return Object.entries(e).some(([, value]) =>
-					value.toString().toLowerCase().includes(query.toString())
-				);
-			});
-		}
-
-		return results;
+		return this._search(results, query);
 	};
 }

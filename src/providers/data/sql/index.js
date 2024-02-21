@@ -1,6 +1,9 @@
 import initSqlJs from "sql.js";
 import sqliteUrl from "@/assets/sql-wasm.wasm?url";
 
+let SQL;
+const CrotchetSQLCache = {};
+
 export default class CrotchetSQL {
 	dbUrl;
 
@@ -9,10 +12,14 @@ export default class CrotchetSQL {
 	}
 
 	_loadDb = async () => {
-		const SQL = await initSqlJs({
-			// locateFile: (file) => `https://sql.js.org/dist/${file}`,
-			locateFile: () => sqliteUrl,
-		});
+		if (CrotchetSQLCache[this.dbUrl]) return CrotchetSQLCache[this.dbUrl];
+
+		if (!SQL) {
+			SQL = await initSqlJs({
+				// locateFile: (file) => `https://sql.js.org/dist/${file}`,
+				locateFile: () => sqliteUrl,
+			});
+		}
 
 		if (this.dbUrl?.length) {
 			const data = await new Promise((res) => {
@@ -29,14 +36,18 @@ export default class CrotchetSQL {
 				xhr.send();
 			});
 
-			this.db = new SQL.Database(data);
-		} else this.db = new SQL.Database();
+			const db = new SQL.Database(data);
 
-		return this.db;
+			CrotchetSQLCache[this.dbUrl] = db;
+
+			return db;
+		}
+
+		return new SQL.Database();
 	};
 
 	exec = async (query) => {
-		const db = this.db || (await this._loadDb());
+		const db = await this._loadDb();
 		const [res] = db.exec(query);
 		const columns = res.columns;
 
