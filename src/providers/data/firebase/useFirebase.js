@@ -1,8 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import { ref, uploadBytes } from "firebase/storage";
 import { db } from ".";
 import { randomId } from "@/utils";
 import { useRef } from "react";
+import { storage } from "@/providers/firebaseApp";
+
+export const firebaseUploadFile = async ({
+	name = "_some_.txt",
+	file = new Blob(["Sample text"], { type: "text/plain" }),
+}) => {
+	return uploadBytes(ref(storage, name), file);
+};
 
 export const firebaseFetcher = async ({
 	collection: collectionName,

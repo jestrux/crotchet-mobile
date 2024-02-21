@@ -1,6 +1,30 @@
 import { dataSource } from "@/providers/data";
+import { firebaseUploadFile } from "@/providers/data/firebase/useFirebase";
 import unsplashFetcher from "@/providers/data/unsplash";
 import { shuffle } from "@/utils";
+import { Clipboard } from "@capacitor/clipboard";
+
+export const uploadFile = ({ showToast }) => {
+	return async () => {
+		await firebaseUploadFile();
+		showToast("Uploaded");
+	};
+};
+
+// export const updateWhyLead = ({ showToast }) => {
+// 	return async () => {
+// 		await firebaseUploadFile({
+// 			name: "index.html",
+// 			file: new Blob([(await Clipboard.read()).value], {
+// 				type: "text/html",
+// 			}),
+// 		});
+
+// 		showToast("Updated");
+
+// 		return;
+// 	};
+// };
 
 export const rentersByStatus = ({ openPage, actualSource }) => {
 	const source = actualSource(dataSource.crotchet("renters"));
