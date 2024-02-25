@@ -8,6 +8,8 @@ export default function HeroIconsWidget() {
 
 	return (
 		<DataWidget
+			layout="grid"
+			columns={7}
 			source={source}
 			widgetProps={{
 				icon: (
@@ -28,6 +30,8 @@ export default function HeroIconsWidget() {
 							openSearchPage({
 								title: "Search Heroicons",
 								source,
+								layout: "grid",
+								columns: 7,
 							});
 						},
 					},

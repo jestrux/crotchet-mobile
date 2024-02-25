@@ -6,6 +6,8 @@ import DataFetcher from "@/providers/data/DataFetcher";
 export default function RandomPhotoWidget() {
 	const { openSearchPage } = useAppContext();
 
+	// return null;
+
 	const widgetProps = ({ data }) => ({
 		noPadding: true,
 		// icon: "image",

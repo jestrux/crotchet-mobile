@@ -6,10 +6,14 @@ export default class CrotchetCrawler {
 	htmlString;
 
 	constructor(options) {
-		const { url, search } = options;
+		const { url, search, map } = options;
+
 		this.url = url;
 		this.search = search;
+		this.map = map;
 	}
+
+	_map = (entry) => (this.map ? this.map(entry) : entry);
 
 	_search = (results, query) => {
 		if (!query?.length) return results;
@@ -76,7 +80,7 @@ export default class CrotchetCrawler {
 						getComputedStyle(childNode)[attribute];
 				});
 
-				return [...agg, row];
+				return [...agg, this._map(row)];
 			},
 			[]
 		);

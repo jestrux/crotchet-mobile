@@ -89,14 +89,14 @@ export default function GenericPage({
 								>
 									{({ data }) => (
 										<img
-											className="absolute inset-0 w-full h-full object-cover"
+											className="absolute inset-0 size-full object-cover"
 											src={data.urls.regular}
 										/>
 									)}
 								</DataFetcher>
 							) : (
 								<img
-									className="absolute inset-0 w-full h-full object-cover"
+									className="absolute inset-0 size-full object-cover"
 									src={image}
 								/>
 							)}
@@ -105,12 +105,12 @@ export default function GenericPage({
 
 					<div className={`${image && "px-6"}`}>
 						{title && (
-							<h3 className="text-2xl font-bold">{title}</h3>
+							<h3 className="text-lg font-bold">{title}</h3>
 						)}
 
 						{subtitle && (
 							<p
-								className="mb-2 text-base/relaxed text-content/80 max-lines"
+								className="mb-2 text-sm text-content/80 max-lines"
 								style={{
 									"--max-lines": 3,
 								}}
@@ -125,6 +125,7 @@ export default function GenericPage({
 			<div className="flex flex-col gap-4">
 				{source ? (
 					<DataWidget
+						large
 						source={source}
 						{...source}
 						widgetProps={{ noPadding: true }}
@@ -154,7 +155,7 @@ export default function GenericPage({
 										}}
 									>
 										<img
-											className="absolute inset-0 object-cover rounded"
+											className="absolute inset-0 size-full object-cover rounded"
 											src={section.value}
 										/>
 
@@ -187,10 +188,11 @@ export default function GenericPage({
 								content =
 									section.wrapped ?? true ? (
 										<WidgetWrapper>
-											<DataWidget {...section} />
+											<DataWidget large {...section} />
 										</WidgetWrapper>
 									) : (
 										<DataWidget
+											large
 											{...section}
 											widgetProps={{ noPadding: true }}
 										/>
@@ -206,15 +208,15 @@ export default function GenericPage({
 							return (
 								<div key={index}>
 									{(title || subtitle) && (
-										<div className="mb-2">
+										<div className="space-y-1 mb-1">
 											{title && (
-												<h5 className="text-lg font-bold">
+												<h5 className="text-base font-bold">
 													{title}
 												</h5>
 											)}
 
 											{subtitle && (
-												<p className="text-sm/loose text-content/80">
+												<p className="text-sm text-content/80">
 													{subtitle}
 												</p>
 											)}

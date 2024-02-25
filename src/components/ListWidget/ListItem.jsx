@@ -4,6 +4,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useAirtableMutation } from "@/providers/data/airtable/useAirtable";
 import { useAppContext } from "@/providers/app";
 import { formatDate, toHms } from "@/utils";
+import clsx from "clsx";
 
 export const _format = function (data, t) {
 	try {
@@ -204,62 +205,112 @@ const Progress = ({ value }) => {
 	);
 };
 
-const ListItem = ({
+const GridListItem = ({ icon, image, video, title, subtitle, trailing }) => {
+	return (
+		<div className="w-full flex flex-col gap-1">
+			{icon?.length ? (
+				<div
+					className="flex items-center justify-center"
+					dangerouslySetInnerHTML={{ __html: icon }}
+				/>
+			) : (
+				(image?.length || video?.length) && (
+					<div className="relative flex-shrink-0 bg-content/10 border border-content/10 rounded overflow-hidden w-full aspect-[16/9]">
+						<img
+							className={"absolute size-full object-cover"}
+							src={image?.length ? image : video}
+							alt=""
+						/>
+
+						{video?.length && (
+							<div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+								<div className="relative w-8 h-8 flex items-center justify-center rounded-full overflow-hidden bg-card">
+									<div className="absolute inset-0 bg-content/60"></div>
+									<svg
+										className="w-4 ml-0.5 relative text-canvas"
+										viewBox="0 0 24 24"
+										fill="currentColor"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
+										/>
+									</svg>
+								</div>
+							</div>
+						)}
+					</div>
+				)
+			)}
+
+			<div className="flex-1 min-w-0 space-y-1">
+				{title?.length > 0 && (
+					<h5 className="text-content text-sm/none font-medium truncate first-letter:capitalize">
+						{title}
+					</h5>
+				)}
+				{subtitle?.length > 0 && (
+					<p
+						className={clsx(
+							"text-xs/none truncate",
+							title?.length && "mt-1.5"
+						)}
+					>
+						{subtitle.map((s, i) => {
+							return (
+								<Fragment key={i}>
+									<span>
+										{s.toString().charAt(0).toUpperCase()}
+										{s.toString().substring(1)}
+									</span>
+									{i !== subtitle.length - 1 && (
+										<span className="mx-2s mr-2 leading-none">
+											{i !== 0 &&
+											i === subtitle.length - 2 ? (
+												<span className="font-light ml-2">
+													&mdash;
+												</span>
+											) : (
+												<span>,</span>
+											)}
+										</span>
+									)}
+								</Fragment>
+							);
+						})}
+					</p>
+				)}
+			</div>
+
+			<div className="self-stretch flex-shrink-0 ml-auto flex items-center gap-2">
+				{trailing?.toString().length && (
+					<span className="text-sm opacity-60">{trailing}</span>
+				)}
+			</div>
+		</div>
+	);
+};
+
+const ListItemRegular = ({
 	table,
-	data,
-	icon = "icon",
-	image = "image",
-	title = "title",
+	icon,
+	image,
+	title,
 	subtitle,
+	data,
 	status,
 	// status = "status",
 	trailing,
-	action: _action,
+	action,
 	progress,
 	// progress = "progress",
 	checkbox,
 	removable,
-	onClick,
+	setRemoved,
 }) => {
-	const { copyToClipboard, copyImage } = useAppContext();
-	const [removed, setRemoved] = useState(false);
-
-	icon = _get(data, icon);
-	image = _format(data, image);
-	title = _format(data, title);
-	subtitle = (_parse(subtitle, data) || []).filter((s) => s ?? false);
-	trailing = _format(data, trailing);
-	status = _get(data, status);
-	const action = _get(data, _action);
-	progress = _get(data, progress);
-
-	if (removed) return null;
-
-	const clickHandlerSet = typeof onClick == "function";
-	const actionIsCopy = _action && _action.indexOf("copy://") != -1;
-
-	const handleClick =
-		!clickHandlerSet && !actionIsCopy
-			? null
-			: clickHandlerSet
-			? onClick
-			: async () => {
-					const field = _action.replace("copy://", "");
-					const value = _get(data, field);
-
-					value == image ? copyImage(value) : copyToClipboard(value);
-			  };
-
 	return (
-		<a
-			{...(handleClick
-				? { onClick: handleClick }
-				: !action?.length
-				? {}
-				: { href: action, target: "_blank" })}
-			className={`lg:group py-2 w-full text-left flex items-center relative`}
-			rel="noreferrer"
-		>
+		<>
 			{action?.length > 0 && (
 				<div className="transition opacity-0 group-hover:opacity-100 absolute inset-0 -mx-5 bg-content/5"></div>
 			)}
@@ -275,13 +326,15 @@ const ListItem = ({
 				/>
 			) : (
 				image?.length && (
-					<img
-						className={`${
-							subtitle?.length && "mt-0.5s"
-						} mr-2 flex-shrink-0 bg-content/10 border border-content/10 rounded-full w-8 h-8 object-cover`}
-						src={image}
-						alt=""
-					/>
+					<div className="relative">
+						<img
+							className={`${
+								subtitle?.length && "mt-0.5s"
+							} mr-2 flex-shrink-0 bg-content/10 border border-content/10 rounded-full w-8 h-8 object-cover`}
+							src={image}
+							alt=""
+						/>
+					</div>
 				)
 			)}
 
@@ -373,6 +426,223 @@ const ListItem = ({
 					table={table}
 					row={data}
 					onSuccess={() => setRemoved(true)}
+				/>
+			)}
+		</>
+	);
+};
+
+const ListItemLarge = ({ icon, image, video, title, subtitle, trailing }) => {
+	return (
+		<>
+			{icon?.length ? (
+				<div
+					className="mr-2.5"
+					dangerouslySetInnerHTML={{ __html: icon }}
+				/>
+			) : (
+				(image?.length || video?.length) && (
+					<div className="relative mr-2.5 flex-shrink-0 bg-content/10 border border-content/10 rounded overflow-hidden w-16 aspect-[2/1.5]">
+						<img
+							className={"absolute size-full object-cover"}
+							src={image?.length ? image : video}
+							alt=""
+						/>
+
+						{video?.length && (
+							<div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+								<div className="relative w-8 h-8 flex items-center justify-center rounded-full overflow-hidden">
+									<svg
+										className="w-4 ml-0.5 relative text-canvas"
+										viewBox="0 0 24 24"
+										fill="currentColor"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
+										/>
+									</svg>
+								</div>
+							</div>
+						)}
+					</div>
+				)
+			)}
+
+			<div className="flex-1 mr-3 min-w-0 space-y-2">
+				{title?.length > 0 && (
+					<h5 className="text-content text-sm/none font-medium truncate first-letter:capitalize">
+						{title}
+					</h5>
+				)}
+				{subtitle?.length > 0 && (
+					<p
+						className={clsx(
+							"text-xs/none truncate",
+							title?.length && "mt-1.5"
+						)}
+					>
+						{subtitle.map((s, i) => {
+							return (
+								<Fragment key={i}>
+									<span>
+										{s.toString().charAt(0).toUpperCase()}
+										{s.toString().substring(1)}
+									</span>
+									{i !== subtitle.length - 1 && (
+										<span className="mx-2s mr-2 leading-none">
+											{i !== 0 &&
+											i === subtitle.length - 2 ? (
+												<span className="font-light ml-2">
+													&mdash;
+												</span>
+											) : (
+												<span>,</span>
+											)}
+										</span>
+									)}
+								</Fragment>
+							);
+						})}
+					</p>
+				)}
+			</div>
+
+			<div className="self-stretch flex-shrink-0 ml-auto flex items-center gap-2">
+				{trailing?.toString().length && (
+					<span className="text-sm opacity-60">{trailing}</span>
+				)}
+			</div>
+		</>
+	);
+};
+
+const ListItem = ({
+	grid = false,
+	large = false,
+	table,
+	data,
+	icon = "icon",
+	video = "video",
+	image = "image",
+	title = "title",
+	subtitle,
+	status,
+	// status = "status",
+	trailing,
+	action: _action,
+	progress,
+	// progress = "progress",
+	checkbox,
+	removable,
+	onClick,
+}) => {
+	const { copyToClipboard, copyImage } = useAppContext();
+	const [removed, setRemoved] = useState(false);
+
+	icon = _get(data, icon);
+	video = _format(data, video);
+	image = _format(data, image);
+	title = _format(data, title);
+	subtitle = (_parse(subtitle, data) || []).filter((s) => s ?? false);
+	trailing = _format(data, trailing);
+	status = _get(data, status);
+	const action = _get(data, _action);
+	progress = _get(data, progress);
+
+	if (removed) return null;
+
+	const clickHandlerSet = typeof onClick == "function";
+	const actionIsCopy = _action && _action.indexOf("copy://") != -1;
+
+	const handleClick =
+		!clickHandlerSet && !actionIsCopy
+			? null
+			: clickHandlerSet
+			? onClick
+			: async () => {
+					const field = _action.replace("copy://", "");
+					const value = _get(data, field);
+
+					value == image ? copyImage(value) : copyToClipboard(value);
+			  };
+
+	return (
+		<a
+			{...(handleClick
+				? { onClick: handleClick }
+				: !action?.length
+				? {}
+				: { href: action, target: "_blank" })}
+			className={clsx(
+				"lg:group w-full text-left flex items-center relative",
+				!grid && "py-2"
+			)}
+			rel="noreferrer"
+		>
+			{grid ? (
+				<GridListItem
+					{...{
+						table,
+						icon,
+						video,
+						image,
+						title,
+						subtitle,
+						data,
+						status,
+						// status = "status",
+						trailing,
+						action,
+						progress,
+						// progress = "progress",
+						checkbox,
+						removable,
+						setRemoved,
+					}}
+				/>
+			) : large ? (
+				<ListItemLarge
+					{...{
+						table,
+						icon,
+						image,
+						video,
+						title,
+						subtitle,
+						data,
+						status,
+						// status = "status",
+						trailing,
+						action,
+						progress,
+						// progress = "progress",
+						checkbox,
+						removable,
+						setRemoved,
+					}}
+				/>
+			) : (
+				<ListItemRegular
+					{...{
+						table,
+						icon,
+						image,
+						video,
+						title,
+						subtitle,
+						data,
+						status,
+						// status = "status",
+						trailing,
+						action,
+						progress,
+						// progress = "progress",
+						checkbox,
+						removable,
+						setRemoved,
+					}}
 				/>
 			)}
 		</a>

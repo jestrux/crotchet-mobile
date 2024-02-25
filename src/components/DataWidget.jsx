@@ -5,6 +5,9 @@ import DataFetcher from "@/providers/data/DataFetcher";
 import { useEffect } from "react";
 
 function DataWidgetContent({
+	layout,
+	columns = 2,
+	large,
 	searchQuery,
 	data,
 	isLoading,
@@ -14,6 +17,8 @@ function DataWidgetContent({
 	fieldMap = {},
 	...props
 }) {
+	const grid = layout == "grid";
+
 	useEffect(() => {
 		refetch({ searchQuery });
 	}, [searchQuery]);
@@ -31,10 +36,23 @@ function DataWidgetContent({
 				typeof children == "function" ? (
 					children(data)
 				) : (
-					<div className="pb-2">
+					<div
+						className="pb-2"
+						style={
+							!grid
+								? {}
+								: {
+										display: "grid",
+										gap: "0.5rem",
+										gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+								  }
+						}
+					>
 						{data.map((entry, index) => (
 							<ListItem
 								key={index}
+								grid={grid}
+								large={large}
 								data={entry}
 								{...fieldMap}
 								{...props}
@@ -52,13 +70,17 @@ function DataWidgetContent({
 	);
 }
 
-export default function DataWidget({ source, ...props }) {
+export default function DataWidget({ source, layout, columns, ...props }) {
+	const content = (
+		<DataWidgetContent layout={layout} columns={columns} {...props} />
+	);
+
 	if (source) {
 		return (
 			<DataFetcher source={source} {...props}>
-				<DataWidgetContent {...props} />
+				{content}
 			</DataFetcher>
 		);
 	}
-	return <DataWidgetContent {...props} />;
+	return content;
 }

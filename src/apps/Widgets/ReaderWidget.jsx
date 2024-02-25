@@ -9,7 +9,12 @@ export default function ReaderWidget() {
 	const source = dataSource.firebase({
 		collection: "reader",
 		orderBy: "index,desc",
-		action: "url",
+		fieldMap: {
+			// image: "image",
+			// title: "title",
+			subtitle: "description",
+			action: "url",
+		},
 	});
 	const widgetProps = ({ shuffle, entry, isVideo }) => ({
 		noPadding: true,
@@ -38,13 +43,17 @@ export default function ReaderWidget() {
 				icon: "list",
 				onClick() {
 					openPage({
-						title: entry.title,
-						subtitle: entry.description,
+						// title: entry.title,
+						// subtitle: entry.description,
 						content: [
 							{
 								type: isVideo ? "video" : "image",
 								value: entry.image,
 								url: entry.url,
+							},
+							{
+								title: entry.title,
+								subtitle: entry.description,
 							},
 							{
 								type: "data",

@@ -9,6 +9,8 @@ export default function SearchPage({
 	source = dataSource.crotchet("heroicons"),
 	maxHeight,
 	collapse,
+	layout,
+	columns,
 }) {
 	const [searchQuery, setSearchQuery] = useState(query);
 	const searchbar = useRef(null);
@@ -80,13 +82,15 @@ export default function SearchPage({
 					</div>
 				)}
 
-				<DataWidget
-					// key={searchQuery}
-					// query={searchQuery}
-					source={source}
-					searchQuery={searchQuery}
-					widgetProps={{ noPadding: true }}
-				/>
+				<div className="pt-3">
+					<DataWidget
+						layout={layout}
+						columns={columns}
+						source={source}
+						searchQuery={searchQuery}
+						widgetProps={{ noPadding: true }}
+					/>
+				</div>
 			</div>
 		</div>
 	);

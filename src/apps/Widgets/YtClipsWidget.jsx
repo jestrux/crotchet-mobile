@@ -11,7 +11,7 @@ export default function YtClipsWidget() {
 		collection: "videos",
 		orderBy: "updatedAt,desc",
 		fieldMap: {
-			image: "poster",
+			video: "poster",
 			title: "name",
 			subtitle: "crop.0|time::crop.1|time::duration|time",
 			action: "url",
@@ -41,7 +41,7 @@ export default function YtClipsWidget() {
 				icon: "list",
 				onClick() {
 					openPage({
-						title: video.name,
+						// title: video.name,
 						content: [
 							{
 								type: "video",
@@ -50,7 +50,8 @@ export default function YtClipsWidget() {
 							},
 							{
 								type: "data",
-								title: "All videos",
+								layout: "grid",
+								// title: "All videos",
 								wrapped: false,
 								source,
 							},

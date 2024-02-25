@@ -274,6 +274,10 @@ const heroiconTags = {
 export default dataSource.crawler({
 	url: "https://heroicons.com/",
 	match: "main [role='tabpanel']:first-child .grid:first-child .group => name::div:last-child|icon::svg::outerHTML",
+	// map: (entry) => ({
+	// 	...entry,
+	// 	icon: entry.icon.replace("w-6 h-6", "w-10 h-10"),
+	// }),
 	search: (icons, searchTerm) => {
 		const formattedIcons = icons.map((icon) => {
 			return {
@@ -287,7 +291,7 @@ export default dataSource.crawler({
 		});
 	},
 	fieldMap: {
-		title: "name|cleanString",
+		// subtitle: "name|cleanString",
 		action: "copy://icon",
 	},
 	icon: `<svg viewBox="0 0 24 24" fill="currentColor">
