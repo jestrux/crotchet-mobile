@@ -9,7 +9,7 @@ export default function HeroIconsWidget() {
 	return (
 		<DataWidget
 			layout="grid"
-			columns={7}
+			columns={8}
 			source={source}
 			widgetProps={{
 				icon: (

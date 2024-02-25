@@ -38,7 +38,7 @@ const App = () => {
 									},
 									{
 										type: "image",
-										cropped: false,
+										// cropped: false,
 										value: image,
 									},
 									{

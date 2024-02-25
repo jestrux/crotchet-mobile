@@ -138,6 +138,9 @@ export default function GenericPage({
 							const isImage = type == "image";
 							const isVideo = type == "video";
 							let content;
+							const cropped = section.cropped ?? true;
+							const aspectRatio =
+								cropped || isVideo ? "16/9" : "";
 
 							if (isImage || isVideo) {
 								content = (
@@ -147,16 +150,19 @@ export default function GenericPage({
 											index == 0 && headingSet && "mt-2"
 										)}
 										style={{
-											aspectRatio:
-												(section.cropped ?? true) ||
-												isVideo
-													? "16/9"
-													: "",
+											aspectRatio,
 										}}
 									>
 										<img
-											className="absolute inset-0 size-full object-cover rounded"
+											className={clsx(
+												"object-cover rounded",
+												cropped &&
+													"absolute inset-0 size-full"
+											)}
 											src={section.value}
+											style={{
+												aspectRatio,
+											}}
 										/>
 
 										{isVideo && section.url && (
