@@ -1,8 +1,7 @@
 import { dataSource } from "@/providers/data";
 import { firebaseUploadFile } from "@/providers/data/firebase/useFirebase";
 import unsplashFetcher from "@/providers/data/unsplash";
-import { shuffle } from "@/utils";
-import { Clipboard } from "@capacitor/clipboard";
+import { openUrl, shuffle } from "@/utils";
 
 export const uploadFile = ({ showToast }) => {
 	return async () => {
@@ -11,20 +10,34 @@ export const uploadFile = ({ showToast }) => {
 	};
 };
 
-export const updateWhyLead = ({ showToast }) => {
+export const openCrotchetApp = () => {
 	return async () => {
-		await firebaseUploadFile({
-			name: "index.html",
-			file: new Blob([(await Clipboard.read()).value], {
-				type: "text/html",
-			}),
-		});
+		const params = new URLSearchParams({
+			id: "-GE9Em847Zs",
+			crop: [83.6543197631836, 105.77777862548828],
+			duration: 127.9209976196289,
+			name: "The Voice 2015 Battle - Celeste Betton vs Mark Hood - 'Ain't No Mountain High'",
+			poster: "https://i.ytimg.com/vi/-GE9Em847Zs/hqdefault.jpg",
+		}).toString();
 
-		showToast("Updated");
-
-		return;
+		openUrl("crotchet://app/yt-clips?" + params);
 	};
 };
+
+// export const updateWhyLead = ({ showToast }) => {
+// 	return async () => {
+// 		await firebaseUploadFile({
+// 			name: "index.html",
+// 			file: new Blob([(await Clipboard.read()).value], {
+// 				type: "text/html",
+// 			}),
+// 		});
+
+// 		showToast("Updated");
+
+// 		return;
+// 	};
+// };
 
 export const rentersByStatus = ({ openPage, actualSource }) => {
 	const source = actualSource(dataSource.crotchet("renters"));
@@ -93,9 +106,17 @@ export const overdueRenters = ({ openPage }) => {
 		});
 };
 
-export const getRandomPicture = ({ copyImage }) => {
+export const getRandomPicture = ({ copyImage, showToast }) => {
 	return async () => {
-		const data = await unsplashFetcher();
-		return copyImage(shuffle(data)[0].urls.regular);
+		try {
+			const data = await unsplashFetcher();
+			const image = shuffle(data)[0].urls.regular;
+			showToast(image);
+			console.log("Image: ", image);
+			return await copyImage(image);
+		} catch (error) {
+			console.log("Error: ", error);
+			showToast(error);
+		}
 	};
 };

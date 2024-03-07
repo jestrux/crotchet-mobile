@@ -3,7 +3,7 @@ import DataWidget from "../DataWidget";
 import WidgetWrapper from "../WidgetWrapper";
 import DataFetcher from "@/providers/data/DataFetcher";
 import { dataSource } from "@/providers/data";
-import { getGradient } from "@/utils";
+import { getGradient, openUrl } from "@/utils";
 
 export default function GenericPage({
 	image,
@@ -167,9 +167,9 @@ export default function GenericPage({
 
 										{isVideo && section.url && (
 											<a
-												href={section.url}
-												target="_blank"
-												rel="noreferrer"
+												onClick={() =>
+													openUrl(section.url)
+												}
 												className="absolute inset-0 bg-black/50 flex items-center justify-center"
 											>
 												<div className="relative w-12 h-12 flex items-center justify-center rounded-full overflow-hidden bg-card">

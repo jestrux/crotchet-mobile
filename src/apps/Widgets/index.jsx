@@ -8,14 +8,14 @@ import RandomPhotoWidget from "@/apps/Widgets/RandomPhotoWidget";
 import PinnedItemsWidget from "@/apps/Widgets/PinnedItemsWidget";
 import RentersWidget from "@/apps/Widgets/RentersWidget";
 import HeroIconsWidget from "./HeroIconsWidget";
-import DesktopWidget from "./DesktopWidget";
+// import DesktopWidget from "./DesktopWidget";
 
 export default function Widgets() {
 	return (
 		<div className="p-3 grid items-start grid-cols-2 gap-3">
 			<WidgetWrapper aspectRatio={5 / 1} widget={PinnedItemsWidget} />
 
-			<WidgetWrapper widget={DesktopWidget} />
+			{/* <WidgetWrapper widget={DesktopWidget} /> */}
 
 			<WidgetWrapper
 				columnSpan="1"

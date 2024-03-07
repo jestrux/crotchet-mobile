@@ -3,10 +3,10 @@ import Widget from "@/components/Widget";
 import { useAppContext } from "@/providers/app";
 import { dataSource } from "@/providers/data";
 import DataFetcher from "@/providers/data/DataFetcher";
-import { toHms } from "@/utils";
+import { toHms } from "@/crotchet";
 
 export default function YtClipsWidget() {
-	const { openPage } = useAppContext();
+	const { openPage, openUrl } = useAppContext();
 	const source = dataSource.firebase({
 		collection: "videos",
 		orderBy: "updatedAt,desc",
@@ -15,6 +15,15 @@ export default function YtClipsWidget() {
 			title: "name",
 			subtitle: "crop.0|time::crop.1|time::duration|time",
 			action: "url",
+		},
+		mapEntry(item) {
+			var url = "crotchet://app/yt-clips?";
+			url += new URLSearchParams(item).toString();
+
+			return {
+				...item,
+				url,
+			};
 		},
 	});
 
@@ -75,15 +84,17 @@ export default function YtClipsWidget() {
 
 				if (!video) return null;
 
+				const handleClick = () => {
+					openUrl(video.url);
+				};
+
 				return (
 					<Widget {...widgetProps({ shuffle, video })}>
-						<a
-							href={video.url}
-							target="_blank"
-							className="w-full h-full flex flex-col"
-							rel="noreferrer"
-						>
-							<div className="flex-1 relative bg-black">
+						<div className="w-full h-full flex flex-col">
+							<div
+								className="flex-1 relative bg-black"
+								onClick={handleClick}
+							>
 								<img
 									className="flex-1 absolute inset-0 w-full h-full object-cover rounded"
 									src={video.poster}
@@ -108,7 +119,10 @@ export default function YtClipsWidget() {
 								</div>
 							</div>
 
-							<div className="flex flex-col gap-1.5 p-3 pt-2.5">
+							<div
+								className="flex flex-col gap-1.5 p-3 pt-2.5"
+								onClick={handleClick}
+							>
 								<div className="truncate text-sm/none font-semibold">
 									{video.name}
 								</div>
@@ -120,7 +134,7 @@ export default function YtClipsWidget() {
 									{toHms(video.duration)}
 								</div>
 							</div>
-						</a>
+						</div>
 					</Widget>
 				);
 			}}

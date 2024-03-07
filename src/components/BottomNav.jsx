@@ -6,6 +6,8 @@ import { BottomSheet } from "./BottomSheet";
 import { useAppContext } from "@/providers/app";
 import { useRef, useState } from "react";
 import Loader from "./Loader";
+import WidgetWrapper from "./WidgetWrapper";
+import DesktopWidget from "@/apps/Widgets/DesktopWidget";
 
 const BottomNavAction = ({ action }) => {
 	const [loading, setLoading] = useState(false);
@@ -53,7 +55,8 @@ const BottomNavAction = ({ action }) => {
 
 export function BottomNav({ hidden }) {
 	const wrapperRef = useRef(null);
-	const { currentPage, setCurrentPage, actions } = useAppContext();
+	const { currentPage, setCurrentPage, actions, openBottomSheet } =
+		useAppContext();
 	const navHeight = 56;
 
 	const activeClass =
@@ -165,7 +168,23 @@ export function BottomNav({ hidden }) {
 										? activeClass
 										: inActiveClass
 								)}
-								onClick={() => setCurrentPage("settings")}
+								// onClick={() => setCurrentPage("settings")}
+								onClick={() =>
+									openBottomSheet({
+										// title: "Control Desktop",
+										// ...props,
+										// image,
+										// fullHeight,
+										// dismissible: !fullHeight,
+										content: (
+											<div className="pb-8 px-3 pt-4">
+												<WidgetWrapper
+													widget={DesktopWidget}
+												/>
+											</div>
+										),
+									})
+								}
 							>
 								<svg
 									className="h-6"

@@ -21,6 +21,7 @@ import Loader from "@/components/Loader";
 import Widget from "@/components/Widget";
 import ListItem from "@/components/ListWidget/ListItem";
 import WidgetWrapper from "@/components/WidgetWrapper";
+import { onDesktop } from "@/utils";
 
 function isValidHttpUrl(string) {
 	let url;
@@ -95,10 +96,10 @@ const NewEntry = ({ __id, url, group, onSave }) => {
 		}
 	}, []);
 
-	const onElectron = document.body.classList.contains("on-electron");
+	const isElectron = onDesktop();
 
 	return (
-		<div className={`pb-2 ${onElectron ? "group" : "lg:group"}`}>
+		<div className={`pb-2 ${isElectron ? "group" : "lg:group"}`}>
 			<div className="relative w-full text-left bg-card rounded-md p-2 lg:p-4 border border-stroke shadow-sm flex items-center gap-3 lg:gap-6 focus:outline-none">
 				<div className="flex-shrink-0 h-20 w-24 bg-content/5 rounded relative flex items-center justify-center">
 					<Loader color="currentColor" size={40} thickness={3.5} />
@@ -293,7 +294,7 @@ export default function ReaderWidget() {
 		</Widget>
 	);
 
-	// const onElectron = document.body.classList.contains("on-electron");
+	// const isElectron = document.body.classList.contains("on-electron");
 
 	// return (
 	// 	<div className="relative">
@@ -391,13 +392,13 @@ export default function ReaderWidget() {
 	// 								<div
 	// 									key={doc.id}
 	// 									className={`pb-2 ${
-	// 										onElectron ? "group" : "lg:group"
+	// 										isElectron ? "group" : "lg:group"
 	// 									}`}
 	// 								>
 	// 									<div
 	// 										className="relative w-full text-left bg-card rounded-md p-2 lg:p-4 border border-stroke shadow-sm flex items-center gap-3 lg:gap-6 focus:outline-none"
 	// 										onClick={() => {
-	// 											onElectron
+	// 											isElectron
 	// 												? window.dispatchEvent(
 	// 														new CustomEvent(
 	// 															"open-url",

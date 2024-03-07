@@ -6,9 +6,11 @@ import { SendIntent } from "send-intent";
 import { useEffect } from "react";
 import clsx from "clsx";
 import { Filesystem } from "@capacitor/filesystem";
+import { App as CapacitorApp } from "@capacitor/app";
 
 const App = () => {
 	const { currentPage, bottomSheets, openPage } = useAppContext();
+
 	const listenForShare = async () => {
 		try {
 			const result = await SendIntent.checkSendIntentReceived();
@@ -56,13 +58,26 @@ const App = () => {
 				// 	url: decodeURIComponent(result.title),
 				// 	fromShareSheet: true,
 				// });
-				alert(JSON.stringify(result));
+				// alert(JSON.stringify(result));
 			}
 		} catch (error) {
-			alert("Share process failed: ", error);
+			// alert("Share process failed: ", error);
 		}
 	};
+
+	const listenForOpen = () => {
+		CapacitorApp.addListener("appUrlOpen", (event) => {
+			const slug = event.url.split("/app").pop();
+			if (slug) {
+				// alert("App: " + slug);
+				alert("App: " + JSON.stringify(new URL(slug)));
+			}
+		});
+	};
+
 	useEffect(() => {
+		listenForOpen();
+
 		listenForShare();
 
 		window.addEventListener("sendIntentReceived", listenForShare, false);
@@ -73,6 +88,8 @@ const App = () => {
 				listenForShare,
 				false
 			);
+
+			CapacitorApp.removeAllListeners();
 		};
 	}, []);
 

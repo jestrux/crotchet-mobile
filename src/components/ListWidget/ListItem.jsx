@@ -3,7 +3,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 
 import { useAirtableMutation } from "@/providers/data/airtable/useAirtable";
 import { useAppContext } from "@/providers/app";
-import { formatDate, toHms } from "@/utils";
+import { formatDate, openUrl, toHms } from "@/crotchet";
 import clsx from "clsx";
 
 export const _format = function (data, t) {
@@ -556,30 +556,28 @@ const ListItem = ({
 	const clickHandlerSet = typeof onClick == "function";
 	const actionIsCopy = _action && _action.indexOf("copy://") != -1;
 
-	const handleClick =
-		!clickHandlerSet && !actionIsCopy
-			? null
-			: clickHandlerSet
-			? onClick
-			: async () => {
-					const field = _action.replace("copy://", "");
-					const value = _get(data, field);
+	const handleClick = async () => {
+		if (clickHandlerSet || actionIsCopy) {
+			if (clickHandlerSet) return onClick();
 
-					value == image ? copyImage(value) : copyToClipboard(value);
-			  };
+			const field = _action.replace("copy://", "");
+			const value = _get(data, field);
+
+			value == image ? copyImage(value) : copyToClipboard(value);
+
+			return;
+		}
+
+		if (action) openUrl(action);
+	};
 
 	return (
 		<a
-			{...(handleClick
-				? { onClick: handleClick }
-				: !action?.length
-				? {}
-				: { href: action, target: "_blank" })}
+			onClick={handleClick}
 			className={clsx(
 				"lg:group w-full text-left flex items-center relative",
 				!grid && "py-2"
 			)}
-			rel="noreferrer"
 		>
 			{grid ? (
 				<GridListItem

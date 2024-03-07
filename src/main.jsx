@@ -3,6 +3,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import "./index.css";
 
+import "./init";
+
+import "./apps";
+
 import AppProvider from "./providers/app";
 import App from "./App";
 

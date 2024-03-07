@@ -1,6 +1,7 @@
 import { gradients } from "@/constants";
 import { Clipboard } from "@capacitor/clipboard";
 import { Toast } from "@capacitor/toast";
+import { AppLauncher } from "@capacitor/app-launcher";
 
 export const KeyMap = {
 	Escape: 0,
@@ -137,6 +138,47 @@ export const KeyMap = {
 	AudioForward: 131,
 	AudioRepeat: 132,
 	AudioRandom: 133,
+};
+
+export const onDesktop = () => document.body.classList.contains("on-electron");
+
+export const openUrl = async (path) => {
+	const url = new URL(path);
+
+	if (url.protocol == "crotchet:") {
+		const app = window.__crotchet.apps["yt-clips"];
+		return app.handler({ url: url.href });
+
+		// const scheme = url.pathname.replace("//app/", "").split("/")?.[0];
+
+		// const app = window.__crotchet.apps[scheme];
+
+		// if (app) {
+		// 	return app.handler({ url: url.href });
+		// }
+	}
+
+	if (onDesktop()) {
+		return window.dispatchEvent(
+			new CustomEvent("open-url", {
+				detail: url.href,
+			})
+		);
+	}
+
+	try {
+		const { value } = await AppLauncher.canOpenUrl({
+			url,
+		});
+
+		if (!value) return window.open(url.href, "_blank");
+
+		AppLauncher.openUrl({
+			url,
+		});
+	} catch (error) {
+		showToast("Can't open url");
+	}
 };
 
 export const randomId = () => Math.random().toString(36).slice(2);

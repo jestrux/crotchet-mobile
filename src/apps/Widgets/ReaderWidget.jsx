@@ -16,6 +16,7 @@ export default function ReaderWidget() {
 			action: "url",
 		},
 	});
+
 	const widgetProps = ({ shuffle, entry, isVideo }) => ({
 		noPadding: true,
 		// title: "Reader",

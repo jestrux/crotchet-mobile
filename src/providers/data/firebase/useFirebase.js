@@ -16,6 +16,8 @@ export const firebaseUploadFile = async ({
 export const firebaseFetcher = async ({
 	collection: collectionName,
 	orderBy: _orderBy,
+	map,
+	mapEntry,
 }) => {
 	const params = [
 		collection(db, collectionName),
@@ -26,12 +28,20 @@ export const firebaseFetcher = async ({
 	];
 	const res = await getDocs(query(...params));
 
-	return res.docs.map((doc) => {
-		return {
-			_id: doc.ref,
+	var data = res.docs.map((doc) => {
+		var item = {
+			_id: doc.ref.id,
 			...doc.data(),
 		};
+
+		if (typeof mapEntry == "function") return mapEntry(item);
+
+		return item;
 	});
+
+	if (typeof map == "function") return map(data);
+
+	return data;
 };
 
 export default function useFirebase({ collection, orderBy }) {

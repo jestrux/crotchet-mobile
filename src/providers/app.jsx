@@ -9,7 +9,9 @@ import {
 	copyImage,
 	randomId,
 	showToast,
-} from "@/utils";
+	onDesktop,
+	openUrl,
+} from "@/crotchet";
 import { dataSourceProviders } from "./data";
 import GenericPage from "@/components/Pages/GenericPage";
 import SearchPage from "@/components/Pages/SearchPage";
@@ -53,6 +55,8 @@ const AppContext = createContext({
 	copyImage: (url) => {},
 	// eslint-disable-next-line no-unused-vars
 	actualSource: (source) => {},
+	// eslint-disable-next-line no-unused-vars
+	openUrl: (path) => {},
 	// eslint-disable-next-line no-unused-vars
 	socketEmit: (event, data) => {},
 });
@@ -125,7 +129,6 @@ const getDefaultActions = (appContextValue) => {
 };
 
 export default function AppProvider({ children }) {
-	const onElectron = document.body.classList.contains("on-electron");
 	const socket = useRef();
 	const [prefs, setPrefs] = useState();
 	const [bottomSheets, setBottomSheets] = useState([]);
@@ -140,7 +143,7 @@ export default function AppProvider({ children }) {
 	};
 
 	const setupSocket = () => {
-		if (onElectron) {
+		if (onDesktop()) {
 			setDoc(
 				doc(db, "__utils", "desktop"),
 				{ socket: document.body.getAttribute("data-socket-url") },
@@ -150,7 +153,6 @@ export default function AppProvider({ children }) {
 			if (!socket.current) {
 				getDoc(doc(db, "__utils", "desktop")).then((res) => {
 					socket.current = io(res.data().socket);
-					console.log(socket.current);
 				});
 			}
 		}
@@ -248,8 +250,9 @@ export default function AppProvider({ children }) {
 		showToast,
 		copyToClipboard,
 		copyImage,
+		socket: () => socket.current,
+		openUrl,
 		socketEmit: (event, data) => {
-			console.log("Emit: ", event, data, socket.current);
 			if (socket.current) socket.current.emit(event, data);
 		},
 	};
@@ -266,6 +269,11 @@ export default function AppProvider({ children }) {
 	if (!actionsRef.current) {
 		actionsRef.current = getDefaultActions(appContextValue);
 	}
+
+	Object.assign(window.__crotchet, {
+		...appContextValue,
+		actions: actionsRef.current,
+	});
 
 	return (
 		<AppContext.Provider
