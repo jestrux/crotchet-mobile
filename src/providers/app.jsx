@@ -13,6 +13,9 @@ import {
 import { dataSourceProviders } from "./data";
 import GenericPage from "@/components/Pages/GenericPage";
 import SearchPage from "@/components/Pages/SearchPage";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "./firebaseApp";
+import { io } from "socket.io-client";
 
 const STORE_KEY = "crotchet-app";
 
@@ -50,6 +53,8 @@ const AppContext = createContext({
 	copyImage: (url) => {},
 	// eslint-disable-next-line no-unused-vars
 	actualSource: (source) => {},
+	// eslint-disable-next-line no-unused-vars
+	socketEmit: (event, data) => {},
 });
 
 export const useAppContext = () => {
@@ -120,6 +125,8 @@ const getDefaultActions = (appContextValue) => {
 };
 
 export default function AppProvider({ children }) {
+	const onElectron = document.body.classList.contains("on-electron");
+	const socket = useRef();
 	const [prefs, setPrefs] = useState();
 	const [bottomSheets, setBottomSheets] = useState([]);
 	const dataSourcesRef = useRef(getDefaultDataSources());
@@ -132,7 +139,30 @@ export default function AppProvider({ children }) {
 		);
 	};
 
+	const setupSocket = () => {
+		if (onElectron) {
+			setDoc(
+				doc(db, "__utils", "desktop"),
+				{ socket: document.body.getAttribute("data-socket-url") },
+				{ merge: true }
+			);
+		} else {
+			if (!socket.current) {
+				getDoc(doc(db, "__utils", "desktop")).then((res) => {
+					socket.current = io(res.data().socket);
+					console.log(socket.current);
+				});
+			}
+		}
+	};
+
 	useEffect(() => {
+		try {
+			setupSocket();
+		} catch (error) {
+			console.log("Socket error: ", error);
+		}
+
 		if (!prefs) {
 			Preferences.get({ key: "app" }).then(({ value }) => {
 				try {
@@ -218,6 +248,10 @@ export default function AppProvider({ children }) {
 		showToast,
 		copyToClipboard,
 		copyImage,
+		socketEmit: (event, data) => {
+			console.log("Emit: ", event, data, socket.current);
+			if (socket.current) socket.current.emit(event, data);
+		},
 	};
 
 	if (!appContextValue.actualSource) {

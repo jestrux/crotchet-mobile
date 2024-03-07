@@ -11,20 +11,20 @@ export const uploadFile = ({ showToast }) => {
 	};
 };
 
-// export const updateWhyLead = ({ showToast }) => {
-// 	return async () => {
-// 		await firebaseUploadFile({
-// 			name: "index.html",
-// 			file: new Blob([(await Clipboard.read()).value], {
-// 				type: "text/html",
-// 			}),
-// 		});
+export const updateWhyLead = ({ showToast }) => {
+	return async () => {
+		await firebaseUploadFile({
+			name: "index.html",
+			file: new Blob([(await Clipboard.read()).value], {
+				type: "text/html",
+			}),
+		});
 
-// 		showToast("Updated");
+		showToast("Updated");
 
-// 		return;
-// 	};
-// };
+		return;
+	};
+};
 
 export const rentersByStatus = ({ openPage, actualSource }) => {
 	const source = actualSource(dataSource.crotchet("renters"));
