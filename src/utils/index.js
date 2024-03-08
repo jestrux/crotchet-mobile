@@ -145,17 +145,19 @@ export const onDesktop = () => document.body.classList.contains("on-electron");
 export const openUrl = async (path) => {
 	const url = new URL(path);
 
-	if (url.protocol == "crotchet:") {
-		const app = window.__crotchet.apps["yt-clips"];
-		return app.handler({ url: url.href });
-
+	if (url.protocol.startsWith("crotchet:")) {
 		// const scheme = url.pathname.replace("//app/", "").split("/")?.[0];
+		const scheme = "yt-clips";
+		const app = window.__crotchet.apps[scheme];
 
-		// const app = window.__crotchet.apps[scheme];
+		if (app) {
+			return app.load(
+				url.href.replace("crotchet://app", ""),
+				window.__crotchet
+			);
+		}
 
-		// if (app) {
-		// 	return app.handler({ url: url.href });
-		// }
+		return showToast("Invalid url");
 	}
 
 	if (onDesktop()) {

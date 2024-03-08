@@ -13,6 +13,7 @@ const {
 } = require("@nut-tree/nut-js");
 
 const express = require("express");
+const fs = require("fs");
 const http = require("http");
 const { Server } = require("socket.io");
 const getIp = require("./getIp");
@@ -20,8 +21,47 @@ const runScript = require("./utils/runScript");
 const expressApp = express();
 const server = http.createServer(expressApp);
 
+// view engine setup
+expressApp.set("views", path.join(__dirname, "build"));
+expressApp.set("view engine", "jade");
+// expressApp.set("view options", { layout: false });
+// expressApp.use(express.static(path.join(__dirname, "build")));
+
+// Public files
+expressApp.use(
+	express.static(path.join(__dirname, "build"), {
+		setHeaders: (res, path) => {
+			const pathArray = path.split(".");
+			const extension = pathArray.pop();
+
+			if (extension === "js") res.set("Content-Type", "text/javascript");
+			else if (extension === "css") res.set("Content-Type", "text/css");
+		},
+	})
+);
+
+// Express setup
+expressApp.use(express.json());
+
 expressApp.get("/", async (_, res) => {
-	return res.send(getIp());
+	res.send(getIp());
+});
+
+expressApp.get("/:app", async (req, res) => {
+	const appJSFile = (
+		await fs.promises.readdir(path.join(__dirname, "build/assets"))
+	).find((file) => file.endsWith(".js") && file.startsWith("index"));
+
+	res.render("index", {
+		appJSFile,
+		title: req.query.title,
+		__crotchet: JSON.stringify({
+			app: {
+				scheme: req.params.app,
+				props: req.query,
+			},
+		}),
+	});
 });
 
 const io = new Server(server, {
@@ -140,26 +180,38 @@ const mb = menubar({
 	preloadWindow: true,
 });
 
-const openApp = ({ url, width = 800, height = 600 }) => {
+const appWindows = {};
+
+const openApp = ({ scheme, url, window = {} }) => {
+	const {
+		backgroundColor = "#fff",
+		width = 800,
+		height = 600,
+		titleBarStyle = "default",
+		darkTheme,
+	} = window || {};
+
+	console.log("App details: ", url, width, height);
 	const icon = path.join(__dirname, "icon.icns");
-	// const dir = path.join(__dirname, "build");
 
-	const win = new BrowserWindow({
-		icon,
-		width,
-		height,
-		backgroundColor: "#000000",
-		webPreferences: {
-			nodeIntegration: true,
-			preload: path.join(__dirname, "preload.js"),
-		},
-	});
+	if (!appWindows[scheme]) {
+		const win = new BrowserWindow({
+			icon,
+			width,
+			height,
+			backgroundColor,
+			titleBarStyle,
+			darkTheme,
+		});
 
-	// Load a remote URL
-	win.loadURL(url);
+		win.on("close", () => {
+			appWindows[scheme] = null;
+		});
 
-	// Or load a local HTML file
-	// win.loadFile("index.html");
+		appWindows[scheme] = win;
+	}
+
+	appWindows[scheme].loadURL(`http://${getIp()}:3127${url}`);
 };
 
 mb.on("ready", () => {

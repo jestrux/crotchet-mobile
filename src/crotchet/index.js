@@ -4,18 +4,28 @@ export * from "@/utils";
 
 export const registerApp = (scheme, _app) => {
 	const app = _app();
+	let appProps = {};
 
 	let name = scheme,
-		handler = app;
+		load = app;
 
 	if (typeof app != "function") {
-		name = app.name;
-		handler = app.handler;
+		const { name: appName, load: appLoader, open, ...props } = app;
+
+		name = appName || scheme;
+		load = appLoader;
+		appProps = props;
+
+		appProps.open = (payload) => {
+			if (typeof open == "function")
+				return open(payload, window.__crotchet);
+		};
 	}
 
 	window.__crotchet.apps[scheme] = {
 		_id: randomId(),
 		name: camelCaseToSentenceCase(name),
-		handler: (payload = {}) => handler(payload, window.__crotchet),
+		load: (payload = {}) => load(payload, window.__crotchet),
+		...appProps,
 	};
 };

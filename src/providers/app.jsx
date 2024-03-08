@@ -275,6 +275,21 @@ export default function AppProvider({ children }) {
 		actions: actionsRef.current,
 	});
 
+	if (window.__crotchet?.app?.scheme) {
+		const App =
+			window.__crotchet.apps?.[window.__crotchet.app.scheme]?.open;
+
+		if (App) {
+			return (
+				<AppContext.Provider
+					value={{ ...appContextValue, actions: actionsRef.current }}
+				>
+					<App {...(window.__crotchet.app.props || {})} />
+				</AppContext.Provider>
+			);
+		}
+	}
+
 	return (
 		<AppContext.Provider
 			value={{ ...appContextValue, actions: actionsRef.current }}

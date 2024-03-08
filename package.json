@@ -12,7 +12,7 @@
 		"assets": "npx @capacitor/assets generate",
 		"ios": "vite build && npx cap run ios",
 		"ios:live": "ionic capacitor run ios --livereload-url=http://localhost:5173/",
-		"predesktop": "vite build && cp -R ./docs/. ./electron/build",
+		"predesktop": "vite build && rm -r ./electron/build && cp -R ./docs/. ./electron/build",
 		"desktop": "electron electron/index.js",
 		"predesktop:package": "vite build && cp -R ./docs/. ./electron/build",
 		"desktop:package": "electron-packager ./electron --appname=Crotchet --platform=darwin --arch=x64 --icon=electron/icon.icns --overwrite"
@@ -45,7 +45,8 @@
 		"react-dom": "^18.2.0",
 		"send-intent": "^5.0.0",
 		"socket.io-client": "^4.7.4",
-		"sql.js": "^1.10.2"
+		"sql.js": "^1.10.2",
+		"youtube-player": "^5.6.0"
 	},
 	"devDependencies": {
 		"@capacitor/assets": "^3.0.4",
