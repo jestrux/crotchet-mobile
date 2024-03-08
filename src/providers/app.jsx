@@ -11,6 +11,7 @@ import {
 	showToast,
 	onDesktop,
 	openUrl,
+	shuffle,
 } from "@/crotchet";
 import { dataSourceProviders } from "./data";
 import GenericPage from "@/components/Pages/GenericPage";
@@ -92,7 +93,16 @@ const getDefaultDataSources = () => {
 			return;
 		}
 
-		sources[name] = registerSingleSource(sources, source);
+		const _source = registerSingleSource(sources, source);
+
+		const get = async () => _source.handler();
+		const random = () => get().then((res) => shuffle(shuffle(res))[0]);
+
+		sources[name] = {
+			..._source,
+			get,
+			random,
+		};
 
 		while (pending[name]?.length) {
 			processSource(pending[name].pop());
@@ -111,16 +121,20 @@ const getDefaultActions = (appContextValue) => {
 		const action = _action(appContextValue);
 
 		let label = key,
-			handler = action;
+			handler = action,
+			tags = [];
 
 		if (typeof action != "function") {
 			label = action.label;
 			handler = action.handler;
+			tags = action.tags || [];
 		}
 
 		actions[key] = {
 			_id: randomId(),
+			name: key,
 			label: camelCaseToSentenceCase(label || key),
+			tags,
 			handler: (payload = {}) => handler(appContextValue, payload),
 		};
 	});

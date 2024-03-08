@@ -8,6 +8,7 @@ import { useRef, useState } from "react";
 import Loader from "./Loader";
 import WidgetWrapper from "./WidgetWrapper";
 import DesktopWidget from "@/apps/Widgets/DesktopWidget";
+import { matchSorter } from "match-sorter";
 
 const BottomNavAction = ({ action }) => {
 	const [loading, setLoading] = useState(false);
@@ -55,6 +56,7 @@ const BottomNavAction = ({ action }) => {
 
 export function BottomNav({ hidden }) {
 	const wrapperRef = useRef(null);
+	const [searchQuery, setSearchQuery] = useState("");
 	const { currentPage, setCurrentPage, actions, openBottomSheet } =
 		useAppContext();
 	const navHeight = 56;
@@ -69,6 +71,14 @@ export function BottomNav({ hidden }) {
 		const input = wrapperRef.current.querySelector("#searchbar");
 		if (input) input.focus();
 	};
+
+	const filteredActions = matchSorter(
+		Object.values(actions ?? {}),
+		searchQuery.replace(/\s+/, "-"),
+		{
+			keys: ["label", "name", "tags"],
+		}
+	);
 
 	return (
 		<div
@@ -234,13 +244,48 @@ export function BottomNav({ hidden }) {
 								) : (
 									!collapsed &&
 									!hidden && (
-										<input
-											id="searchbar"
-											autoFocus
-											type="search"
-											className="w-full h-12 px-5 rounded-full border border-content/5 bg-content/5 text-xl/none placeholder:text-content/30 focus:outline-none"
-											placeholder="Type to search..."
-										/>
+										<div className="relative">
+											<input
+												id="searchbar"
+												autoFocus
+												type="text"
+												className="w-full h-12 px-5 rounded-full border border-content/5 bg-content/5 text-xl/none placeholder:text-content/30 focus:outline-none"
+												placeholder="Type to search..."
+												value={searchQuery}
+												onChange={(e) =>
+													setSearchQuery(
+														e.target.value
+													)
+												}
+											/>
+
+											<button
+												className={clsx(
+													"absolute top-0 bottom-0 my-auto right-1.5 w-8 h-8 flex items-center justify-center shadow-sm rounded-full",
+													{
+														"opacity-0":
+															!searchQuery,
+													}
+												)}
+												onClick={() =>
+													setSearchQuery("")
+												}
+											>
+												<svg
+													className="w-4"
+													fill="none"
+													viewBox="0 0 24 24"
+													strokeWidth="1.5"
+													stroke="currentColor"
+												>
+													<path
+														strokeLinecap="round"
+														strokeLinejoin="round"
+														d="M6 18 18 6M6 6l12 12"
+													></path>
+												</svg>
+											</button>
+										</div>
 									)
 								)}
 							</div>
@@ -250,14 +295,12 @@ export function BottomNav({ hidden }) {
 									Quick Actions
 								</h3>
 
-								{Object.entries(actions ?? {}).map(
-									([, action]) => (
-										<BottomNavAction
-											key={action._id}
-											action={action}
-										/>
-									)
-								)}
+								{filteredActions.map((action) => (
+									<BottomNavAction
+										key={action._id}
+										action={action}
+									/>
+								))}
 							</div>
 						</motion.div>
 					</div>

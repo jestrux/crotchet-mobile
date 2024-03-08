@@ -10,17 +10,10 @@ export const uploadFile = ({ showToast }) => {
 	};
 };
 
-export const openCrotchetApp = () => {
+export const getRandomYoutubeClip = ({ dataSources }) => {
 	return async () => {
-		const params = new URLSearchParams({
-			id: "-GE9Em847Zs",
-			crop: [83.6543197631836, 105.77777862548828],
-			duration: 127.9209976196289,
-			name: "The Voice 2015 Battle - Celeste Betton vs Mark Hood - 'Ain't No Mountain High'",
-			poster: "https://i.ytimg.com/vi/-GE9Em847Zs/hqdefault.jpg",
-		}).toString();
-
-		openUrl("crotchet://app/yt-clips?" + params);
+		const res = await dataSources.ytClips.random();
+		openUrl(res.url);
 	};
 };
 

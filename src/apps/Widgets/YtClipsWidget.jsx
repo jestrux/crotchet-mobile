@@ -7,25 +7,7 @@ import { toHms } from "@/crotchet";
 
 export default function YtClipsWidget() {
 	const { openPage, openUrl } = useAppContext();
-	const source = dataSource.firebase({
-		collection: "videos",
-		orderBy: "updatedAt,desc",
-		fieldMap: {
-			video: "poster",
-			title: "name",
-			subtitle: "crop.0|time::crop.1|time::duration|time",
-			action: "url",
-		},
-		mapEntry(item) {
-			var url = "crotchet://app/yt-clips?";
-			url += new URLSearchParams(item).toString();
-
-			return {
-				...item,
-				url,
-			};
-		},
-	});
+	const source = dataSource.crotchet("ytClips");
 
 	const widgetProps = ({ shuffle, video }) => ({
 		noPadding: true,
