@@ -3,5 +3,10 @@
     "env": {
         "es6": true,
         "node": true
+    },
+    "globals": {
+        "appDir": "readonly",
+        "buildDir": "readonly",
+        "crotchetApp": "readonly"
     }
 }

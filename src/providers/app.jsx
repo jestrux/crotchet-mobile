@@ -12,6 +12,7 @@ import {
 	onDesktop,
 	openUrl,
 	shuffle,
+	socketEmit,
 } from "@/crotchet";
 import { dataSourceProviders } from "./data";
 import GenericPage from "@/components/Pages/GenericPage";
@@ -120,23 +121,41 @@ const getDefaultActions = (appContextValue) => {
 	Object.entries(defaultActions).forEach(([key, _action]) => {
 		const action = _action(appContextValue);
 
-		let label = key,
+		let _label = key,
 			handler = action,
 			tags = [];
 
 		if (typeof action != "function") {
-			label = action.label;
+			_label = action.label;
 			handler = action.handler;
 			tags = action.tags || [];
 		}
 
-		actions[key] = {
-			_id: randomId(),
+		const label = camelCaseToSentenceCase(_label || key);
+
+		const _id = randomId();
+
+		const actionProps = {
+			_id,
 			name: key,
-			label: camelCaseToSentenceCase(label || key),
+			label,
 			tags,
 			handler: (payload = {}) => handler(appContextValue, payload),
 		};
+
+		actions[key] = actionProps;
+
+		socketEmit("add-menu-item", {
+			_id,
+			label,
+			// click: () => alert("Alert handler: " + label),
+		});
+
+		window.addEventListener(`menu-item-click:${_id}`, async () => {
+			console.log("Handling...", label);
+			const res = await handler();
+			console.log("Handled: ", label, res);
+		});
 	});
 
 	return actions;
@@ -159,13 +178,18 @@ export default function AppProvider({ children }) {
 	const setupSocket = () => {
 		if (onDesktop()) {
 			setDoc(
-				doc(db, "__utils", "desktop"),
+				doc(db, "__crotchet", "desktop"),
 				{ socket: document.body.getAttribute("data-socket-url") },
 				{ merge: true }
 			);
+
+			socket.current = {
+				connected: true,
+				emit: socketEmit,
+			};
 		} else {
 			if (!socket.current) {
-				getDoc(doc(db, "__utils", "desktop")).then((res) => {
+				getDoc(doc(db, "__crotchet", "desktop")).then((res) => {
 					socket.current = io(res.data().socket);
 				});
 			}

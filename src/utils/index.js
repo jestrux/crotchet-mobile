@@ -140,6 +140,19 @@ export const KeyMap = {
 	AudioRandom: 133,
 };
 
+export const socketEmit = (event, payload) =>
+	dispatch("socket-emit", {
+		event,
+		payload,
+	});
+
+export const dispatch = (event, payload) =>
+	window.dispatchEvent(
+		new CustomEvent(event, {
+			detail: payload,
+		})
+	);
+
 export const onDesktop = () => document.body.classList.contains("on-electron");
 
 export const openUrl = async (path) => {
@@ -231,10 +244,13 @@ export const formatDate = (
 	return value;
 };
 
-export const showToast = (text) =>
+export const showToast = (text) => {
+	if (onDesktop()) return socketEmit("show-toast", text);
+
 	Toast.show({
 		text,
 	});
+};
 
 export const copyToClipboard = (content) => {
 	return Clipboard.write({
@@ -250,6 +266,12 @@ export const copyImage = async (url) => {
 	const reader = new FileReader();
 
 	reader.onload = async () => {
+		if (onDesktop()) {
+			socketEmit("copy-image", reader.result);
+			showToast("Image copied");
+			return;
+		}
+
 		return Clipboard.write({
 			image: reader.result,
 		})

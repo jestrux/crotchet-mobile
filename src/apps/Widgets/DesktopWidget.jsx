@@ -48,7 +48,14 @@ export default function DesktopWidget() {
 			SpeechRecognition.stop();
 			setDictating(false);
 
-			socketEmit("type", value);
+			const clear = value.toLowerCase() == "clear";
+			const paste = value.toLowerCase() == "paste";
+			// const replace = value.toLowerCase() == "replace";
+			// const selectAll = value.toLowerCase() == "select all";
+
+			if (paste) return socketEmit("paste");
+
+			socketEmit("type", { text: value, replace: clear });
 
 			return;
 		}
