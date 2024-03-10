@@ -1,13 +1,11 @@
-"use client";
-
 import { motion } from "framer-motion";
 import { clsx } from "clsx";
-import { BottomSheet } from "./BottomSheet";
+import BottomSheet from "./BottomSheet";
 import { useAppContext } from "@/providers/app";
 import { useRef, useState } from "react";
 import Loader from "./Loader";
 import WidgetWrapper from "./WidgetWrapper";
-import DesktopWidget from "@/apps/Widgets/DesktopWidget";
+import DesktopWidget from "@/crotchet/apps/Widgets/DesktopWidget";
 import { matchSorter } from "match-sorter";
 
 const BottomNavAction = ({ action }) => {

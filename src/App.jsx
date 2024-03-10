@@ -1,7 +1,7 @@
 import { BottomNav } from "@/components/BottomNav";
 import { useAppContext } from "@/providers/app";
 
-import Widgets from "@/apps/Widgets";
+import Widgets from "@/crotchet/apps/Widgets";
 import { SendIntent } from "send-intent";
 import { useEffect } from "react";
 import clsx from "clsx";

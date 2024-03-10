@@ -2,8 +2,8 @@ import clsx from "clsx";
 import DataWidget from "../DataWidget";
 import WidgetWrapper from "../WidgetWrapper";
 import DataFetcher from "@/providers/data/DataFetcher";
-import { dataSource } from "@/providers/data";
 import { getGradient, openUrl } from "@/utils";
+import dataSource from "@/providers/data/dataSource";
 
 export default function GenericPage({
 	image,

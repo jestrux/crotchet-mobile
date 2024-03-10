@@ -33,7 +33,8 @@ module.exports = function socketServer(server) {
 	});
 
 	const events = {
-		"add-menu-item": (item) => crotchetApp.addMenuItem(item),
+		"add-menu-items": (items) =>
+			crotchetApp.addMenuItems(items, { replace: true }),
 
 		"show-toast": showToast,
 

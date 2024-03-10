@@ -4,9 +4,11 @@ const path = require("path");
 const Crotchet = require("./modules/crotchet");
 const { app, BrowserWindow } = require("electron");
 
-const isDev = false;
+const isDev = process.env.NODE_ENV == "dev";
 let mainWindow = null;
 const crotchetApp = new Crotchet();
+
+console.log("Env: ", process.env.NODE_ENV);
 
 global.appDir = (...subPaths) => path.join(__dirname, ...subPaths);
 global.buildDir = (...subPaths) => appDir("build", ...subPaths);
@@ -20,11 +22,6 @@ socketServer(server);
 
 server.listen(3127, () => {
 	console.log("Listen on the port 3127...");
-});
-
-app.setLoginItemSettings({
-	openAtLogin: true,
-	openAsHidden: true,
 });
 
 const createMainWindow = () => {
@@ -42,14 +39,9 @@ const createMainWindow = () => {
 			preload: appDir("preload.js"),
 		},
 	});
-	//   if (isDev) {
-	//     mainWindow.webContents.openDevTools({ mode: 'detach' });
-	//     mainWindow.loadURL('http://localhost:3000');
-	//   } else {
-	//   }
 
 	if (isDev) {
-		mainWindow.webContents.openDevTools({ mode: "detach" });
+		// mainWindow.webContents.openDevTools({ mode: "detach" });
 
 		mainWindow.loadURL("http://localhost:5173/");
 
@@ -58,14 +50,20 @@ const createMainWindow = () => {
 		} catch {
 			//
 		}
-	} else mainWindow.loadFile(buildDir("index.html"));
+	} else {
+		mainWindow.loadFile(buildDir("index.html"));
+		app.setLoginItemSettings({
+			openAtLogin: true,
+			// openAsHidden: true,
+		});
+	}
 
 	crotchetApp.setMainWindow(mainWindow);
 };
 
 app.whenReady().then(() => {
+	crotchetApp.setMenuItems();
 	createMainWindow();
-	// crotchetApp.setTrayItems();
 });
 
 app.dock.hide();

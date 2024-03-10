@@ -8,6 +8,9 @@ export default defineConfig({
 	plugins: [react()],
 	base: "",
 	build: {
+		rollupOptions: {
+			maxParallelFileOps: 50,
+		},
 		outDir: "./docs",
 		commonjsOptions: { include: [] },
 	},

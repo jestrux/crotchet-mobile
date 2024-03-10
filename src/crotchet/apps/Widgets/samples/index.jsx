@@ -1,5 +1,5 @@
 import DataWidget from "@/components/DataWidget";
-import { dataSource } from "@/providers/data";
+import dataSource from "@/providers/data/dataSource";
 
 export const SqlWidget = () => {
 	return (

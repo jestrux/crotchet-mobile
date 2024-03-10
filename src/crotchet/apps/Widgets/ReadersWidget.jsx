@@ -11,17 +11,14 @@ import {
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Clipboard } from "@capacitor/clipboard";
 import { Toast } from "@capacitor/toast";
 import { Preferences } from "@capacitor/preferences";
 
 import { db } from "@/providers/data/firebase";
-import DragDropList from "@/components/DragDropList";
 import Loader from "@/components/Loader";
 import Widget from "@/components/Widget";
 import ListItem from "@/components/ListWidget/ListItem";
-import WidgetWrapper from "@/components/WidgetWrapper";
-import { onDesktop } from "@/utils";
+import { onDesktop, readClipboard } from "@/crotchet";
 
 function isValidHttpUrl(string) {
 	let url;
@@ -47,7 +44,7 @@ async function showToast(message) {
 
 async function readClipboardText() {
 	try {
-		const { value } = await Clipboard.read();
+		const { value } = await readClipboard();
 		return value;
 	} catch (error) {
 		console.log("Error copying text: ", error);

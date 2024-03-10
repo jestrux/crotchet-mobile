@@ -1,5 +1,5 @@
-import { dataSource } from "@/providers/data";
-import DataWidget from "../../components/DataWidget";
+import dataSource from "@/providers/data/dataSource";
+import DataWidget from "../../../components/DataWidget";
 import { useAppContext } from "@/providers/app";
 
 export default function HeroIconsWidget() {

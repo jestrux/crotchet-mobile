@@ -146,12 +146,13 @@ export const socketEmit = (event, payload) =>
 		payload,
 	});
 
-export const dispatch = (event, payload) =>
+export const dispatch = (event, payload) => {
 	window.dispatchEvent(
 		new CustomEvent(event, {
 			detail: payload,
 		})
 	);
+};
 
 export const onDesktop = () => document.body.classList.contains("on-electron");
 
@@ -252,7 +253,28 @@ export const showToast = (text) => {
 	});
 };
 
+export const readClipboard = async () => {
+	// if (onDesktop()) {
+	// 	socketEmit("read-clipboard");
+	// 	showToast("Image copied");
+	// 	return;
+	// }
+
+	try {
+		return await Clipboard.read();
+	} catch (error) {
+		console.log("Error copying text: ", error);
+		throw "Failed to copy!";
+	}
+};
+
 export const copyToClipboard = (content) => {
+	if (onDesktop()) {
+		socketEmit("copy", content);
+		showToast("Image copied");
+		return;
+	}
+
 	return Clipboard.write({
 		string: content,
 		url: content,

@@ -1,7 +1,7 @@
 import Widget from "@/components/Widget";
 import { useAppContext } from "@/providers/app";
-import { dataSource } from "@/providers/data";
 import DataFetcher from "@/providers/data/DataFetcher";
+import dataSource from "@/providers/data/dataSource";
 
 export default function RandomPhotoWidget() {
 	const { openSearchPage } = useAppContext();

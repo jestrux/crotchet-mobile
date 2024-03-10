@@ -1,7 +1,7 @@
 import { useAppContext } from "@/providers/app";
 import DataWidget from "../DataWidget";
-import { dataSource } from "@/providers/data";
 import { useEffect, useRef, useState } from "react";
+import dataSource from "@/providers/data/dataSource";
 
 export default function SearchPage({
 	placeholder = "Type to search",

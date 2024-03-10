@@ -1,12 +1,12 @@
 import ListWidget from "@/components/ListWidget";
 import WidgetWrapper from "@/components/WidgetWrapper";
-import ReaderWidget from "@/apps/Widgets/ReaderWidget";
-import MusicWidget from "@/apps/Widgets/MusicWidget";
-import TimerWidget from "@/apps/Widgets/TimerWidget";
-import YtClipsWidget from "@/apps/Widgets/YtClipsWidget";
-import RandomPhotoWidget from "@/apps/Widgets/RandomPhotoWidget";
-import PinnedItemsWidget from "@/apps/Widgets/PinnedItemsWidget";
-import RentersWidget from "@/apps/Widgets/RentersWidget";
+import ReaderWidget from "@/crotchet/apps/Widgets/ReaderWidget";
+import MusicWidget from "@/crotchet/apps/Widgets/MusicWidget";
+import TimerWidget from "@/crotchet/apps/Widgets/TimerWidget";
+import YtClipsWidget from "@/crotchet/apps/Widgets/YtClipsWidget";
+import RandomPhotoWidget from "@/crotchet/apps/Widgets/RandomPhotoWidget";
+import PinnedItemsWidget from "@/crotchet/apps/Widgets/PinnedItemsWidget";
+import RentersWidget from "@/crotchet/apps/Widgets/RentersWidget";
 import HeroIconsWidget from "./HeroIconsWidget";
 // import DesktopWidget from "./DesktopWidget";
 

@@ -1,5 +1,5 @@
 import { matchSorter } from "match-sorter";
-import { dataSource } from "..";
+import dataSource from "../dataSource";
 
 const heroiconTags = {
 	"academic-cap": [

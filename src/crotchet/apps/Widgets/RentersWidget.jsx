@@ -1,5 +1,5 @@
-import { dataSource } from "@/providers/data";
-import DataWidget from "../../components/DataWidget";
+import dataSource from "@/providers/data/dataSource";
+import DataWidget from "../../../components/DataWidget";
 import { useAppContext } from "@/providers/app";
 
 export default function RentersWidget() {
@@ -15,7 +15,7 @@ export default function RentersWidget() {
 				actions: [
 					{
 						icon: "list",
-						onClick: actions.rentersByStatus.handler,
+						onClick: actions["crotchet://rentersByStatus"].handler,
 					},
 				],
 			}}

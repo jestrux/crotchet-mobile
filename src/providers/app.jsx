@@ -1,10 +1,8 @@
 import { Preferences } from "@capacitor/preferences";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import * as defaultDataSources from "./data/defaultDataSources";
-import * as defaultActions from "./actions/defaultActions";
-import { BottomSheet } from "@/components/BottomSheet";
+import BottomSheet from "@/components/BottomSheet";
 import {
-	camelCaseToSentenceCase,
 	copyToClipboard,
 	copyImage,
 	randomId,
@@ -31,6 +29,7 @@ const AppContext = createContext({
 	// eslint-disable-next-line no-unused-vars
 	setPref: (key, value) => {},
 	dataSources: {},
+	apps: {},
 	actions: {},
 	bottomSheets: [],
 	// eslint-disable-next-line no-unused-vars
@@ -115,52 +114,6 @@ const getDefaultDataSources = () => {
 	return sources;
 };
 
-const getDefaultActions = (appContextValue) => {
-	const actions = {};
-
-	Object.entries(defaultActions).forEach(([key, _action]) => {
-		const action = _action(appContextValue);
-
-		let _label = key,
-			handler = action,
-			tags = [];
-
-		if (typeof action != "function") {
-			_label = action.label;
-			handler = action.handler;
-			tags = action.tags || [];
-		}
-
-		const label = camelCaseToSentenceCase(_label || key);
-
-		const _id = randomId();
-
-		const actionProps = {
-			_id,
-			name: key,
-			label,
-			tags,
-			handler: (payload = {}) => handler(appContextValue, payload),
-		};
-
-		actions[key] = actionProps;
-
-		socketEmit("add-menu-item", {
-			_id,
-			label,
-			// click: () => alert("Alert handler: " + label),
-		});
-
-		window.addEventListener(`menu-item-click:${_id}`, async () => {
-			console.log("Handling...", label);
-			const res = await handler();
-			console.log("Handled: ", label, res);
-		});
-	});
-
-	return actions;
-};
-
 export default function AppProvider({ children }) {
 	const socket = useRef();
 	const [prefs, setPrefs] = useState();
@@ -168,6 +121,8 @@ export default function AppProvider({ children }) {
 	const dataSourcesRef = useRef(getDefaultDataSources());
 	const dataSources = dataSourcesRef.current ?? {};
 	const actionsRef = useRef();
+	const appsRef = useRef();
+
 	const registerDataSource = (name, source) => {
 		dataSourcesRef.current[name] = registerSingleSource(
 			dataSourcesRef.current,
@@ -191,13 +146,44 @@ export default function AppProvider({ children }) {
 			if (!socket.current) {
 				getDoc(doc(db, "__crotchet", "desktop")).then((res) => {
 					socket.current = io(res.data().socket);
+					setTimeout(() => {
+						copyToClipboard(res.data().socket);
+						showToast("Socket: " + socket.current.connected);
+					}, 3000);
 				});
 			}
 		}
 	};
 
+	const setupApps = () => {
+		if (!appsRef.current) {
+			appsRef.current = window.__crotchet.apps;
+		}
+	};
+
+	const setupActions = () => {
+		// if (!actionsRef.current) {
+		actionsRef.current = window.__crotchet.actions;
+
+		if (onDesktop()) {
+			socketEmit(
+				"add-menu-items",
+				Object.fromEntries(
+					Object.entries(window.__crotchet.actions).map(
+						([key, { label }]) => {
+							return [key, { label }];
+						}
+					)
+				)
+			);
+		}
+		// }
+	};
+
 	useEffect(() => {
 		try {
+			setupApps();
+			setupActions();
 			setupSocket();
 		} catch (error) {
 			console.log("Socket error: ", error);
@@ -304,13 +290,8 @@ export default function AppProvider({ children }) {
 		};
 	}
 
-	if (!actionsRef.current) {
-		actionsRef.current = getDefaultActions(appContextValue);
-	}
-
 	Object.assign(window.__crotchet, {
 		...appContextValue,
-		actions: actionsRef.current,
 	});
 
 	if (window.__crotchet?.app?.scheme) {
@@ -320,7 +301,11 @@ export default function AppProvider({ children }) {
 		if (App) {
 			return (
 				<AppContext.Provider
-					value={{ ...appContextValue, actions: actionsRef.current }}
+					value={{
+						...appContextValue,
+						apps: appsRef.current,
+						actions: actionsRef.current,
+					}}
 				>
 					<App {...(window.__crotchet.app.props || {})} />
 				</AppContext.Provider>

@@ -13,14 +13,15 @@ module.exports = function Crotchet() {
 		this.mainWindow.webContents.send(event, payload);
 	};
 
-	this.setMenuItems = (newItems = []) => {
+	this.setMenuItems = (items = [], { replace = false } = {}) => {
 		const defaultItems = [
 			{ label: "About", role: "about" },
 			{ label: "Quit", role: "quit" },
 		];
 
-		if (newItems) {
-			newItems.forEach((item) => (this.menuItems[item.label] = item));
+		if (items) {
+			if (replace) this.menuItems = {};
+			items.forEach((item) => (this.menuItems[item.label] = item));
 		}
 
 		if (this.tray) this.tray.destroy();
@@ -46,11 +47,15 @@ module.exports = function Crotchet() {
 		);
 	};
 
-	this.addMenuItem = (item) => {
-		item.click = async () => {
-			this.windowEmit("menu-item-click", item._id);
-		};
-
-		this.setMenuItems([item]);
+	this.addMenuItems = (items, { replace = false } = {}) => {
+		this.setMenuItems(
+			Object.entries(items).map(([key, item]) => ({
+				...item,
+				click: async () => {
+					this.windowEmit("menu-item-click", key);
+				},
+			})),
+			{ replace }
+		);
 	};
 };

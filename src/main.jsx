@@ -5,7 +5,9 @@ import "./index.css";
 
 import "./init";
 
-import "./apps";
+import "./crotchet/actions";
+
+import "./crotchet/apps";
 
 import AppProvider from "./providers/app";
 import App from "./App";

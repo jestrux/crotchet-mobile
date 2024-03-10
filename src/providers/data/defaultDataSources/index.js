@@ -1,4 +1,4 @@
-import { dataSource } from "..";
+import dataSource from "../dataSource";
 
 export { default as heroicons } from "./heroicons";
 
