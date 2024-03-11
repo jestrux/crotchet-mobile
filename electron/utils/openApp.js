@@ -23,7 +23,7 @@ module.exports = async function openApp({ scheme, url, window = {} }) {
 			titleBarStyle,
 			darkTheme,
 			webPreferences: {
-				// devTools: isDev,
+				devTools: isDev,
 			},
 		});
 
@@ -46,7 +46,7 @@ module.exports = async function openApp({ scheme, url, window = {} }) {
 
 				window.__crotchet.app = {
 					scheme: "${scheme}",
-					props,
+					props
 				}
 			`,
 			true
@@ -55,9 +55,9 @@ module.exports = async function openApp({ scheme, url, window = {} }) {
 		console.log("Failed to set app: ", error);
 	}
 
-	// appWindows[scheme].webContents.openDevTools({ mode: "right" });
+	appWindows[scheme].webContents.openDevTools({ mode: "right" });
 	appWindows[scheme].loadURL(
-		isDev ? "http://localhost:5173/" : buildDir("index.html")
+		isDev ? "http://localhost:5173/" : `file://${buildDir("index.html")}`
 	);
 	// appWindows[scheme].loadURL(`http://${getIp()}:3127${url}`);
 

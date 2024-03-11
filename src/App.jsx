@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import clsx from "clsx";
 import { Filesystem } from "@capacitor/filesystem";
 import { App as CapacitorApp } from "@capacitor/app";
+import { onDesktop } from "@/crotchet";
 
 const App = () => {
 	const { currentPage, bottomSheets, openPage } = useAppContext();
@@ -139,7 +140,7 @@ const App = () => {
 				</div>
 			</div>
 
-			<BottomNav hidden={bottomSheets.length} />
+			{!onDesktop() && <BottomNav hidden={bottomSheets.length} />}
 		</div>
 	);
 };

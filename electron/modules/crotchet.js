@@ -31,9 +31,12 @@ module.exports = function Crotchet() {
 		this.tray.setContextMenu(
 			Menu.buildFromTemplate([
 				{
-					label: "Open app",
-					click() {
-						console.log("Open app");
+					label: "Show app",
+					type: "checkbox",
+					checked: false,
+					click: (event) => {
+						if (!event.checked) this.mainWindow.hide();
+						else this.mainWindow.show();
 					},
 				},
 				...Object.values(this.menuItems).map((item) => {

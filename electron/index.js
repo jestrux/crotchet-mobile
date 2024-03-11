@@ -54,7 +54,7 @@ const createMainWindow = () => {
 		mainWindow.loadFile(buildDir("index.html"));
 		app.setLoginItemSettings({
 			openAtLogin: true,
-			// openAsHidden: true,
+			openAsHidden: false,
 		});
 	}
 
