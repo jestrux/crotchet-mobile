@@ -2,10 +2,9 @@ import Widget from "@/components/Widget";
 import { useAppContext } from "@/providers/app";
 import DataFetcher from "@/providers/data/DataFetcher";
 import dataSource from "@/providers/data/dataSource";
-import { shuffle } from "@/crotchet";
 
 export default function RandomPhotoWidget() {
-	const { openSearchPage } = useAppContext();
+	const { onAction } = useAppContext();
 
 	// return null;
 
@@ -26,28 +25,7 @@ export default function RandomPhotoWidget() {
 			// },
 			{
 				icon: "search",
-				onClick() {
-					// const query = data ? data.alt_description : "spring";
-					const query = shuffle(
-						shuffle([
-							"spring",
-							"wilderness",
-							"serene",
-							"beach",
-							"mountains",
-							"retro",
-							"interior design",
-							"concert",
-						])
-					)[0];
-
-					openSearchPage({
-						query,
-						source: dataSource.unsplash("search"),
-						layout: "masonry",
-						columns: 2,
-					});
-				},
+				onClick: () => onAction("searchUnsplash"),
 			},
 		],
 	});

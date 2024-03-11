@@ -259,7 +259,7 @@ export function BottomNav({ hidden }) {
 
 											<button
 												className={clsx(
-													"absolute top-0 bottom-0 my-auto right-1.5 w-8 h-8 flex items-center justify-center shadow-sm rounded-full",
+													"absolute top-0 bottom-0 my-auto right-1.5 w-8 h-8 flex items-center justify-center rounded-full",
 													{
 														"opacity-0":
 															!searchQuery,

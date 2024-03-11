@@ -25,7 +25,7 @@ export default {
 			...(otherProps || {}),
 		};
 	},
-	unsplash: (collection, { query, fieldMap, ...otherProps } = {}) => {
+	unsplash: ({ collection, query, fieldMap, ...otherProps } = {}) => {
 		return {
 			provider: "unsplash",
 			collection,

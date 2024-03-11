@@ -31,6 +31,8 @@ const AppContext = createContext({
 	dataSources: {},
 	apps: {},
 	actions: {},
+	// eslint-disable-next-line no-unused-vars
+	onAction: (action) => {},
 	bottomSheets: [],
 	// eslint-disable-next-line no-unused-vars
 	openBottomSheet: ({ title, subtitle, content, fullHeight } = {}) => {},
@@ -60,6 +62,8 @@ const AppContext = createContext({
 	openUrl: (path) => {},
 	// eslint-disable-next-line no-unused-vars
 	socketEmit: (event, data) => {},
+	socketConnected: () => {},
+	onDesktop: () => {},
 });
 
 export const useAppContext = () => {
@@ -231,7 +235,12 @@ export default function AppProvider({ children }) {
 			dismissible: !fullHeight,
 			content:
 				type == "search" ? (
-					<SearchPage title={title} source={source} {...props} />
+					<SearchPage
+						inBottomSheet
+						title={title}
+						source={source}
+						{...props}
+					/>
 				) : (
 					<GenericPage
 						image={image}
@@ -270,10 +279,22 @@ export default function AppProvider({ children }) {
 		showToast,
 		copyToClipboard,
 		copyImage,
-		socket: () => socket.current,
 		openUrl,
+		socket: () => socket.current,
 		socketEmit: (event, data) => {
 			if (socket.current) socket.current.emit(event, data);
+		},
+		onDesktop,
+		socketConnected: () => {
+			return socket.current?.connected;
+		},
+		onAction: (action) => {
+			const actionKey =
+				action.indexOf("://") != -1 ? action : `crotchet://${action}`;
+			const _action = window.__crotchet.actions?.[actionKey];
+
+			if (typeof _action?.handler == "function") _action.handler();
+			else showToast(`Action ${action} not found`);
 		},
 	};
 

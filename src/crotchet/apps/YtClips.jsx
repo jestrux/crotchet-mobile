@@ -5,8 +5,10 @@ import PlayerStates from "youtube-player/dist/constants/PlayerStates";
 
 registerApp("yt-clips", () => {
 	return {
-		load(path, { socket }) {
-			if (typeof socket == "function" && socket().connected) {
+		load(path, { socketConnected }) {
+			console.log("url: ", path);
+
+			if (socketConnected()) {
 				window.__crotchet.socketEmit("app", {
 					scheme: "yt-clips",
 					url: path,

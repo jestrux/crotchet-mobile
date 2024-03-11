@@ -39,6 +39,13 @@ module.exports = async function openApp({ scheme, url, window = {} }) {
 	try {
 		appWindows[scheme].webContents.executeJavaScript(
 			/*js*/ `
+				document.body.classList.add("on-electron");
+
+				window.addEventListener("socket-emit", (e) => {
+					const { event, payload } = e.detail;
+					window.__crotchet.socketEmit(event, payload);
+				});
+
 				const { searchParams } = new URL("crotchet://app${url}");
 				const props = Object.fromEntries(searchParams.entries());
 

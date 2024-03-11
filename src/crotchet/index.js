@@ -1,4 +1,6 @@
-import { camelCaseToSentenceCase, randomId } from "@/utils";
+import { camelCaseToSentenceCase, openUrl, randomId } from "@/utils";
+
+export { default as SearchPage } from "@/components/Pages/SearchPage";
 
 export * from "@/utils";
 
@@ -9,7 +11,7 @@ export const registerAction = (scheme, name, action) => {
 
 	if (typeof action != "function") {
 		_label = action.label;
-		_handler = action.handler;
+		_handler = action.url ? () => openUrl(action.url) : action.handler;
 		tags = action.tags || [];
 	}
 

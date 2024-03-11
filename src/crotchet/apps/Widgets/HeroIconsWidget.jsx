@@ -1,16 +1,21 @@
-import dataSource from "@/providers/data/dataSource";
+import { registerAction } from "@/crotchet";
 import DataWidget from "../../../components/DataWidget";
 import { useAppContext } from "@/providers/app";
 
+registerAction("crotchet", "searchHeroicons", {
+	handler: ({ openUrl }) =>
+		openUrl("crotchet://app/search?source=heroicons&live=true&columns=7"),
+	tags: ["svg"],
+});
+
 export default function HeroIconsWidget() {
-	const { openSearchPage } = useAppContext();
-	const source = dataSource.crotchet("heroicons");
+	const { dataSources, onAction } = useAppContext();
 
 	return (
 		<DataWidget
 			layout="grid"
 			columns={8}
-			source={source}
+			source={dataSources.heroicons}
 			widgetProps={{
 				icon: (
 					<svg
@@ -26,14 +31,7 @@ export default function HeroIconsWidget() {
 					{
 						icon: "search",
 						label: "search",
-						onClick() {
-							openSearchPage({
-								title: "Search Heroicons",
-								source,
-								layout: "grid",
-								columns: 7,
-							});
-						},
+						onClick: () => onAction("searchHeroicons"),
 					},
 				],
 			}}

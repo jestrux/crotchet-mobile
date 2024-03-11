@@ -35,7 +35,9 @@ function DataWidgetContent({
 		else {
 			const items = data.map((entry, index) => (
 				<ListItem
-					{...entry}
+					color={entry.color}
+					height={entry.height}
+					width={entry.width}
 					key={index}
 					grid={grid}
 					masonry={masonry}

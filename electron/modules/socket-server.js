@@ -48,6 +48,7 @@ module.exports = function socketServer(server) {
 		},
 
 		"copy-image": (image) => {
+			console.log("Copy image: ", image);
 			clipboard.writeImage(nativeImage.createFromDataURL(image));
 		},
 

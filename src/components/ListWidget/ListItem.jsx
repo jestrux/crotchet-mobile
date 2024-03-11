@@ -262,7 +262,7 @@ const GridListItem = ({
 		);
 	}
 	return (
-		<div className="w-full flex flex-col gap-1">
+		<div className="min-h-full w-full flex flex-col gap-1">
 			{icon?.length ? (
 				<div
 					className="flex items-center justify-center"

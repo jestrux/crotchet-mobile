@@ -159,9 +159,9 @@ export const onDesktop = () => document.body.classList.contains("on-electron");
 export const openUrl = async (path) => {
 	const url = new URL(path);
 
-	if (url.protocol.startsWith("crotchet:")) {
-		// const scheme = url.pathname.replace("//app/", "").split("/")?.[0];
-		const scheme = "yt-clips";
+	if (path.startsWith("crotchet://app/")) {
+		const scheme = new URL(path.replace("crotchet://app/", "https://"))
+			.host;
 		const app = window.__crotchet.apps[scheme];
 
 		if (app) {
@@ -246,6 +246,8 @@ export const formatDate = (
 };
 
 export const showToast = (text) => {
+	console.log("Show toast: ", text);
+
 	if (onDesktop()) return socketEmit("show-toast", text);
 
 	Toast.show({

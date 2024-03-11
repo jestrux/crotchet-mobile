@@ -3,7 +3,7 @@ import DataWidget from "../../../components/DataWidget";
 import { useAppContext } from "@/providers/app";
 
 export default function RentersWidget() {
-	const { actualSource, actions } = useAppContext();
+	const { actualSource, onAction } = useAppContext();
 	const source = actualSource(dataSource.crotchet("renters"));
 
 	return (
@@ -15,7 +15,7 @@ export default function RentersWidget() {
 				actions: [
 					{
 						icon: "list",
-						onClick: actions["crotchet://rentersByStatus"].handler,
+						onClick: () => onAction("rentersByStatus"),
 					},
 				],
 			}}
