@@ -26,7 +26,7 @@ module.exports = function Crotchet() {
 
 		if (this.tray) this.tray.destroy();
 
-		this.tray = new Tray(appDir("icon.png"));
+		this.tray = new Tray(appDir("IconTemplate.png"));
 
 		this.tray.setContextMenu(
 			Menu.buildFromTemplate([
