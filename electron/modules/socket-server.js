@@ -17,7 +17,7 @@ const openApp = require("../utils/openApp");
 const showToast = require("../utils/show-toast");
 
 module.exports = function socketServer(server) {
-	const pressKeys = async (keys) => {
+	const pressKeys = async (...keys) => {
 		await keyboard.pressKey(...keys);
 		await keyboard.releaseKey(...keys);
 	};
