@@ -3,7 +3,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 
 import { useAirtableMutation } from "@/providers/data/airtable/useAirtable";
 import { useAppContext } from "@/providers/app";
-import { formatDate, openUrl, toHms } from "@/crotchet";
+import { formatDate, openUrl, toHms, showToast } from "@/crotchet";
 import clsx from "clsx";
 
 export const _format = function (data, t) {
@@ -205,7 +205,62 @@ const Progress = ({ value }) => {
 	);
 };
 
-const GridListItem = ({ icon, image, video, title, subtitle, trailing }) => {
+const GridListItem = ({
+	masonry,
+	icon,
+	image,
+	video,
+	title,
+	subtitle,
+	trailing,
+	color,
+	width,
+	height,
+}) => {
+	if (masonry) {
+		return (
+			<div className="w-full relative">
+				{(image?.length || video?.length) && (
+					<div
+						className="relative flex-shrink-0 bg-content/10 border border-content/10 rounded overflow-hidden w-full"
+						style={
+							width && height
+								? {
+										aspectRatio: `${width}/${height}`,
+										backgroundColor: color,
+								  }
+								: { backgroundColor: color }
+						}
+					>
+						<img
+							className="w-full"
+							src={image?.length ? image : video}
+							alt=""
+						/>
+
+						{video?.length && (
+							<div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+								<div className="relative w-8 h-8 flex items-center justify-center rounded-full overflow-hidden bg-card">
+									<div className="absolute inset-0 bg-content/60"></div>
+									<svg
+										className="w-4 ml-0.5 relative text-canvas"
+										viewBox="0 0 24 24"
+										fill="currentColor"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
+										/>
+									</svg>
+								</div>
+							</div>
+						)}
+					</div>
+				)}
+			</div>
+		);
+	}
 	return (
 		<div className="w-full flex flex-col gap-1">
 			{icon?.length ? (
@@ -520,6 +575,7 @@ const ListItemLarge = ({ icon, image, video, title, subtitle, trailing }) => {
 
 const ListItem = ({
 	grid = false,
+	masonry = false,
 	large = false,
 	table,
 	data,
@@ -527,6 +583,9 @@ const ListItem = ({
 	video = "video",
 	image = "image",
 	title = "title",
+	color,
+	width,
+	height,
 	subtitle,
 	status,
 	// status = "status",
@@ -562,8 +621,11 @@ const ListItem = ({
 
 			const field = _action.replace("copy://", "");
 			const value = _get(data, field);
+			const isImage = value == image;
 
-			value == image ? copyImage(value) : copyToClipboard(value);
+			isImage ? await copyImage(value) : await copyToClipboard(value);
+
+			showToast(isImage ? "Image copied" : "Copied");
 
 			return;
 		}
@@ -579,9 +641,13 @@ const ListItem = ({
 				!grid && "py-2"
 			)}
 		>
-			{grid ? (
+			{grid || masonry ? (
 				<GridListItem
 					{...{
+						color,
+						width,
+						height,
+						masonry,
 						table,
 						icon,
 						video,

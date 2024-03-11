@@ -133,7 +133,7 @@ export default function BottomSheets({
 			>
 				<motion.div
 					className={clsx(
-						"relative pointer-events-auto focus:outline-none w-full backdrop-blur overflow-hidden",
+						"border-t border-content/5 relative pointer-events-auto focus:outline-none w-full backdrop-blur overflow-hidden",
 						collapsed
 							? "bg-stone-100/85 dark:bg-card/85"
 							: "bg-stone-100/90 dark:bg-card/90"

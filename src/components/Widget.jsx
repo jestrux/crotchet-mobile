@@ -74,23 +74,20 @@ const Widget = ({
 			{actions?.length > 0 && (
 				<div className="absolute right-2 top-2 z-30 flex items-center gap-2">
 					<div className="flex items-center gap-2">
-						{actions &&
-							actions.map((action, index) => {
-								return (
-									<button
-										title={action.label}
-										key={index}
-										className="focus:outline-none w-6 h-6 border border-content/10 bg-content/5 dark:bg-content/15 transition-colors rounded-full flex items-center justify-center"
-										onClick={() =>
-											handleActionClick(action)
-										}
-									>
-										{typeof action.icon == "string"
-											? WidgetIcons[action.icon]
-											: action.icon}
-									</button>
-								);
-							})}
+						{actions?.map((action, index) => {
+							return (
+								<button
+									title={action.label}
+									key={index}
+									className="focus:outline-none w-6 h-6 bg-content/[0.08] dark:bg-content/15 border border-content/10 ring-1 ring-content/5 transition-colors rounded-full flex items-center justify-center"
+									onClick={() => handleActionClick(action)}
+								>
+									{typeof action.icon == "string"
+										? WidgetIcons[action.icon]
+										: action.icon}
+								</button>
+							);
+						})}
 					</div>
 				</div>
 			)}

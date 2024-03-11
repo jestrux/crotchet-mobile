@@ -2,13 +2,14 @@ import Widget from "@/components/Widget";
 import { useAppContext } from "@/providers/app";
 import DataFetcher from "@/providers/data/DataFetcher";
 import dataSource from "@/providers/data/dataSource";
+import { shuffle } from "@/crotchet";
 
 export default function RandomPhotoWidget() {
 	const { openSearchPage } = useAppContext();
 
 	// return null;
 
-	const widgetProps = ({ data }) => ({
+	const widgetProps = () => ({
 		noPadding: true,
 		// icon: "image",
 		// title: "Image",
@@ -26,15 +27,25 @@ export default function RandomPhotoWidget() {
 			{
 				icon: "search",
 				onClick() {
-					const query = data ? data.alt_description : "spring";
+					// const query = data ? data.alt_description : "spring";
+					const query = shuffle(
+						shuffle([
+							"spring",
+							"wilderness",
+							"serene",
+							"beach",
+							"mountains",
+							"retro",
+							"interior design",
+							"concert",
+						])
+					)[0];
 
 					openSearchPage({
-						image: "gradient",
-						title: "Search Unsplash",
 						query,
-						source: dataSource.unsplash("search", {
-							query,
-						}),
+						source: dataSource.unsplash("search"),
+						layout: "masonry",
+						columns: 2,
 					});
 				},
 			},
@@ -67,7 +78,7 @@ export default function RandomPhotoWidget() {
 							{data.description}
 						</div> */}
 							<button
-								className="self-start bg-black text-white relative h-8 text-xs px-4 flex items-center justify-center font-bold rounded-full"
+								className="self-start bg-black text-white ring-1 ring-white/10 relative h-8 text-xs px-4 flex items-center justify-center font-bold rounded-full"
 								onClick={shuffle}
 							>
 								Shuffle

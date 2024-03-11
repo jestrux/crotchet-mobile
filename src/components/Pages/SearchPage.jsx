@@ -87,7 +87,7 @@ export default function SearchPage({
 						layout={layout}
 						columns={columns}
 						source={source}
-						searchQuery={searchQuery}
+						{...(!searchQuery?.length ? {} : { searchQuery })}
 						widgetProps={{ noPadding: true }}
 					/>
 				</div>

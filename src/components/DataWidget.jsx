@@ -18,6 +18,7 @@ function DataWidgetContent({
 	...props
 }) {
 	const grid = layout == "grid";
+	const masonry = layout == "masonry";
 
 	useEffect(() => {
 		refetch({ searchQuery });
@@ -32,6 +33,19 @@ function DataWidgetContent({
 	if (!isLoading) {
 		if (!data) content = null;
 		else {
+			const items = data.map((entry, index) => (
+				<ListItem
+					{...entry}
+					key={index}
+					grid={grid}
+					masonry={masonry}
+					large={large}
+					data={entry}
+					{...fieldMap}
+					{...props}
+				/>
+			));
+
 			content =
 				typeof children == "function" ? (
 					children(data)
@@ -39,25 +53,31 @@ function DataWidgetContent({
 					<div
 						className="pb-2"
 						style={
-							!grid
-								? {}
-								: {
+							grid || masonry
+								? {
 										display: "grid",
 										gap: "0.5rem",
 										gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
 								  }
+								: {}
 						}
 					>
-						{data.map((entry, index) => (
-							<ListItem
-								key={index}
-								grid={grid}
-								large={large}
-								data={entry}
-								{...fieldMap}
-								{...props}
-							/>
-						))}
+						{masonry ? (
+							<>
+								<div>
+									{items
+										.filter((_, index) => index % 2 == 0)
+										.map((item) => item)}
+								</div>
+								<div>
+									{items
+										.filter((_, index) => index % 2 != 0)
+										.map((item) => item)}
+								</div>
+							</>
+						) : (
+							items
+						)}
 					</div>
 				);
 		}

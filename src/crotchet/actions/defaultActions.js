@@ -93,9 +93,9 @@ export const getRandomPicture = async ({ copyImage, showToast }) => {
 	try {
 		const data = await unsplashFetcher();
 		const image = shuffle(data)[0].urls.regular;
-		// showToast(image);
-		console.log("Image: ", image);
-		return await copyImage(image);
+		await copyImage(image);
+		showToast("Image copied!");
+		return;
 	} catch (error) {
 		console.log("Error: ", error);
 		showToast(error);
