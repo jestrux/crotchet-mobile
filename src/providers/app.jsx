@@ -146,10 +146,6 @@ export default function AppProvider({ children }) {
 			if (!socket.current) {
 				getDoc(doc(db, "__crotchet", "desktop")).then((res) => {
 					socket.current = io(res.data().socket);
-					setTimeout(() => {
-						copyToClipboard(res.data().socket);
-						showToast("Socket: " + socket.current.connected);
-					}, 3000);
 				});
 			}
 		}

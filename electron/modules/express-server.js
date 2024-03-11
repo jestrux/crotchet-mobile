@@ -4,6 +4,16 @@ const http = require("http");
 const getIp = require("../utils/getIp");
 
 module.exports = function expressServer() {
+	// const key = fs.readFileSync(appDir("cert/key.pem"));
+	// const cert = fs.readFileSync(appDir("cert/cert.pem"));
+	// const server = https.createServer(
+	// 	{
+	// 		key,
+	// 		cert,
+	// 		passphrase: "crotchet",
+	// 	},
+	// 	expressApp
+	// );
 	const expressApp = express();
 	const server = http.createServer(expressApp);
 

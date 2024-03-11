@@ -4,7 +4,7 @@ const path = require("path");
 const Crotchet = require("./modules/crotchet");
 const { app, BrowserWindow } = require("electron");
 
-const isDev = process.env.NODE_ENV == "dev";
+global.isDev = process.env.NODE_ENV == "dev";
 let mainWindow = null;
 const crotchetApp = new Crotchet();
 

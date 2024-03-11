@@ -1,9 +1,8 @@
 const { BrowserWindow, app } = require("electron");
-const getIp = require("./getIp");
 
 const appWindows = {};
 
-module.exports = function openApp({ scheme, url, window = {} }) {
+module.exports = async function openApp({ scheme, url, window = {} }) {
 	const {
 		backgroundColor = "#fff",
 		width = 800,
@@ -12,7 +11,7 @@ module.exports = function openApp({ scheme, url, window = {} }) {
 		darkTheme,
 	} = window || {};
 
-	console.log("App details: ", url, width, height);
+	// console.log("App details: ", url, width, height);
 	const icon = appDir("icon.icns");
 
 	if (!appWindows[scheme]) {
@@ -23,8 +22,9 @@ module.exports = function openApp({ scheme, url, window = {} }) {
 			backgroundColor,
 			titleBarStyle,
 			darkTheme,
-			// modal: true,
-			// parent: global.crotchetApp.window,
+			webPreferences: {
+				// devTools: isDev,
+			},
 		});
 
 		win.on("close", () => {
@@ -36,7 +36,30 @@ module.exports = function openApp({ scheme, url, window = {} }) {
 		appWindows[scheme] = win;
 	}
 
-	appWindows[scheme].loadURL(`http://${getIp()}:3127${url}`);
+	try {
+		appWindows[scheme].webContents.executeJavaScript(
+			/*js*/ `
+				const { searchParams } = new URL("crotchet://app${url}");
+				const props = Object.fromEntries(searchParams.entries());
+
+				if(!window.__crotchet) window.__crotchet = {};
+
+				window.__crotchet.app = {
+					scheme: "${scheme}",
+					props,
+				}
+			`,
+			true
+		);
+	} catch (error) {
+		console.log("Failed to set app: ", error);
+	}
+
+	// appWindows[scheme].webContents.openDevTools({ mode: "right" });
+	appWindows[scheme].loadURL(
+		isDev ? "http://localhost:5173/" : buildDir("index.html")
+	);
+	// appWindows[scheme].loadURL(`http://${getIp()}:3127${url}`);
 
 	app.dock.show();
 };

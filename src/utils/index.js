@@ -271,16 +271,18 @@ export const readClipboard = async () => {
 export const copyToClipboard = (content) => {
 	if (onDesktop()) {
 		socketEmit("copy", content);
-		showToast("Image copied");
+		// showToast("Image copied");
 		return;
 	}
 
-	return Clipboard.write({
-		string: content,
-		url: content,
-	})
-		.then(() => showToast("Copied"))
-		.catch((e) => showToast(`Copy failed: ${e}`));
+	return (
+		Clipboard.write({
+			string: content,
+			url: content,
+		})
+			// .then(() => showToast("Copied"))
+			.catch((e) => showToast(`Copy failed: ${e}`))
+	);
 };
 
 export const copyImage = async (url) => {
@@ -290,15 +292,17 @@ export const copyImage = async (url) => {
 	reader.onload = async () => {
 		if (onDesktop()) {
 			socketEmit("copy-image", reader.result);
-			showToast("Image copied");
+			// showToast("Image copied");
 			return;
 		}
 
-		return Clipboard.write({
-			image: reader.result,
-		})
-			.then(() => showToast("Image copied"))
-			.catch((e) => showToast(`Image copy failed: ${e}`));
+		return (
+			Clipboard.write({
+				image: reader.result,
+			})
+				// .then(() => showToast("Image copied"))
+				.catch((e) => showToast(`Image copy failed: ${e}`))
+		);
 	};
 
 	reader.readAsDataURL(blob);
