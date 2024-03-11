@@ -55,9 +55,9 @@ export default function DesktopWidget() {
 
 			if (paste) return socketEmit("paste");
 
-			socketEmit("type", { text: value, replace: clear });
+			if (clear) return socketEmit("type", { replace: clear });
 
-			return;
+			return socketEmit("type", { text: value });
 		}
 
 		listen();

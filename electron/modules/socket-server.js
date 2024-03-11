@@ -83,10 +83,12 @@ module.exports = function socketServer(server) {
 		},
 
 		async type({ text, replace } = { replace: false }) {
+			if (replace) {
+				await pressKeys(Key.LeftSuper, Key.A);
+				if (!text?.length) return pressKeys(Key.Backspace);
+			}
+
 			copy(text);
-
-			if (replace) await pressKeys(Key.LeftSuper, Key.A);
-
 			await pressKeys(Key.LeftSuper, Key.V);
 		},
 
