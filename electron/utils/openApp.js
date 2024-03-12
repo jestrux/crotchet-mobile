@@ -1,7 +1,5 @@
 const { BrowserWindow, app } = require("electron");
 
-const appWindows = {};
-
 module.exports = async function openApp({ scheme, url, window = {} }) {
 	const {
 		backgroundColor = "#fff",
@@ -14,7 +12,7 @@ module.exports = async function openApp({ scheme, url, window = {} }) {
 	// console.log("App details: ", url, width, height);
 	const icon = appDir("icon.icns");
 
-	if (!appWindows[scheme]) {
+	if (!crotchetApp.windows[scheme]) {
 		const win = new BrowserWindow({
 			icon,
 			width,
@@ -22,23 +20,30 @@ module.exports = async function openApp({ scheme, url, window = {} }) {
 			backgroundColor,
 			titleBarStyle,
 			darkTheme,
+			frame: true,
+			fullscreenable: false,
+			resizable: false,
+			minimizable: false,
 			webPreferences: {
 				devTools: isDev,
 			},
 		});
 
 		win.on("close", () => {
-			delete appWindows[scheme];
+			delete crotchetApp.windows[scheme];
 
-			if (!crotchetApp.showWindow && !Object.keys(appWindows).length)
+			if (
+				!crotchetApp.showWindow &&
+				!Object.keys(crotchetApp.windows).length
+			)
 				app.dock.hide();
 		});
 
-		appWindows[scheme] = win;
+		crotchetApp.windows[scheme] = win;
 	}
 
 	try {
-		appWindows[scheme].webContents.executeJavaScript(
+		crotchetApp.windows[scheme].webContents.executeJavaScript(
 			/*js*/ `
 				document.body.classList.add("on-electron");
 
@@ -63,11 +68,11 @@ module.exports = async function openApp({ scheme, url, window = {} }) {
 		console.log("Failed to set app: ", error);
 	}
 
-	appWindows[scheme].webContents.openDevTools({ mode: "right" });
-	appWindows[scheme].loadURL(
+	crotchetApp.windows[scheme].webContents.openDevTools({ mode: "right" });
+	crotchetApp.windows[scheme].loadURL(
 		isDev ? "http://localhost:5173/" : `file://${buildDir("index.html")}`
 	);
-	// appWindows[scheme].loadURL(`http://${getIp()}:3127${url}`);
+	// crotchetApp.windows[scheme].loadURL(`http://${getIp()}:3127${url}`);
 
-	if (!crotchetApp.showWindow) app.dock.show();
+	if (!app.dock.isVisible()) app.dock.show();
 };

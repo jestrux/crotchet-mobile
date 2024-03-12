@@ -48,40 +48,40 @@ function DataWidgetContent({
 				/>
 			));
 
-			content =
-				typeof children == "function" ? (
-					children(data)
-				) : (
-					<div
-						className="pb-2"
-						style={
-							grid || masonry
-								? {
-										display: "grid",
-										gap: "0.5rem",
-										gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-								  }
-								: {}
-						}
-					>
-						{masonry ? (
-							<>
-								<div>
+			const gridStyles = {
+				display: "grid",
+				gap: "0.5rem",
+				gridTemplateColumns: `repeat(${
+					window.innerWidth <= 780 ? 2 : columns
+				}, minmax(0, 1fr))`,
+			};
+
+			if (typeof children == "function") {
+				content = children(data);
+			} else if (masonry) {
+				content = (
+					<div className="pb-2" style={gridStyles}>
+						{Array(parseInt(columns))
+							.fill("")
+							.map((_, index) => (
+								<div className="w-full h-full" key={index}>
 									{items
-										.filter((_, index) => index % 2 == 0)
+										.filter(
+											(_, itemIndex) =>
+												itemIndex % columns == index
+										)
 										.map((item) => item)}
 								</div>
-								<div>
-									{items
-										.filter((_, index) => index % 2 != 0)
-										.map((item) => item)}
-								</div>
-							</>
-						) : (
-							items
-						)}
+							))}
 					</div>
 				);
+			} else if (grid) {
+				content = (
+					<div className="pb-2" style={gridStyles}>
+						{items}
+					</div>
+				);
+			} else content = items;
 		}
 	}
 

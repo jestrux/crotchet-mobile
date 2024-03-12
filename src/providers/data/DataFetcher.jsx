@@ -7,7 +7,7 @@ export default function DataFetcher({
 	source = {
 		provider: "",
 	},
-	limit = 50,
+	limit = 3000,
 	first,
 	shuffle: shuffleData,
 	contentOnly = false,

@@ -262,7 +262,7 @@ const GridListItem = ({
 		);
 	}
 	return (
-		<div className="min-h-full w-full flex flex-col gap-1">
+		<div className="min-h-full w-full flex flex-col items-center gap-2">
 			{icon?.length ? (
 				<div
 					className="flex items-center justify-center"
@@ -299,16 +299,16 @@ const GridListItem = ({
 				)
 			)}
 
-			<div className="flex-1 min-w-0 space-y-1">
+			<div className="flex-1 min-w-0 space-y-1 text-center">
 				{title?.length > 0 && (
-					<h5 className="text-content text-sm/none font-medium truncate first-letter:capitalize">
+					<h5 className="line-clamp-1 text-content text-sm/none font-medium first-letter:capitalize">
 						{title}
 					</h5>
 				)}
 				{subtitle?.length > 0 && (
 					<p
 						className={clsx(
-							"text-xs/none truncate",
+							"line-clamp-1 text-xs/none",
 							title?.length && "mt-1.5"
 						)}
 					>

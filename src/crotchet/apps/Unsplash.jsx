@@ -18,7 +18,7 @@ registerAction("crotchet", "searchUnsplash", {
 	// url: "crotchet://app/unsplash",
 	handler: ({ openUrl }) =>
 		openUrl(
-			`crotchet://app/search?source=unsplash&q=${randomSearchQuery()}&layout=masonry`
+			`crotchet://app/search?source=unsplash&q=${randomSearchQuery()}&layout=masonry&columns=4`
 		),
 	tags: ["image"],
 });

@@ -18,7 +18,7 @@ export default function Widgets() {
 	return (
 		<div className="max-w-3xl mx-auto p-3 flex flex-col sm:grid grid-cols-12 items-start gap-3">
 			<div className="w-full col-span-6 grid grid-cols-2 gap-3">
-				<WidgetWrapper>
+				<WidgetWrapper aspectRatio="5.2/1">
 					<PinnedItemsWidget />
 				</WidgetWrapper>
 

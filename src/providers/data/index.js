@@ -6,7 +6,7 @@ import { matchSorter } from "match-sorter";
 export function useDataFetch({
 	source,
 	filters,
-	limit = 50,
+	limit = 3000,
 	first = false,
 	shuffle: shuffleData,
 	searchQuery,

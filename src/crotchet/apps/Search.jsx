@@ -22,8 +22,10 @@ registerApp("search", () => {
 				columns = 2,
 				layout = "grid",
 				live = true,
-				width = 360,
-				height = 540,
+				width = 780,
+				height = 800,
+				// width = 360,
+				// height = 540,
 				...params
 			} = Object.fromEntries(url.searchParams.entries());
 

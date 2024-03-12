@@ -1,8 +1,10 @@
-const { Tray, Menu } = require("electron");
+const { Tray, Menu, app } = require("electron");
 
 module.exports = function Crotchet() {
 	this.tray = null;
 	this.showWindow = isDev;
+
+	this.windows = {};
 
 	this.menuItems = {};
 
@@ -12,6 +14,14 @@ module.exports = function Crotchet() {
 
 	this.windowEmit = (event, payload) => {
 		this.mainWindow.webContents.send(event, payload);
+	};
+
+	this.hide = () => {
+		Object.values(this.windows).forEach((w) => w.close());
+		this.mainWindow.hide();
+		this.showWindow = false;
+		this.setMenuItems();
+		app.dock.hide();
 	};
 
 	this.setMenuItems = (items = [], { replace = false } = {}) => {
@@ -36,8 +46,15 @@ module.exports = function Crotchet() {
 					type: "checkbox",
 					checked: this.showWindow,
 					click: (event) => {
-						if (!event.checked) this.mainWindow.hide();
-						else this.mainWindow.show();
+						if (!event.checked) {
+							this.mainWindow.hide();
+
+							if (!Object.keys(this.windows).length)
+								app.dock.hide();
+						} else {
+							this.mainWindow.show();
+							app.dock.show();
+						}
 
 						this.showWindow = event.checked;
 					},

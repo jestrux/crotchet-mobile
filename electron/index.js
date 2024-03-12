@@ -30,9 +30,10 @@ const createMainWindow = () => {
 		width: 780,
 		height: 800,
 		show: isDev,
-		frame: isDev,
-		fullscreenable: isDev,
+		frame: true,
+		fullscreenable: false,
 		resizable: false,
+		minimizable: false,
 		webPreferences: {
 			devTools: isDev,
 			nodeIntegration: true,
@@ -58,6 +59,11 @@ const createMainWindow = () => {
 		});
 	}
 
+	mainWindow.on("close", function (evt) {
+		// evt.preventDefault();
+		// crotchetApp.hide();
+	});
+
 	crotchetApp.setMainWindow(mainWindow);
 };
 
@@ -65,6 +71,8 @@ app.whenReady().then(() => {
 	crotchetApp.setMenuItems();
 	createMainWindow();
 });
+
+app.on("window-all-closed", () => {});
 
 if (!isDev) app.dock.hide();
 
