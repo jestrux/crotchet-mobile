@@ -30,7 +30,8 @@ module.exports = async function openApp({ scheme, url, window = {} }) {
 		win.on("close", () => {
 			delete appWindows[scheme];
 
-			if (!Object.keys(appWindows).length) app.dock.hide();
+			if (!crotchetApp.showWindow && !Object.keys(appWindows).length)
+				app.dock.hide();
 		});
 
 		appWindows[scheme] = win;
@@ -68,5 +69,5 @@ module.exports = async function openApp({ scheme, url, window = {} }) {
 	);
 	// appWindows[scheme].loadURL(`http://${getIp()}:3127${url}`);
 
-	app.dock.show();
+	if (!crotchetApp.showWindow) app.dock.show();
 };

@@ -1,10 +1,9 @@
 import Widget from "@/components/Widget";
 import { useAppContext } from "@/providers/app";
 import DataFetcher from "@/providers/data/DataFetcher";
-import dataSource from "@/providers/data/dataSource";
 
 export default function RandomPhotoWidget() {
-	const { onAction } = useAppContext();
+	const { onAction, dataSources } = useAppContext();
 
 	// return null;
 
@@ -32,7 +31,7 @@ export default function RandomPhotoWidget() {
 
 	return (
 		<DataFetcher
-			source={dataSource.unsplash()}
+			source={dataSources.unsplash}
 			first
 			shuffle
 			contentOnly

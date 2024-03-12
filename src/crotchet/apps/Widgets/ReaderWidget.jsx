@@ -2,20 +2,10 @@ import Loader from "@/components/Loader";
 import Widget from "@/components/Widget";
 import { useAppContext } from "@/providers/app";
 import DataFetcher from "@/providers/data/DataFetcher";
-import dataSource from "@/providers/data/dataSource";
 
 export default function ReaderWidget() {
-	const { openPage } = useAppContext();
-	const source = dataSource.firebase({
-		collection: "reader",
-		orderBy: "index,desc",
-		fieldMap: {
-			// image: "image",
-			// title: "title",
-			subtitle: "description",
-			action: "url",
-		},
-	});
+	const { openPage, dataSources } = useAppContext();
+	const source = dataSources.reader;
 
 	const widgetProps = ({ shuffle, entry, isVideo }) => ({
 		noPadding: true,

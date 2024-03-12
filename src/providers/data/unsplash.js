@@ -1,15 +1,14 @@
 import { webFetcher } from "./web/useWeb";
 
 export default function unsplashFetcher({
-	search,
-	query,
+	searchQuery,
 	collection = "random",
 } = {}) {
-	if (search || query) {
+	if (searchQuery) {
 		return webFetcher({
 			url: "https://api.unsplash.com/search/photos",
 			params: {
-				query,
+				query: searchQuery,
 				client_id: import.meta.env.VITE_unsplashClientId,
 				per_page: 24,
 			},

@@ -1,6 +1,5 @@
 import { Children, cloneElement } from "react";
 import { useDataFetch } from ".";
-import { useAppContext } from "../app";
 import Loader from "@/components/Loader";
 
 export default function DataFetcher({
@@ -8,22 +7,13 @@ export default function DataFetcher({
 	source = {
 		provider: "",
 	},
-	limit = 500,
+	limit = 50,
 	first,
 	shuffle: shuffleData,
 	contentOnly = false,
 	showLoader = false,
 	...props
 }) {
-	const appContext = useAppContext();
-	const crotchetDataSource = appContext.dataSources?.[source?.name];
-	source = {
-		...(source?.provider == "crotchet" && crotchetDataSource
-			? crotchetDataSource
-			: {}),
-		...source,
-	};
-
 	const { isLoading, isPending, data, refetch, shuffle } = useDataFetch({
 		source,
 		limit,
@@ -50,7 +40,7 @@ export default function DataFetcher({
 
 			return cloneElement(child, {
 				fieldMap: source.fieldMap,
-				isLoading: isLoading || isPending,
+				isLoading: !contentOnly && (isLoading || isPending),
 				data,
 				refetch,
 				shuffle,
@@ -60,7 +50,7 @@ export default function DataFetcher({
 
 	return children({
 		fieldMap: source.fieldMap,
-		isLoading: isLoading || isPending,
+		isLoading: !contentOnly && (isLoading || isPending),
 		data,
 		refetch,
 		shuffle,

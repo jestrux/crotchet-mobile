@@ -4,7 +4,7 @@ import { useAppContext } from "@/providers/app";
 
 registerAction("crotchet", "searchHeroicons", {
 	handler: ({ openUrl }) =>
-		openUrl("crotchet://app/search?source=heroicons&live=true&columns=7"),
+		openUrl("crotchet://app/search?source=heroIcons&columns=7"),
 	tags: ["svg"],
 });
 
@@ -13,9 +13,10 @@ export default function HeroIconsWidget() {
 
 	return (
 		<DataWidget
+			title=""
 			layout="grid"
 			columns={8}
-			source={dataSources.heroicons}
+			source={dataSources.heroIcons}
 			widgetProps={{
 				icon: (
 					<svg

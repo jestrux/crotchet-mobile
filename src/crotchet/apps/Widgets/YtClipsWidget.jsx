@@ -3,11 +3,10 @@ import Widget from "@/components/Widget";
 import { useAppContext } from "@/providers/app";
 import DataFetcher from "@/providers/data/DataFetcher";
 import { toHms } from "@/crotchet";
-import dataSource from "@/providers/data/dataSource";
 
 export default function YtClipsWidget() {
-	const { openPage, openUrl } = useAppContext();
-	const source = dataSource.crotchet("ytClips");
+	const { openPage, openUrl, dataSources } = useAppContext();
+	const source = dataSources.ytClips;
 
 	const widgetProps = ({ shuffle, video }) => ({
 		noPadding: true,

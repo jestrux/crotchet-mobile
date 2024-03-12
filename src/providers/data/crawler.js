@@ -6,27 +6,12 @@ export default class CrotchetCrawler {
 	htmlString;
 
 	constructor(options) {
-		const { url, search, map } = options;
+		const { url, search, matcher } = options;
 
+		this.matcher = matcher;
 		this.url = url;
 		this.search = search;
-		this.map = map;
 	}
-
-	_map = (entry) => (this.map ? this.map(entry) : entry);
-
-	_search = (results, query) => {
-		if (!query?.length) return results;
-
-		if (typeof this.search == "function")
-			return this.search(results, query);
-
-		return results.filter((e) => {
-			return Object.entries(e).some(([, value]) =>
-				value.toString().toLowerCase().includes(query.toString())
-			);
-		});
-	};
 
 	crawl = async () => {
 		if (CrotchetCrawlerCache[this.url])
@@ -46,11 +31,12 @@ export default class CrotchetCrawler {
 		return siteContent;
 	};
 
-	match = async (matcher, query) => {
+	match = async (query) => {
 		const content = await this.crawl();
 
-		if (matcher.indexOf("=>") == -1) {
-			const [matcherQuery, attribute = "innerText"] = matcher.split("::");
+		if (this.matcher.indexOf("=>") == -1) {
+			const [matcherQuery, attribute = "innerText"] =
+				this.matcher.split("::");
 			const results = Array.from(
 				content.querySelectorAll(matcherQuery.trim())
 			).map((node) => {
@@ -66,7 +52,7 @@ export default class CrotchetCrawler {
 			return results;
 		}
 
-		const [parent, childrenMatchers] = matcher.split("=>");
+		const [parent, childrenMatchers] = this.matcher.split("=>");
 		const results = Array.from(content.querySelectorAll(parent)).reduce(
 			(agg, node) => {
 				const row = {};
@@ -80,11 +66,11 @@ export default class CrotchetCrawler {
 						getComputedStyle(childNode)[attribute];
 				});
 
-				return [...agg, this._map(row)];
+				return [...agg, row];
 			},
 			[]
 		);
 
-		return this._search(results, query);
+		return results;
 	};
 }

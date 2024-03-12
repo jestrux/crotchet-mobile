@@ -55,8 +55,13 @@ const BottomNavAction = ({ action }) => {
 export function BottomNav({ hidden }) {
 	const wrapperRef = useRef(null);
 	const [searchQuery, setSearchQuery] = useState("");
-	const { currentPage, setCurrentPage, actions, openBottomSheet } =
-		useAppContext();
+	const {
+		currentPage,
+		setCurrentPage,
+		actions,
+		openSearchPage,
+		openBottomSheet,
+	} = useAppContext();
 	const navHeight = 56;
 
 	const activeClass =
@@ -70,13 +75,12 @@ export function BottomNav({ hidden }) {
 		if (input) input.focus();
 	};
 
-	const filteredActions = matchSorter(
-		Object.values(actions ?? {}),
-		searchQuery.replace(/\s+/, "-"),
-		{
+	let filteredActions = Object.values(actions ?? {});
+	if (searchQuery.length > 0) {
+		filteredActions = matchSorter(filteredActions, searchQuery, {
 			keys: ["label", "name", "tags"],
-		}
-	);
+		});
+	}
 
 	return (
 		<div
@@ -124,7 +128,11 @@ export function BottomNav({ hidden }) {
 										? activeClass
 										: inActiveClass
 								)}
-								onClick={() => setCurrentPage("widgets")}
+								onClick={() =>
+									openSearchPage({
+										global: true,
+									})
+								}
 							>
 								<svg
 									className="h-6"
@@ -133,10 +141,15 @@ export function BottomNav({ hidden }) {
 									strokeWidth={1.5}
 									stroke="currentColor"
 								>
-									<path
+									{/* <path
 										strokeLinecap="round"
 										strokeLinejoin="round"
 										d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"
+									/> */}
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
 									/>
 								</svg>
 							</button>
@@ -289,16 +302,20 @@ export function BottomNav({ hidden }) {
 							</div>
 
 							<div className="p-5">
-								<h3 className="mb-1 text-content/50">
-									Quick Actions
-								</h3>
+								{filteredActions.length > 0 && (
+									<>
+										<h3 className="mb-1 text-content/50">
+											Quick Actions
+										</h3>
 
-								{filteredActions.map((action) => (
-									<BottomNavAction
-										key={action._id}
-										action={action}
-									/>
-								))}
+										{filteredActions.map((action) => (
+											<BottomNavAction
+												key={action._id}
+												action={action}
+											/>
+										))}
+									</>
+								)}
 							</div>
 						</motion.div>
 					</div>

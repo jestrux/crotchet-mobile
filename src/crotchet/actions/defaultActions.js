@@ -1,7 +1,6 @@
 import { firebaseUploadFile } from "@/providers/data/firebase/useFirebase";
 import unsplashFetcher from "@/providers/data/unsplash";
 import { openUrl, readClipboard, shuffle } from "@/crotchet";
-import dataSource from "@/providers/data/dataSource";
 
 export const uploadFile = async ({ showToast }) => {
 	await firebaseUploadFile();
@@ -26,8 +25,16 @@ export const getRandomYoutubeClip = async ({ dataSources }) => {
 // 	return;
 // };
 
-export const rentersByStatus = ({ openPage, actualSource }) => {
-	const source = actualSource(dataSource.crotchet("renters"));
+export const rentersByStatus = ({ openPage, dataSources }) => {
+	const source = dataSources.pier;
+	const rentersVerificationQuery = (status) => /*sql*/ `
+		SELECT r.image, r.name, r.due_date, (case when r.verified = 1 then 'verified' else 'pending' end) as verified, json_object('name', a.name, 'image', a.image) as apartment
+		FROM renter as r 
+		LEFT JOIN apartment as a
+		ON r.apartment = a._id
+		WHERE verified = ${status};
+	`;
+
 	openPage({
 		image: "gradient",
 		// gradient: "random",
@@ -43,7 +50,7 @@ export const rentersByStatus = ({ openPage, actualSource }) => {
 						subtitle: "apartment.name",
 						trailing: "due_date|date",
 					},
-					query: source.query.replace(";", " WHERE verified = 0"),
+					query: rentersVerificationQuery(0),
 				},
 			},
 			{
@@ -55,14 +62,14 @@ export const rentersByStatus = ({ openPage, actualSource }) => {
 						...source.fieldMap,
 						subtitle: "apartment.name",
 					},
-					query: source.query.replace(";", " WHERE verified = 1"),
+					query: rentersVerificationQuery(1),
 				},
 			},
 		],
 	});
 };
 
-export const overdueRenters = ({ openPage }) =>
+export const overdueRenters = ({ openPage, dataSources }) =>
 	openPage({
 		image: "random",
 		title: "Overdue renters",
@@ -71,20 +78,21 @@ export const overdueRenters = ({ openPage }) =>
 			{
 				type: "data",
 				// limit={4}
-				source: dataSource.crotchet("pier", {
+				source: {
+					...dataSources.pier,
 					query: /*sql*/ `
-								SELECT r.image, r.name as title, CONCAT("Tsh. ", FORMAT("%,d", a.rent)) as amount, a.name as apartment, REPLACE(REPLACE(r.phone, ' ', ''), '+', '') as phone, CONCAT('https://api.whatsapp.com/send/?text=', 'Hey ', r.name, ',\nYour rent: ', printf("%,d", a.rent), ' is due on: ', strftime('%d / %m', r.due_date), '&phone=', phone) as whatsapp
-								FROM renter as r 
-								LEFT JOIN apartment as a
-								ON r.apartment = a._id
-							`,
+						SELECT r.image, r.name as title, CONCAT("Tsh. ", FORMAT("%,d", a.rent)) as amount, a.name as apartment, REPLACE(REPLACE(r.phone, ' ', ''), '+', '') as phone, CONCAT('https://api.whatsapp.com/send/?text=', 'Hey ', r.name, ',\nYour rent: ', printf("%,d", a.rent), ' is due on: ', strftime('%d / %m', r.due_date), '&phone=', phone) as whatsapp
+						FROM renter as r 
+						LEFT JOIN apartment as a
+						ON r.apartment = a._id
+					`,
 					fieldMap: {
 						// title: "name",
 						subtitle: "apartment",
 						trailing: "amount",
 						action: "whatsapp",
 					},
-				}),
+				},
 			},
 		],
 	});

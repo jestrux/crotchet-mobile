@@ -350,6 +350,7 @@ const GridListItem = ({
 const ListItemRegular = ({
 	table,
 	icon,
+	video,
 	image,
 	title,
 	subtitle,
@@ -380,15 +381,32 @@ const ListItemRegular = ({
 					dangerouslySetInnerHTML={{ __html: icon }}
 				/>
 			) : (
-				image?.length && (
-					<div className="relative">
+				(image?.length || video?.length) && (
+					<div className="mr-2 size-8 relative flex-shrink-0 bg-content/10 border border-content/10 rounded-full overflow-hidden">
 						<img
-							className={`${
-								subtitle?.length && "mt-0.5s"
-							} mr-2 flex-shrink-0 bg-content/10 border border-content/10 rounded-full w-8 h-8 object-cover`}
-							src={image}
+							className={"absolute size-full object-cover"}
+							src={image?.length ? image : video}
 							alt=""
 						/>
+
+						{video?.length && (
+							<div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+								<div className="relative size-3 flex items-center justify-center rounded-full overflow-hidden bg-card">
+									<div className="absolute inset-0 bg-content/60"></div>
+									<svg
+										className="size-3 ml-0.5 relative text-canvas"
+										viewBox="0 0 24 24"
+										fill="currentColor"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
+										/>
+									</svg>
+								</div>
+							</div>
+						)}
 					</div>
 				)
 			)}
@@ -590,7 +608,7 @@ const ListItem = ({
 	status,
 	// status = "status",
 	trailing,
-	action: _action,
+	action: _action = "url",
 	progress,
 	// progress = "progress",
 	checkbox,

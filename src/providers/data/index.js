@@ -1,65 +1,41 @@
-import { useAppContext } from "../app";
 import { useMutation } from "@tanstack/react-query";
 import { shuffle as doShuffle } from "@/utils";
 import { useEffect, useRef, useState } from "react";
-import { firebaseFetcher } from "./firebase/useFirebase";
-import { webFetcher } from "./web/useWeb";
-import { airtableFetcher } from "./airtable/useAirtable";
-import CrotchetCrawler from "./crawler";
-import CrotchetSQL from "./sql";
-import unsplashFetcher from "./unsplash";
-
-export function dataSourceProviders(source, appContext = { user: {} }) {
-	return {
-		airtable: () => airtableFetcher({ ...source, appContext }),
-		firebase: () => firebaseFetcher(source),
-		unsplash: ({ searchQuery }) =>
-			unsplashFetcher({
-				...source,
-				query: searchQuery || source.searchQuery,
-			}),
-		web: () => webFetcher(source),
-		sql: ({ query } = {}) =>
-			new CrotchetSQL(source).exec(query || source.query),
-		crawler: ({ match, searchQuery } = {}) =>
-			new CrotchetCrawler(source).match(
-				match || source.match,
-				searchQuery || source.searchQuery
-			),
-	}[source.provider];
-}
+import { matchSorter } from "match-sorter";
 
 export function useDataFetch({
-	inSearch,
 	source,
-	q,
 	filters,
-	limit = 100,
+	limit = 50,
 	first = false,
 	shuffle: shuffleData,
+	searchQuery,
 	...props
 }) {
-	const appContext = useAppContext();
-	const crotchetDataSource = appContext.dataSources?.[source?.name];
-	const crotchetProvider = inSearch
-		? crotchetDataSource?.searchHandler || crotchetDataSource?.handler
-		: crotchetDataSource?.handler;
-	const processedSource = {
-		...(source?.provider == "crotchet" && crotchetDataSource
-			? crotchetDataSource
-			: {}),
-		...source,
-	};
+	// const crotchetDataSource = appContext.dataSources?.[source?.name];
+	// const crotchetProvider = inSearch
+	// 	? crotchetDataSource?.searchHandler || crotchetDataSource?.handler
+	// 	: crotchetDataSource?.handler;
+	// const processedSource = {
+	// 	...(source?.provider == "crotchet" && crotchetDataSource
+	// 		? crotchetDataSource
+	// 		: {}),
+	// 	...source,
+	// };
 
-	const sourceProviderRef = useRef(
-		source?.provider == "crotchet"
-			? crotchetProvider ?? (() => [])
-			: dataSourceProviders(source, appContext)
-	);
+	// const sourceProviderRef = useRef(
+	// 	source?.provider == "crotchet"
+	// 		? crotchetProvider ?? (() => [])
+	// 		: dataSourceProviders(source.provider)
+	// );
+
+	if (typeof source.handler != "function")
+		console.log("Unknown source: ", source);
+
+	const sourceProviderRef = useRef(source.handler);
 	const [data, setData] = useState(null);
-
 	const query = useMutation({
-		mutationKey: [],
+		mutationKey: [source._id, ...(source.searchable ? [searchQuery] : [])],
 		mutationFn: sourceProviderRef.current,
 	});
 
@@ -68,10 +44,10 @@ export function useDataFetch({
 			newData
 				? newData
 				: {
-						...processedSource,
-						q,
-						filters,
+						...source,
 						...props,
+						searchQuery,
+						filters,
 				  }
 		);
 
@@ -80,8 +56,36 @@ export function useDataFetch({
 		setData(res);
 	};
 
+	const searchData = (results, query, searchFields) => {
+		if (!query?.length || !results?.length) return results;
+
+		if (typeof source.search == "function")
+			return source.search(results, query);
+
+		return matchSorter(results, query, {
+			keys: searchFields,
+		});
+	};
+
 	const processData = (data) => {
 		if (!data?.length) return null;
+
+		if (typeof source.mapEntry == "function")
+			data = data.map(source.mapEntry);
+
+		if (![true, false].includes(source.searchable) && searchQuery?.length) {
+			const searchFields = source.searchFields || [
+				"title",
+				"subtitle",
+				"tags",
+			];
+
+			const searchable = searchFields.some((r) =>
+				Object.keys(data[0]).includes(r)
+			);
+
+			if (searchable) data = searchData(data, searchQuery, searchFields);
+		}
 
 		if (first) return data[0];
 
@@ -95,7 +99,7 @@ export function useDataFetch({
 
 	return {
 		...query,
-		fieldMap: processedSource.fieldMap,
+		fieldMap: source.fieldMap,
 		data: processData(data),
 		isLoading: query.isLoading || query.isRefetching,
 		shuffle: () => setData(doShuffle(doShuffle(data))),

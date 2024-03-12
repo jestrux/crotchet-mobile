@@ -5,6 +5,8 @@ import "./index.css";
 
 import "./init";
 
+import "./crotchet/dataSources";
+
 import "./crotchet/actions";
 
 import "./crotchet/apps";

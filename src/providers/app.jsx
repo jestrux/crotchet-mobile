@@ -1,6 +1,5 @@
 import { Preferences } from "@capacitor/preferences";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import * as defaultDataSources from "./data/defaultDataSources";
 import BottomSheet from "@/components/BottomSheet";
 import {
 	copyToClipboard,
@@ -9,10 +8,9 @@ import {
 	showToast,
 	onDesktop,
 	openUrl,
-	shuffle,
+	registerDataSource,
 	socketEmit,
 } from "@/crotchet";
-import { dataSourceProviders } from "./data";
 import GenericPage from "@/components/Pages/GenericPage";
 import SearchPage from "@/components/Pages/SearchPage";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -57,8 +55,6 @@ const AppContext = createContext({
 	// eslint-disable-next-line no-unused-vars
 	copyImage: (url) => {},
 	// eslint-disable-next-line no-unused-vars
-	actualSource: (source) => {},
-	// eslint-disable-next-line no-unused-vars
 	openUrl: (path) => {},
 	// eslint-disable-next-line no-unused-vars
 	socketEmit: (event, data) => {},
@@ -70,69 +66,10 @@ export const useAppContext = () => {
 	return useContext(AppContext);
 };
 
-const registerSingleSource = (sources, { fieldMap, ...source }) => {
-	return {
-		...(source.provider == "crotchet" ? sources[source.name] : {}),
-		...source,
-		fieldMap,
-		handler:
-			source.provider == "crotchet"
-				? sources[source.name]?.handler
-				: dataSourceProviders(source),
-	};
-};
-
-const getDefaultDataSources = () => {
-	const sources = {};
-	const pending = {};
-
-	const processSource = ([name, { ...source }]) => {
-		const handlerNotSet =
-			source.provider == "crotchet" && !sources[source.name];
-
-		if (handlerNotSet) {
-			if (!pending[source.name]) pending[source.name] = [];
-			pending[source.name].push({ name, source });
-
-			return;
-		}
-
-		const _source = registerSingleSource(sources, source);
-
-		const get = async () => _source.handler();
-		const random = () => get().then((res) => shuffle(shuffle(res))[0]);
-
-		sources[name] = {
-			..._source,
-			get,
-			random,
-		};
-
-		while (pending[name]?.length) {
-			processSource(pending[name].pop());
-		}
-	};
-
-	Object.entries(defaultDataSources).forEach(processSource);
-
-	return sources;
-};
-
 export default function AppProvider({ children }) {
 	const socket = useRef();
 	const [prefs, setPrefs] = useState();
 	const [bottomSheets, setBottomSheets] = useState([]);
-	const dataSourcesRef = useRef(getDefaultDataSources());
-	const dataSources = dataSourcesRef.current ?? {};
-	const actionsRef = useRef();
-	const appsRef = useRef();
-
-	const registerDataSource = (name, source) => {
-		dataSourcesRef.current[name] = registerSingleSource(
-			dataSourcesRef.current,
-			source
-		);
-	};
 
 	const setupSocket = () => {
 		if (onDesktop()) {
@@ -155,16 +92,8 @@ export default function AppProvider({ children }) {
 		}
 	};
 
-	const setupApps = () => {
-		if (!appsRef.current) {
-			appsRef.current = window.__crotchet.apps;
-		}
-	};
-
 	const setupActions = () => {
 		// if (!actionsRef.current) {
-		actionsRef.current = window.__crotchet.actions;
-
 		if (onDesktop()) {
 			socketEmit(
 				"add-menu-items",
@@ -182,7 +111,6 @@ export default function AppProvider({ children }) {
 
 	useEffect(() => {
 		try {
-			setupApps();
 			setupActions();
 			setupSocket();
 		} catch (error) {
@@ -262,7 +190,6 @@ export default function AppProvider({ children }) {
 		setPref,
 		currentPage: prefs.currentPage ?? "home",
 		setCurrentPage: (page) => setPref("currentPage", page),
-		dataSources,
 		registerDataSource,
 		bottomSheets,
 		openBottomSheet,
@@ -298,15 +225,6 @@ export default function AppProvider({ children }) {
 		},
 	};
 
-	if (!appContextValue.actualSource) {
-		appContextValue.actualSource = (source) => {
-			const crotchetDataSource = dataSources?.[source?.name];
-			return source?.provider == "crotchet" && crotchetDataSource
-				? crotchetDataSource
-				: source;
-		};
-	}
-
 	Object.assign(window.__crotchet, {
 		...appContextValue,
 	});
@@ -320,8 +238,9 @@ export default function AppProvider({ children }) {
 				<AppContext.Provider
 					value={{
 						...appContextValue,
-						apps: appsRef.current,
-						actions: actionsRef.current,
+						apps: window.__crotchet.apps,
+						actions: window.__crotchet.actions,
+						dataSources: window.__crotchet.dataSources,
 					}}
 				>
 					<App {...(window.__crotchet.app.props || {})} />
@@ -332,7 +251,12 @@ export default function AppProvider({ children }) {
 
 	return (
 		<AppContext.Provider
-			value={{ ...appContextValue, actions: actionsRef.current }}
+			value={{
+				...appContextValue,
+				apps: window.__crotchet.apps,
+				actions: window.__crotchet.actions,
+				dataSources: window.__crotchet.dataSources,
+			}}
 		>
 			{children}
 

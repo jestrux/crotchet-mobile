@@ -3,7 +3,7 @@ import DataWidget from "../DataWidget";
 import WidgetWrapper from "../WidgetWrapper";
 import DataFetcher from "@/providers/data/DataFetcher";
 import { getGradient, openUrl } from "@/utils";
-import dataSource from "@/providers/data/dataSource";
+import { useAppContext } from "@/providers/app";
 
 export default function GenericPage({
 	image,
@@ -16,6 +16,7 @@ export default function GenericPage({
 	maxHeight,
 	collapse,
 }) {
+	const { dataSources } = useAppContext();
 	const headingSet = image || title || subtitle;
 
 	return (
@@ -82,7 +83,7 @@ export default function GenericPage({
 									"random",
 							  ].includes(image) ? (
 								<DataFetcher
-									source={dataSource.unsplash()}
+									source={dataSources.unsplash}
 									first
 									shuffle
 									contentOnly

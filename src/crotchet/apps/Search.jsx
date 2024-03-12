@@ -5,7 +5,7 @@ import dataSource from "@/providers/data/dataSource";
 const getSearchSource = ({ source, dataSources, ...params }) => {
 	const [_source, provider = "crotchet"] = source.split("://").reverse();
 	return provider == "crotchet"
-		? dataSources?.[_source]
+		? Object.values(dataSources).find(({ name }) => name == _source)
 		: typeof dataSource[provider] == "function"
 		? dataSource[provider]({ ...params })
 		: null;
@@ -21,7 +21,7 @@ registerApp("search", () => {
 				query,
 				columns = 2,
 				layout = "grid",
-				live = false,
+				live = true,
 				width = 360,
 				height = 540,
 				...params

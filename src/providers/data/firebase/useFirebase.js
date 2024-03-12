@@ -16,8 +16,6 @@ export const firebaseUploadFile = async ({
 export const firebaseFetcher = async ({
 	collection: collectionName,
 	orderBy: _orderBy,
-	map,
-	mapEntry,
 }) => {
 	const params = [
 		collection(db, collectionName),
@@ -34,12 +32,8 @@ export const firebaseFetcher = async ({
 			...doc.data(),
 		};
 
-		if (typeof mapEntry == "function") return mapEntry(item);
-
 		return item;
 	});
-
-	if (typeof map == "function") return map(data);
 
 	return data;
 };

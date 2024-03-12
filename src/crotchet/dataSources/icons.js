@@ -1,5 +1,4 @@
-import { matchSorter } from "match-sorter";
-import dataSource from "../dataSource";
+import { registerDataSource } from "..";
 
 const heroiconTags = {
 	"academic-cap": [
@@ -271,24 +270,18 @@ const heroiconTags = {
 	"x-mark": ["cancel", "close", "delete", "remove", "stop"],
 };
 
-export default dataSource.crawler({
+registerDataSource("crawler", "heroIcons", {
 	url: "https://heroicons.com/",
-	match: "main [role='tabpanel']:first-child .grid:first-child .group => name::div:last-child|icon::svg::outerHTML",
-	// map: (entry) => ({
-	// 	...entry,
-	// 	icon: entry.icon.replace("w-6 h-6", "w-10 h-10"),
-	// }),
-	search: (icons, searchTerm) => {
-		const formattedIcons = icons.map((icon) => {
-			return {
-				...icon,
-				tags: heroiconTags[icon.name],
-			};
-		});
-
-		return matchSorter(formattedIcons, searchTerm.replace(/\s+/, "-"), {
-			keys: ["name", "tags"],
-		});
+	matcher:
+		"main [role='tabpanel']:first-child .grid:first-child .group => name::div:last-child|icon::svg::outerHTML",
+	mapEntry(entry) {
+		return {
+			icon: entry.icon
+				?.replace(`aria-hidden="true"`, "")
+				.replace(`data-slot="icon"`, ""),
+			title: entry.name?.replaceAll("-", " ").replaceAll("_", " "),
+			tags: heroiconTags[entry.name],
+		};
 	},
 	fieldMap: {
 		// subtitle: "name|cleanString",
@@ -297,4 +290,32 @@ export default dataSource.crawler({
 	icon: `<svg viewBox="0 0 24 24" fill="currentColor">
 			<path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
 		</svg>`,
+});
+
+registerDataSource("crawler", "simpleIcons", {
+	url: "https://simpleicons.org",
+	matcher:
+		".grid .grid-item => name::.grid-item__title|color::.grid-item__color",
+	mapEntry(entry) {
+		const image = `https://simpleicons.org/icons/${entry.name
+			?.toLowerCase()
+			.replace(".svg", "")
+			.replaceAll("/", "")
+			.replaceAll("-", "")
+			.replaceAll(" ", "")
+			.replace(".", "dot")}.svg`;
+		return {
+			color: entry.color,
+			icon: `<div class="size-8 rounded-full bg-white flex items-center justify-center"><img class="w-4 h-4" src='${image}' /></div>`,
+			title: entry.name?.replace(".svg", ""),
+			url: image,
+		};
+	},
+	// fieldMap: {
+	// 	// subtitle: "name|cleanString",
+	// 	action: "copy://image",
+	// },
+	// icon: `<svg viewBox="0 0 24 24" fill="currentColor">
+	// 		<path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
+	// 	</svg>`,
 });

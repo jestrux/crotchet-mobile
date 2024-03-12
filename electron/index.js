@@ -27,11 +27,11 @@ server.listen(3127, () => {
 const createMainWindow = () => {
 	mainWindow = new BrowserWindow({
 		backgroundColor: "#FFF",
-		width: 360,
-		height: 540,
-		show: false,
-		frame: false,
-		fullscreenable: false,
+		width: 780,
+		height: 800,
+		show: isDev,
+		frame: isDev,
+		fullscreenable: isDev,
 		resizable: false,
 		webPreferences: {
 			devTools: isDev,
@@ -66,7 +66,7 @@ app.whenReady().then(() => {
 	createMainWindow();
 });
 
-app.dock.hide();
+if (!isDev) app.dock.hide();
 
 // global.crotchetApp = menubar({
 // 	icon: appDir("icon.png"),

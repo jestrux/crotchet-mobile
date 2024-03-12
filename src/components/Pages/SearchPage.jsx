@@ -1,17 +1,18 @@
 import DataWidget from "../DataWidget";
 import { useEffect, useRef, useState } from "react";
-import dataSource from "@/providers/data/dataSource";
+import GlobalSearch from "../GlobalSearch";
 
 export default function SearchPage({
 	inBottomSheet,
 	placeholder = "Type to search...",
 	query: _query,
-	source = dataSource.crotchet("heroicons"),
+	source,
 	maxHeight,
 	collapse,
 	layout,
 	columns,
-	liveSearch = false,
+	liveSearch = true,
+	global = false,
 }) {
 	const [query, setQuery] = useState(_query);
 	const [searchQuery, setSearchQuery] = useState(_query);
@@ -119,20 +120,26 @@ export default function SearchPage({
 			</div>
 
 			<div className="p-3">
-				{searchQuery?.length > 0 && (
-					<div className="text-content/50 truncate mb-2">
-						Search results for{" "}
-						<span className="font-bold">{searchQuery}</span>{" "}
-					</div>
-				)}
+				{global && <GlobalSearch searchQuery={searchQuery} />}
 
-				<DataWidget
-					layout={layout}
-					columns={columns}
-					source={source}
-					searchQuery={searchQuery}
-					widgetProps={{ noPadding: true }}
-				/>
+				{!global && source && (
+					<>
+						{searchQuery?.length > 0 && (
+							<div className="text-content/50 truncate mb-2">
+								Search results for{" "}
+								<span className="font-bold">{searchQuery}</span>{" "}
+							</div>
+						)}
+
+						<DataWidget
+							layout={layout}
+							columns={columns}
+							source={source}
+							searchQuery={searchQuery}
+							widgetProps={{ noPadding: true }}
+						/>
+					</>
+				)}
 			</div>
 		</div>
 	);

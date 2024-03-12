@@ -1,3 +1,5 @@
+import clsx from "clsx";
+
 export default function WidgetWrapper({
 	children,
 	widget: Widget,
@@ -5,10 +7,14 @@ export default function WidgetWrapper({
 	aspectRatio,
 	flex,
 	columnSpan = 2,
+	className = "",
 }) {
 	return (
 		<div
-			className="rounded-2xl bg-card shadow-md border border-content/10 overflow-y-hidden relative"
+			className={clsx(
+				"rounded-2xl bg-card shadow-md border border-content/10 overflow-y-hidden relative",
+				className
+			)}
 			style={{
 				width,
 				flex,

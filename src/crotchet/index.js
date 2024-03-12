@@ -1,8 +1,41 @@
+import dataSourceProviders from "@/providers/data/dataSourceProviders";
 import { camelCaseToSentenceCase, openUrl, randomId } from "@/utils";
 
 export { default as SearchPage } from "@/components/Pages/SearchPage";
 
 export * from "@/utils";
+
+export const registerDataSource = (provider, name, props = {}) => {
+	const { fieldMap, mapEntry, searchable, searchFields, ..._props } = props;
+	const label = camelCaseToSentenceCase(name);
+	const _handler = dataSourceProviders(provider, _props);
+
+	if (typeof _handler != "function")
+		throw `Unkown data provider: ${provider}`;
+
+	const handler = (payload) => _handler(payload);
+
+	// const get = async () => _source.handler();
+	// const random = () => get().then((res) => shuffle(shuffle(res))[0]);
+
+	// sources[name] = {
+	// 	..._source,
+	// 	get,
+	// 	random,
+	// };
+
+	window.__crotchet.dataSources[name] = {
+		..._props,
+		_id: randomId(),
+		name,
+		label,
+		handler,
+		fieldMap,
+		mapEntry,
+		searchable,
+		searchFields,
+	};
+};
 
 export const registerAction = (scheme, name, action) => {
 	let _label = name,

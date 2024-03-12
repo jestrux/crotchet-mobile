@@ -2,6 +2,7 @@ const { Tray, Menu } = require("electron");
 
 module.exports = function Crotchet() {
 	this.tray = null;
+	this.showWindow = isDev;
 
 	this.menuItems = {};
 
@@ -33,10 +34,12 @@ module.exports = function Crotchet() {
 				{
 					label: "Show app",
 					type: "checkbox",
-					checked: false,
+					checked: this.showWindow,
 					click: (event) => {
 						if (!event.checked) this.mainWindow.hide();
 						else this.mainWindow.show();
+
+						this.showWindow = event.checked;
 					},
 				},
 				...Object.values(this.menuItems).map((item) => {

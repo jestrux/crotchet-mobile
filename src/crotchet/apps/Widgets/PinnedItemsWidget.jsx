@@ -13,7 +13,7 @@ export default function PinnedItemsWidget() {
 
 	return (
 		<Widget>
-			<div className="h-full flex items-center">
+			<div className="h-full flex items-center py-1">
 				<div className="ml-1 mr-2 font-semibold">Pinned items</div>
 				<div className="flex-1 flex justify-end items-center space-x-2">
 					{data?.map(({ sender_image }, i) => {

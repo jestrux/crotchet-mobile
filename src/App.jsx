@@ -8,6 +8,9 @@ import clsx from "clsx";
 import { Filesystem } from "@capacitor/filesystem";
 import { App as CapacitorApp } from "@capacitor/app";
 import { onDesktop } from "@/crotchet";
+import DataWidget from "./components/DataWidget";
+import WidgetWrapper from "./components/WidgetWrapper";
+import DataFetcher from "./providers/data/DataFetcher";
 
 const App = () => {
 	const { currentPage, bottomSheets, openPage } = useAppContext();
@@ -140,7 +143,9 @@ const App = () => {
 				</div>
 			</div>
 
-			{!onDesktop() && <BottomNav hidden={bottomSheets.length} />}
+			<div className="lg:hidden">
+				{!onDesktop() && <BottomNav hidden={bottomSheets.length} />}
+			</div>
 		</div>
 	);
 };
