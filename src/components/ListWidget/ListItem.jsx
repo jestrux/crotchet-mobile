@@ -5,6 +5,7 @@ import { useAirtableMutation } from "@/providers/data/airtable/useAirtable";
 import { useAppContext } from "@/providers/app";
 import { formatDate, openUrl, toHms, showToast } from "@/crotchet";
 import clsx from "clsx";
+import Loader from "../Loader";
 
 export const _format = function (data, t) {
 	try {
@@ -615,6 +616,8 @@ const ListItem = ({
 	removable,
 	onClick,
 }) => {
+	const [actionLoading, setActionLoading] = useState(false);
+
 	const { copyToClipboard, copyImage } = useAppContext();
 	const [removed, setRemoved] = useState(false);
 
@@ -634,21 +637,32 @@ const ListItem = ({
 	const actionIsCopy = _action && _action.indexOf("copy://") != -1;
 
 	const handleClick = async () => {
-		if (clickHandlerSet || actionIsCopy) {
-			if (clickHandlerSet) return onClick();
+		setActionLoading(true);
 
-			const field = _action.replace("copy://", "");
-			const value = _get(data, field);
-			const isImage = value == image;
+		try {
+			if (clickHandlerSet || actionIsCopy) {
+				if (clickHandlerSet) {
+					await Promise.resolve(onClick());
+					return setActionLoading(false);
+				}
 
-			isImage ? await copyImage(value) : await copyToClipboard(value);
+				const field = _action.replace("copy://", "");
+				const value = _get(data, field);
+				const isImage = value == image;
 
-			showToast(isImage ? "Image copied" : "Copied");
+				isImage ? await copyImage(value) : await copyToClipboard(value);
 
-			return;
+				showToast(isImage ? "Image copied" : "Copied");
+
+				return setActionLoading(false);
+			}
+
+			if (action) await Promise.resolve(openUrl(action));
+		} catch (error) {
+			//
 		}
 
-		if (action) openUrl(action);
+		setActionLoading(false);
 	};
 
 	return (
@@ -726,6 +740,12 @@ const ListItem = ({
 						setRemoved,
 					}}
 				/>
+			)}
+
+			{actionLoading && (
+				<div className="absolute right-0 inset-y-0 p-1 backdrop-blur-sm">
+					<Loader className="opacity-50" size={20} />
+				</div>
 			)}
 		</a>
 	);
