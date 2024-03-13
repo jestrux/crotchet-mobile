@@ -1,6 +1,11 @@
-const { Notification } = require("electron");
+const { Notification, nativeImage } = require("electron");
 
-module.exports = function showToast(message, icon) {
-	const n = new Notification({ body: message, icon });
-	n.show();
+module.exports = function showToast({ text, image }) {
+	try {
+		const icon = image ? nativeImage.createFromDataURL(image) : null;
+		const n = new Notification({ body: text, icon });
+		n.show();
+	} catch (error) {
+		console.error("Show toast error: ", error);
+	}
 };
