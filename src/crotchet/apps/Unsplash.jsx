@@ -1,4 +1,4 @@
-import { registerAction, shuffle } from "@/crotchet";
+import { registerAction, registerDataSource, shuffle } from "@/crotchet";
 
 const randomSearchQuery = () =>
 	shuffle(
@@ -14,11 +14,32 @@ const randomSearchQuery = () =>
 		])
 	)[0];
 
-registerAction("crotchet", "searchUnsplash", {
-	// url: "crotchet://app/unsplash",
-	handler: ({ openUrl }) =>
-		openUrl(
-			`crotchet://app/search?source=unsplash&q=${randomSearchQuery()}&layout=masonry&columns=4`
-		),
-	tags: ["image"],
+registerDataSource("unsplash", "unsplash", {
+	fieldMap: {
+		collection: "search",
+		title: "alt_description",
+		subtitle: "description",
+		image: "urls.regular",
+		action: "copy://urls.regular",
+	},
+	searchable: true,
+});
+
+registerAction("searchUnsplash", {
+	global: true,
+	url: `crotchet://search/unsplash?q=${randomSearchQuery()}&layout=masonry&columns=sm:2,2xl:3,4xl:4`,
+	tags: ["image", "search"],
+});
+
+registerAction("getRandomPicture", {
+	global: true,
+	handler: async ({ copyImage, dataSources, showToast }) => {
+		try {
+			const image = await dataSources.unsplash.random();
+			copyImage(image.urls.regular, { withToast: true });
+		} catch (error) {
+			console.log("Error: ", error);
+			showToast(error);
+		}
+	},
 });

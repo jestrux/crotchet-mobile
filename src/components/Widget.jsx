@@ -8,6 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { PlayIcon, ShareIcon, UserCircleIcon } from "@heroicons/react/24/solid";
 import { useAppContext } from "@/providers/app";
+import { openUrl } from "@/crotchet";
 
 const WidgetIcons = {
 	share: <ShareIcon className="w-3" />,
@@ -39,7 +40,9 @@ const Widget = ({
 	};
 
 	const handleActionClick = async (action) => {
-		const actionHandler = action.onClick ?? dynamicAction(action);
+		const actionHandler = action.url
+			? () => openUrl(action.url)
+			: action.onClick ?? dynamicAction(action);
 		const res = await Promise.resolve(actionHandler());
 
 		if (res) refresh();

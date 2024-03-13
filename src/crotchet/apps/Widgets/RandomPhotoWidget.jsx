@@ -3,7 +3,7 @@ import { useAppContext } from "@/providers/app";
 import DataFetcher from "@/providers/data/DataFetcher";
 
 export default function RandomPhotoWidget() {
-	const { onAction, dataSources } = useAppContext();
+	const { dataSources } = useAppContext();
 
 	// return null;
 
@@ -24,7 +24,7 @@ export default function RandomPhotoWidget() {
 			// },
 			{
 				icon: "search",
-				onClick: () => onAction("searchUnsplash"),
+				url: "crotchet://action/searchUnsplash",
 			},
 		],
 	});

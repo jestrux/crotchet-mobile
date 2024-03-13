@@ -1,15 +1,8 @@
-import { registerAction } from "@/crotchet";
 import DataWidget from "../../../components/DataWidget";
 import { useAppContext } from "@/providers/app";
 
-registerAction("crotchet", "searchHeroicons", {
-	handler: ({ openUrl }) =>
-		openUrl("crotchet://app/search?source=heroIcons&columns=7"),
-	tags: ["svg"],
-});
-
 export default function HeroIconsWidget() {
-	const { dataSources, onAction } = useAppContext();
+	const { dataSources } = useAppContext();
 
 	return (
 		<DataWidget
@@ -32,7 +25,7 @@ export default function HeroIconsWidget() {
 					{
 						icon: "search",
 						label: "search",
-						onClick: () => onAction("searchHeroicons"),
+						url: "crotchet://search/heroIcons?columns=7",
 					},
 				],
 			}}

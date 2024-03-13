@@ -1,22 +1,13 @@
 import { useAppContext } from "@/providers/app";
 import { SearchPage, registerApp } from "..";
-import dataSource from "@/providers/data/dataSource";
-
-const getSearchSource = ({ source, dataSources, ...params }) => {
-	const [_source, provider = "crotchet"] = source.split("://").reverse();
-	return provider == "crotchet"
-		? Object.values(dataSources).find(({ name }) => name == _source)
-		: typeof dataSource[provider] == "function"
-		? dataSource[provider]({ ...params })
-		: null;
-};
 
 registerApp("search", () => {
 	return {
 		load(path, { showToast, onDesktop, openSearchPage, dataSources }) {
 			const url = new URL("https://" + path);
+			const source = url.pathname.split("/").filter((v) => v?.length);
+
 			const {
-				source,
 				q,
 				query,
 				columns = 2,
@@ -29,13 +20,7 @@ registerApp("search", () => {
 				...params
 			} = Object.fromEntries(url.searchParams.entries());
 
-			const theSource = getSearchSource({
-				source,
-				dataSources,
-				...params,
-			});
-
-			if (!source || !theSource)
+			if (source && !dataSources[source])
 				return showToast(`Invalid data source ${source}`);
 
 			Object.entries({ q, query, columns, layout, ...params }).forEach(
@@ -45,6 +30,8 @@ registerApp("search", () => {
 			);
 
 			if (onDesktop()) {
+				url.searchParams.set("source", source);
+
 				return window.__crotchet.socketEmit("app", {
 					scheme: "search",
 					url: url.href.replace("https://", ""),
@@ -59,11 +46,13 @@ registerApp("search", () => {
 			}
 
 			openSearchPage({
+				...params,
 				query: q ?? query,
-				source: theSource,
+				source: dataSources[source],
 				layout,
 				columns,
 				liveSearch: live,
+				global: !source,
 			});
 		},
 		open: function Open({
@@ -76,19 +65,16 @@ registerApp("search", () => {
 			...params
 		}) {
 			const { dataSources } = useAppContext();
-			const theSource = getSearchSource({
-				source,
-				dataSources,
-				...params,
-			});
 
 			return (
 				<SearchPage
+					{...params}
 					query={q ?? query}
 					layout={layout}
 					columns={columns}
-					source={theSource}
+					source={dataSources[source]}
 					liveSearch={live}
+					global={!source}
 				/>
 			);
 		},

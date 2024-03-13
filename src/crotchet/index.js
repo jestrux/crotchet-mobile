@@ -1,7 +1,9 @@
 import dataSourceProviders from "@/providers/data/dataSourceProviders";
-import { camelCaseToSentenceCase, openUrl, randomId } from "@/utils";
+import { camelCaseToSentenceCase, openUrl, randomId, shuffle } from "@/utils";
 
 export { default as SearchPage } from "@/components/Pages/SearchPage";
+export { default as Widget } from "@/components/Widget";
+export { default as ListItem } from "@/components/ListWidget/ListItem";
 
 export * from "@/utils";
 
@@ -15,52 +17,52 @@ export const registerDataSource = (provider, name, props = {}) => {
 
 	const handler = (payload) => _handler(payload);
 
-	// const get = async () => _source.handler();
-	// const random = () => get().then((res) => shuffle(shuffle(res))[0]);
-
-	// sources[name] = {
-	// 	..._source,
-	// 	get,
-	// 	random,
-	// };
+	const get = async (payload = {}) => handler(payload);
+	const random = (payload) =>
+		get(payload).then((res) => shuffle(shuffle(res))[0]);
 
 	window.__crotchet.dataSources[name] = {
 		..._props,
 		_id: randomId(),
 		name,
 		label,
-		handler,
 		fieldMap,
 		mapEntry,
 		searchable,
 		searchFields,
+		handler,
+		get,
+		random,
 	};
 };
 
-export const registerAction = (scheme, name, action) => {
+export const registerAction = (name, action) => {
 	let _label = name,
 		_handler = action,
-		tags = [];
+		tags = [],
+		global = false;
 
 	if (typeof action != "function") {
+		global = action.global;
 		_label = action.label;
 		_handler = action.url ? () => openUrl(action.url) : action.handler;
 		tags = action.tags || [];
 	}
 
-	const key = `${scheme}://${name}`;
+	// const key = `${scheme}://${name}`;
 	const label = camelCaseToSentenceCase(_label || name);
-	const handler = (payload = {}) => _handler(window.__crotchet, payload);
+	const handler = (...params) => _handler({ ...window.__crotchet, params });
 
-	window.__crotchet.actions[key] = {
+	window.__crotchet.actions[name] = {
 		_id: randomId(),
 		name,
 		label,
 		tags,
+		global,
 		handler,
 	};
 
-	window.addEventListener(`menu-item-click:${key}`, async () => {
+	window.addEventListener(`menu-item-click:${name}`, async () => {
 		console.log("Handling...", label);
 		const res = await handler();
 		console.log("Handled: ", label, res);

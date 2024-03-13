@@ -157,12 +157,26 @@ export const dispatch = (event, payload) => {
 export const onDesktop = () => document.body.classList.contains("on-electron");
 
 export const openUrl = async (path) => {
-	const url = new URL(path);
+	if (path.startsWith("crotchet://search")) {
+		return openUrl(
+			path.replace("crotchet://search", "crotchet://app/search")
+		);
+	}
+
+	if (path.startsWith("crotchet://action/")) {
+		const scheme = path.replace("crotchet://action/", "");
+		const action = window.__crotchet.actions[scheme];
+
+		if (action?.handler) return await action.handler();
+
+		showToast(`Action ${scheme} not found`);
+	}
 
 	if (path.startsWith("crotchet://app/")) {
 		const scheme = new URL(path.replace("crotchet://app/", "https://"))
 			.host;
 		const app = window.__crotchet.apps[scheme];
+		const url = new URL(path);
 
 		if (app) {
 			return app.load(
@@ -171,10 +185,11 @@ export const openUrl = async (path) => {
 			);
 		}
 
-		return showToast("Invalid url");
+		return showToast("Invalid url: " + url);
 	}
 
 	if (onDesktop()) {
+		const url = new URL(path);
 		return window.dispatchEvent(
 			new CustomEvent("open-url", {
 				detail: url.href,
@@ -183,6 +198,7 @@ export const openUrl = async (path) => {
 	}
 
 	try {
+		const url = new URL(path);
 		const { value } = await AppLauncher.canOpenUrl({
 			url,
 		});
@@ -245,10 +261,8 @@ export const formatDate = (
 	return value;
 };
 
-export const showToast = (text) => {
-	console.log("Show toast: ", text);
-
-	if (onDesktop()) return socketEmit("show-toast", text);
+export const showToast = (text, image) => {
+	if (onDesktop()) return socketEmit("show-toast", { text, image });
 
 	Toast.show({
 		text,
@@ -287,27 +301,35 @@ export const copyToClipboard = (content) => {
 	);
 };
 
-export const copyImage = async (url) => {
+export const copyImage = async (url, { withToast } = {}) => {
 	const blob = await fetch(url).then((response) => response.blob());
-	const reader = new FileReader();
 
-	reader.onload = async () => {
-		if (onDesktop()) {
-			socketEmit("copy-image", reader.result);
-			// showToast("Image copied");
-			return;
-		}
+	return new Promise((resolve) => {
+		const reader = new FileReader();
 
-		return (
-			Clipboard.write({
-				image: reader.result,
+		reader.onload = async () => {
+			const image = reader.result;
+
+			if (onDesktop()) {
+				socketEmit("copy-image", image);
+
+				if (withToast) showToast("Image copied!", image);
+
+				return resolve(image);
+			}
+
+			return Clipboard.write({
+				image,
 			})
-				// .then(() => showToast("Image copied"))
-				.catch((e) => showToast(`Image copy failed: ${e}`))
-		);
-	};
+				.then(() => {
+					resolve(image);
+					if (withToast) showToast("Image copied!", image);
+				})
+				.catch((e) => showToast(`Image copy failed: ${e}`));
+		};
 
-	reader.readAsDataURL(blob);
+		reader.readAsDataURL(blob);
+	});
 };
 
 export const toHms = (number) => {

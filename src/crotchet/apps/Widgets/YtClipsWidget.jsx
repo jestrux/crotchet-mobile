@@ -6,7 +6,7 @@ import { toHms } from "@/crotchet";
 
 export default function YtClipsWidget() {
 	const { openPage, openUrl, dataSources } = useAppContext();
-	const source = dataSources.ytClips;
+	const source = dataSources["youtube-clips"];
 
 	const widgetProps = ({ shuffle, video }) => ({
 		noPadding: true,
@@ -28,7 +28,9 @@ export default function YtClipsWidget() {
 				onClick: shuffle,
 			},
 			{
-				icon: "list",
+				icon: "search",
+				url: "crotchet://search/youtube-clips?layout=grid&columns=sm:2,2xl:3,4xl:4",
+				// icon: "list",
 				onClick() {
 					openPage({
 						// title: video.name,

@@ -106,7 +106,9 @@ export default function GenericPage({
 
 					<div className={`${image && "px-6"}`}>
 						{title && (
-							<h3 className="text-lg font-bold">{title}</h3>
+							<h3 className="text-lg font-bold first-letter:uppercase">
+								{title}
+							</h3>
 						)}
 
 						{subtitle && (
@@ -215,9 +217,18 @@ export default function GenericPage({
 							return (
 								<div key={index}>
 									{(title || subtitle) && (
-										<div className="space-y-1 mb-1">
+										<div
+											className={clsx(
+												"space-y-1",
+												["image", "video"].includes(
+													type
+												)
+													? "mb-3"
+													: "mb-1"
+											)}
+										>
 											{title && (
-												<h5 className="text-base font-bold">
+												<h5 className="text-base font-bold first-letter:uppercase">
 													{title}
 												</h5>
 											)}

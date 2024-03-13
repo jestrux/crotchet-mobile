@@ -8,13 +8,9 @@ import RandomPhotoWidget from "@/crotchet/apps/Widgets/RandomPhotoWidget";
 import PinnedItemsWidget from "@/crotchet/apps/Widgets/PinnedItemsWidget";
 import RentersWidget from "@/crotchet/apps/Widgets/RentersWidget";
 import HeroIconsWidget from "./HeroIconsWidget";
-import Widget from "@/components/Widget";
-import { useAppContext } from "@/providers/app";
-import ListItem from "@/components/ListWidget/ListItem";
+import QuickActionsWidget from "./QuickActionsWidget";
 
 export default function Widgets() {
-	const { actions } = useAppContext();
-
 	return (
 		<div className="max-w-3xl mx-auto p-3 flex flex-col sm:grid grid-cols-12 items-start gap-3">
 			<div className="w-full col-span-6 grid grid-cols-2 gap-3">
@@ -22,24 +18,10 @@ export default function Widgets() {
 					<PinnedItemsWidget />
 				</WidgetWrapper>
 
-				<WidgetWrapper className="hidden sm:block">
-					<Widget title="Quick Actions">
-						{Object.values(actions ?? {}).map((action) => (
-							<ListItem
-								key={action._id}
-								data={{
-									icon:
-										action.icon ||
-										`<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5"></path>
-								  </svg>`,
-									title: action.label,
-									url: `crotchet://action/${action.name}`,
-								}}
-							/>
-						))}
-					</Widget>
-				</WidgetWrapper>
+				<WidgetWrapper
+					className="hidden sm:block"
+					widget={QuickActionsWidget}
+				/>
 
 				<WidgetWrapper
 					columnSpan="1"

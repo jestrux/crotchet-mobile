@@ -7,11 +7,6 @@ export const uploadFile = async ({ showToast }) => {
 	showToast("Uploaded");
 };
 
-export const getRandomYoutubeClip = async ({ dataSources }) => {
-	const res = await dataSources.ytClips.random();
-	openUrl(res.url);
-};
-
 // export const updateWhyLead = async ({ showToast }) => {
 // 	await firebaseUploadFile({
 // 		name: "index.html",
@@ -96,16 +91,3 @@ export const overdueRenters = ({ openPage, dataSources }) =>
 			},
 		],
 	});
-
-export const getRandomPicture = async ({ copyImage, showToast }) => {
-	try {
-		const data = await unsplashFetcher();
-		const image = shuffle(data)[0].urls.regular;
-		await copyImage(image);
-		showToast("Image copied!");
-		return;
-	} catch (error) {
-		console.log("Error: ", error);
-		showToast(error);
-	}
-};

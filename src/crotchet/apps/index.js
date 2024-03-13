@@ -1,3 +1,3 @@
-import "./YtClips";
+import "./YoutubeClips";
 import "./Unsplash";
 import "./Search";

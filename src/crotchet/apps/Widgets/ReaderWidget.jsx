@@ -1,7 +1,31 @@
 import Loader from "@/components/Loader";
 import Widget from "@/components/Widget";
+import { registerDataSource } from "@/crotchet";
 import { useAppContext } from "@/providers/app";
 import DataFetcher from "@/providers/data/DataFetcher";
+
+registerDataSource("firebase", "reader", {
+	collection: "reader",
+	orderBy: "index,desc",
+	fieldMap: {
+		// image: "image",
+		// title: "title",
+		subtitle: "description",
+	},
+	mapEntry(item) {
+		const isVideo =
+			item.url.toLowerCase().indexOf("videos") != -1 ||
+			item.url.toLowerCase().indexOf("youtube") != -1 ||
+			item.group.toLowerCase().indexOf("watch") != -1;
+
+		return {
+			...item,
+			...(isVideo ? { video: item.image } : { image: item.image }),
+			title: item.title || "Untitled",
+			tags: [item.group],
+		};
+	},
+});
 
 export default function ReaderWidget() {
 	const { openPage, dataSources } = useAppContext();
@@ -31,7 +55,9 @@ export default function ReaderWidget() {
 				onClick: shuffle,
 			},
 			{
-				icon: "list",
+				icon: "search",
+				url: "crotchet://search/reader",
+				// icon: "list",
 				onClick() {
 					openPage({
 						// title: entry.title,
