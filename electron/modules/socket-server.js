@@ -48,8 +48,11 @@ module.exports = function socketServer(server) {
 		},
 
 		"copy-image": (image) => {
-			console.log("Copy image: ", image);
-			clipboard.writeImage(nativeImage.createFromDataURL(image));
+			try {
+				clipboard.writeImage(nativeImage.createFromDataURL(image));
+			} catch (error) {
+				console.error("Copy image error: ", error);
+			}
 		},
 
 		click() {

@@ -32,7 +32,7 @@ const createMainWindow = () => {
 		show: isDev,
 		frame: true,
 		fullscreenable: false,
-		resizable: false,
+		resizable: isDev,
 		minimizable: false,
 		webPreferences: {
 			devTools: isDev,

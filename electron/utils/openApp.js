@@ -22,7 +22,7 @@ module.exports = async function openApp({ scheme, url, window = {} }) {
 			darkTheme,
 			frame: true,
 			fullscreenable: false,
-			resizable: false,
+			resizable: isDev,
 			minimizable: false,
 			webPreferences: {
 				devTools: isDev,
