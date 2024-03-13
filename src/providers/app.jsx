@@ -30,7 +30,7 @@ const AppContext = createContext({
 	apps: {},
 	actions: {},
 	// eslint-disable-next-line no-unused-vars
-	onAction: (action) => {},
+	globalActions: () => {},
 	bottomSheets: [],
 	// eslint-disable-next-line no-unused-vars
 	openBottomSheet: ({ title, subtitle, content, fullHeight } = {}) => {},
@@ -92,17 +92,21 @@ export default function AppProvider({ children }) {
 		}
 	};
 
+	const globalActions = () => {
+		return Object.entries(window.__crotchet.actions ?? {})
+			.filter(([, value]) => value.global)
+			.map(([, value]) => value);
+	};
+
 	const setupActions = () => {
 		// if (!actionsRef.current) {
 		if (onDesktop()) {
 			socketEmit(
 				"add-menu-items",
 				Object.fromEntries(
-					Object.entries(window.__crotchet.actions).map(
-						([key, { label }]) => {
-							return [key, { label }];
-						}
-					)
+					globalActions().map(({ name, label }) => {
+						return [name, { label }];
+					})
 				)
 			);
 		}
@@ -215,14 +219,7 @@ export default function AppProvider({ children }) {
 		socketConnected: () => {
 			return socket.current?.connected;
 		},
-		onAction: (action) => {
-			const actionKey =
-				action.indexOf("://") != -1 ? action : `crotchet://${action}`;
-			const _action = window.__crotchet.actions?.[actionKey];
-
-			if (typeof _action?.handler == "function") _action.handler();
-			else showToast(`Action ${action} not found`);
-		},
+		globalActions,
 	};
 
 	Object.assign(window.__crotchet, {

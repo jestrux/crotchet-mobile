@@ -58,7 +58,7 @@ export function BottomNav({ hidden }) {
 	const {
 		currentPage,
 		setCurrentPage,
-		actions,
+		globalActions,
 		openSearchPage,
 		openBottomSheet,
 	} = useAppContext();
@@ -75,7 +75,9 @@ export function BottomNav({ hidden }) {
 		if (input) input.focus();
 	};
 
-	let filteredActions = Object.values(actions ?? {});
+	let filteredActions = Object.entries(globalActions() ?? {})
+		.filter(([, value]) => value.global)
+		.map(([, value]) => value);
 	if (searchQuery.length > 0) {
 		filteredActions = matchSorter(filteredActions, searchQuery, {
 			keys: ["label", "name", "tags"],
