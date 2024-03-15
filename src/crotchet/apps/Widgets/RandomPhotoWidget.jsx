@@ -1,9 +1,7 @@
-import Widget from "@/components/Widget";
-import { useAppContext } from "@/providers/app";
-import DataFetcher from "@/providers/data/DataFetcher";
+import { DataFetcher, Widget, useAppContext } from "@/crotchet";
 
 export default function RandomPhotoWidget() {
-	const { dataSources } = useAppContext();
+	const { dataSources, copyImage } = useAppContext();
 
 	// return null;
 
@@ -40,10 +38,13 @@ export default function RandomPhotoWidget() {
 			{({ data, shuffle }) => (
 				<Widget {...widgetProps({ shuffle, data })}>
 					<div className="w-full h-full flex flex-col">
-						<div className="flex-1 relative">
+						<div
+							className="flex-1 relative"
+							onClick={() => copyImage(data.image)}
+						>
 							<img
 								className="flex-1 absolute inset-0 w-full h-full object-cover rounded"
-								src={data.urls.regular}
+								src={data.image}
 								alt=""
 							/>
 						</div>

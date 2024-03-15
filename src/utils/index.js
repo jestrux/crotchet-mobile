@@ -157,6 +157,14 @@ export const dispatch = (event, payload) => {
 export const onDesktop = () => document.body.classList.contains("on-electron");
 
 export const openUrl = async (path) => {
+	if (path.startsWith("crotchet://copy")) {
+		if (path.startsWith("crotchet://copy-image/")) {
+			return copyImage(path.replace("crotchet://copy-image/", ""));
+		}
+
+		return copyToClipboard(path.replace("crotchet://copy/", ""));
+	}
+
 	if (path.startsWith("crotchet://search")) {
 		return openUrl(
 			path.replace("crotchet://search", "crotchet://app/search")
@@ -284,24 +292,24 @@ export const readClipboard = async () => {
 	}
 };
 
-export const copyToClipboard = (content) => {
+export const copyToClipboard = (content, { withToast = true } = {}) => {
 	if (onDesktop()) {
 		socketEmit("copy", content);
-		// showToast("Image copied");
+		if (withToast) showToast("Copied!");
 		return;
 	}
 
-	return (
-		Clipboard.write({
-			string: content,
-			url: content,
+	return Clipboard.write({
+		string: content,
+		url: content,
+	})
+		.then(() => {
+			if (withToast) showToast("Copied!");
 		})
-			// .then(() => showToast("Copied"))
-			.catch((e) => showToast(`Copy failed: ${e}`))
-	);
+		.catch((e) => showToast(`Copy failed: ${e}`));
 };
 
-export const copyImage = async (url, { withToast } = {}) => {
+export const copyImage = async (url, { withToast = true } = {}) => {
 	const blob = await fetch(url).then((response) => response.blob());
 
 	return new Promise((resolve) => {

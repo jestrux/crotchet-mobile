@@ -92,7 +92,7 @@ export class AirtableService {
 
 				db(this.table)
 					.select({
-						...(!orderBy.length
+						...(!orderBy?.length
 							? {}
 							: {
 									sort: orderBy

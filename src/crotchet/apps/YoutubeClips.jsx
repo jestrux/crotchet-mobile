@@ -3,6 +3,7 @@ import {
 	registerAction,
 	registerApp,
 	registerDataSource,
+	toHms,
 } from "@/crotchet";
 import { useEffect, useRef } from "react";
 
@@ -13,17 +14,20 @@ registerDataSource("firebase", "youtube-clips", {
 	label: "Youtube Clips",
 	collection: "videos",
 	orderBy: "updatedAt,desc",
-	fieldMap: {
-		video: "poster",
-		title: "name",
-		subtitle: "crop.0|time::crop.1|time::duration|time",
-	},
-	mapEntry(item) {
-		return {
-			...item,
-			url: getYoutubeClipUrl(item),
-		};
-	},
+	// fieldMap: {
+	// 	video: "poster",
+	// 	title: "name",
+	// 	subtitle: "crop.0|time::crop.1|time::duration|time",
+	// },
+	mapEntry: (entry) => ({
+		...entry,
+		video: entry.poster,
+		title: entry.name,
+		subtitle: `${[entry.crop?.[0], entry.crop?.[1]]
+			?.map(toHms)
+			.join(", ")} - ${toHms(entry.duration)}`,
+		url: getYoutubeClipUrl(entry),
+	}),
 	searchFields: ["name"],
 });
 

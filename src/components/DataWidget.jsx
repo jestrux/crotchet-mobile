@@ -1,9 +1,9 @@
-import Loader from "./Loader";
-import Widget from "./Widget";
-import ListItem from "./ListWidget/ListItem";
+import { Loader, ListItem, Widget } from "@/crotchet";
 import DataFetcher from "@/providers/data/DataFetcher";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import clsx from "clsx";
+import CardListItem from "./ListItem/CardListItem";
+import GridListItem from "./ListItem/GridListItem";
 
 function DataWidgetContent({
 	layout,
@@ -15,10 +15,7 @@ function DataWidgetContent({
 	refetch = () => {},
 	widgetProps,
 	children,
-	fieldMap = {},
-	...props
 }) {
-	const elRef = useRef(null);
 	const grid = layout == "grid";
 	const masonry = layout == "masonry";
 
@@ -27,10 +24,7 @@ function DataWidgetContent({
 	}, [searchQuery]);
 
 	let content = (
-		<div
-			ref={elRef}
-			className="relative h-8 min-w-full min-h-full flex items-center justify-center"
-		>
+		<div className="relative h-8 min-w-full min-h-full flex items-center justify-center">
 			<Loader scrimColor="transparent" size={25} />
 		</div>
 	);
@@ -38,24 +32,44 @@ function DataWidgetContent({
 	if (!isLoading) {
 		if (!data) content = null;
 		else {
-			const items = data.map((entry, index) => (
-				<ListItem
-					color={entry.color}
-					height={entry.height}
-					width={entry.width}
-					key={index}
-					grid={grid}
-					masonry={masonry}
-					large={large}
-					data={entry}
-					{...fieldMap}
-					{...props}
-				/>
-			));
+			// large={large}
+			// data={entry}
+			// {...fieldMap}
+			// {...props}
 
-			if (typeof children == "function") {
-				content = children(data);
-			} else if (masonry || grid) {
+			const items = data.map((entry, index) => {
+				const entryProps = {
+					icon: entry.icon,
+					image: entry.image,
+					video: entry.video,
+					title: entry.title,
+					subtitle: entry.subtitle,
+					trailing: entry.trailing,
+					progress: entry.progress,
+					status: entry.status,
+					url: entry.url,
+				};
+
+				if (large) return <CardListItem key={index} {...entryProps} />;
+
+				if (grid || masonry) {
+					return (
+						<GridListItem
+							key={index}
+							{...entryProps}
+							grid={grid}
+							masonry={masonry}
+							color={entry.color}
+							height={entry.height}
+							width={entry.width}
+						/>
+					);
+				}
+
+				return <ListItem key={index} {...entryProps} />;
+			});
+
+			if (masonry || grid) {
 				const columnClasses = Object.entries(
 					columns
 						.toString()
@@ -104,6 +118,10 @@ function DataWidgetContent({
 					</div>
 				);
 			} else content = items;
+		}
+
+		if (typeof children == "function") {
+			content = children({ data, content });
 		}
 	}
 

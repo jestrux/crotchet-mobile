@@ -5,62 +5,52 @@ import { matchSorter } from "match-sorter";
 
 export function useDataFetch({
 	source,
-	filters,
 	limit = 3000,
 	first = false,
 	shuffle: shuffleData,
-	searchQuery,
-	...props
+	searchQuery: _searchQuery,
+	filters: _filters,
+	// ...props
 }) {
-	// const crotchetDataSource = appContext.dataSources?.[source?.name];
-	// const crotchetProvider = inSearch
-	// 	? crotchetDataSource?.searchHandler || crotchetDataSource?.handler
-	// 	: crotchetDataSource?.handler;
-	// const processedSource = {
-	// 	...(source?.provider == "crotchet" && crotchetDataSource
-	// 		? crotchetDataSource
-	// 		: {}),
-	// 	...source,
-	// };
-
-	// const sourceProviderRef = useRef(
-	// 	source?.provider == "crotchet"
-	// 		? crotchetProvider ?? (() => [])
-	// 		: dataSourceProviders(source.provider)
-	// );
-
 	if (typeof source.handler != "function")
 		console.log("Unknown source: ", source);
 
-	const sourceProviderRef = useRef(source.handler);
+	const getParams = ({ searchQuery, filters }) => {
+		const validFilters =
+			!Object.values(filters || {}).filter(
+				(v) => v?.toString().length > 0
+			).length > 0;
+
+		return new URLSearchParams(
+			Object.fromEntries(
+				Object.entries({
+					...(source.filterable != true || !validFilters
+						? {}
+						: { filters }),
+					...(source.searchable !== true || !searchQuery?.length
+						? {}
+						: {
+								searchQuery,
+						  }),
+				}).filter(([, value]) => value != undefined)
+			)
+		).toString();
+	};
+
+	const paramsRef = useRef(getParams({ _searchQuery, _filters }));
+	const [searchQuery, setSearchQuery] = useState(_searchQuery);
+	const [filters, setFilters] = useState(_filters);
 	const [data, setData] = useState(null);
 	const query = useMutation({
-		mutationKey: [source._id, ...(source.searchable ? [searchQuery] : [])],
-		mutationFn: sourceProviderRef.current,
+		mutationKey: [source?._id, getParams({ searchQuery, filters })],
+		mutationFn: source?.handler,
 	});
-
-	const handleFetch = async (newData) => {
-		let res = await query.mutateAsync(
-			newData
-				? newData
-				: {
-						...source,
-						...props,
-						searchQuery,
-						filters,
-				  }
-		);
-
-		if (res?.length && shuffleData) res = doShuffle(res);
-
-		setData(res);
-	};
 
 	const searchData = (results, query, searchFields) => {
 		if (!query?.length || !results?.length) return results;
 
 		if (typeof source.search == "function")
-			return source.search(results, query);
+			return source.search({ results, searchQuery: query, searchFields });
 
 		return matchSorter(results, query, {
 			keys: searchFields,
@@ -70,8 +60,26 @@ export function useDataFetch({
 	const processData = (data) => {
 		if (!data?.length) return null;
 
-		if (typeof source.mapEntry == "function")
+		if (
+			Object.values(filters || {}).filter((v) => v?.toString().length > 0)
+				.length > 0 &&
+			![true, false].includes(source.filterable)
+		) {
+			data = data.reduce((agg, entry) => {
+				if (typeof source.mapEntry == "function")
+					entry = source.mapEntry(entry);
+
+				const matches = Object.entries(filters).every(
+					([key, value]) =>
+						value?.toString().toLowerCase() ==
+						entry[key]?.toString().toLowerCase()
+				);
+
+				return [...agg, ...(matches ? [entry] : [])];
+			}, []);
+		} else if (typeof source.mapEntry == "function") {
 			data = data.map(source.mapEntry);
+		}
 
 		if (![true, false].includes(source.searchable) && searchQuery?.length) {
 			const searchFields = source.searchFields || [
@@ -92,17 +100,52 @@ export function useDataFetch({
 		return data.slice(0, limit);
 	};
 
+	const handleFetch = async (paramsChanged = true) => {
+		let res =
+			!paramsChanged && data
+				? data
+				: await query.mutateAsync({
+						source,
+						...(source.searchable !== true || !searchQuery?.length
+							? {}
+							: {
+									searchQuery,
+							  }),
+				  });
+
+		if (res?.length && shuffleData) res = doShuffle(doShuffle(res));
+
+		setData(res);
+
+		return res;
+	};
+
+	const handleRefetch = (newProps) => {
+		if (newProps) {
+			if (newProps.searchQuery != undefined) {
+				setSearchQuery(newProps.searchQuery);
+			}
+
+			if (newProps.filters != undefined) {
+				setFilters(newProps.filters);
+			}
+		}
+
+		handleFetch(getParams({ searchQuery, filters }) != paramsRef.current);
+	};
+
 	useEffect(() => {
 		handleFetch();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	return {
-		...query,
-		fieldMap: source.fieldMap,
+		// ...query,
+		error: query.error,
 		data: processData(data),
 		isLoading: query.isLoading || query.isRefetching,
+		fieldMap: source.fieldMap,
 		shuffle: () => setData(doShuffle(doShuffle(data))),
-		refetch: handleFetch,
+		refetch: handleRefetch,
 	};
 }

@@ -15,13 +15,15 @@ const randomSearchQuery = () =>
 	)[0];
 
 registerDataSource("unsplash", "unsplash", {
-	fieldMap: {
-		collection: "search",
-		title: "alt_description",
-		subtitle: "description",
-		image: "urls.regular",
-		action: "copy://urls.regular",
-	},
+	fieldMap: {},
+	mapEntry: (entry) => ({
+		...entry,
+		collection: entry.search,
+		title: entry.alt_description,
+		subtitle: entry.description,
+		image: entry.urls.regular,
+		url: `crotchet://copy-image/${entry.urls.regular}`,
+	}),
 	searchable: true,
 });
 

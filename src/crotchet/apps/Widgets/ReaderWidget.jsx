@@ -7,21 +7,18 @@ import DataFetcher from "@/providers/data/DataFetcher";
 registerDataSource("firebase", "reader", {
 	collection: "reader",
 	orderBy: "index,desc",
-	fieldMap: {
-		// image: "image",
-		// title: "title",
-		subtitle: "description",
-	},
+	filter: "group",
 	mapEntry(item) {
 		const isVideo =
-			item.url.toLowerCase().indexOf("videos") != -1 ||
-			item.url.toLowerCase().indexOf("youtube") != -1 ||
-			item.group.toLowerCase().indexOf("watch") != -1;
+			item.url?.toLowerCase().indexOf("videos") != -1 ||
+			item.url?.toLowerCase().indexOf("youtube") != -1 ||
+			item.group?.toLowerCase().indexOf("watch") != -1;
 
 		return {
 			...item,
 			...(isVideo ? { video: item.image } : { image: item.image }),
 			title: item.title || "Untitled",
+			subtitle: item.description,
 			tags: [item.group],
 		};
 	},

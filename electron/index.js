@@ -27,7 +27,7 @@ server.listen(3127, () => {
 const createMainWindow = () => {
 	mainWindow = new BrowserWindow({
 		backgroundColor: "#FFF",
-		width: 780,
+		width: 900,
 		height: 800,
 		show: isDev,
 		frame: true,

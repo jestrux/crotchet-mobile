@@ -1,16 +1,11 @@
 import { BottomNav } from "@/components/BottomNav";
-import { useAppContext } from "@/providers/app";
-
 import Widgets from "@/crotchet/apps/Widgets";
 import { SendIntent } from "send-intent";
 import { useEffect } from "react";
 import clsx from "clsx";
 import { Filesystem } from "@capacitor/filesystem";
 import { App as CapacitorApp } from "@capacitor/app";
-import { onDesktop } from "@/crotchet";
-import DataWidget from "./components/DataWidget";
-import WidgetWrapper from "./components/WidgetWrapper";
-import DataFetcher from "./providers/data/DataFetcher";
+import { onDesktop, useAppContext } from "@/crotchet";
 
 const App = () => {
 	const { currentPage, bottomSheets, openPage } = useAppContext();
@@ -139,6 +134,7 @@ const App = () => {
 						"opacity-0 pointer-events-none": currentPage != "home",
 					})}
 				>
+					{/* <SearchPage source={dataSources.performance} /> */}
 					<Widgets />
 				</div>
 			</div>
