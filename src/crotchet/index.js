@@ -13,7 +13,9 @@ export * from "@/utils";
 
 export const registerDataSource = (provider, name, props = {}) => {
 	const { fieldMap, mapEntry, searchable, searchFields, ..._props } = props;
-	const label = camelCaseToSentenceCase(name);
+	const label = camelCaseToSentenceCase(
+		name.replace("-", " ").replace("_", " ")
+	);
 	const _handler = dataSourceProviders(provider, _props);
 
 	if (typeof _handler != "function")
@@ -54,7 +56,9 @@ export const registerAction = (name, action) => {
 	}
 
 	// const key = `${scheme}://${name}`;
-	const label = camelCaseToSentenceCase(_label || name);
+	const label = camelCaseToSentenceCase(
+		(_label || name).replace("-", " ").replace("_", " ")
+	);
 	const handler = (...params) => _handler({ ...window.__crotchet, params });
 
 	window.__crotchet.actions[name] = {
@@ -95,7 +99,7 @@ export const registerApp = (scheme, _app) => {
 
 	window.__crotchet.apps[scheme] = {
 		_id: randomId(),
-		name: camelCaseToSentenceCase(name),
+		name: camelCaseToSentenceCase(name.replace("-", " ").replace("_", " ")),
 		load: (payload = {}) => load(payload, window.__crotchet),
 		...appProps,
 	};

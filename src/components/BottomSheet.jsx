@@ -14,6 +14,17 @@ export default function BottomSheets({
 	children,
 	onClose = () => {},
 }) {
+	// const dragControls = useDragControls();
+	// function onDragStart(e, info) {
+	// 	// We will ignore the request to drag if it's not coming from the handle
+	// 	if (!e.target.classList.contains("drag-handle")) {
+	// 		// Stop the drag - `e` and `info` are needed from the library
+	// 		dragControls.componentControls.forEach((entry) => {
+	// 			entry.stop(e, info);
+	// 		});
+	// 	}
+	// }
+
 	const maxHeight = fullHeight
 		? window.innerHeight * 0.93
 		: Math.min(window.innerHeight * 0.93, 700);
@@ -35,6 +46,9 @@ export default function BottomSheets({
 			: `calc(100% - ${peekSize}px - env(safe-area-inset-bottom) * 0.6)`,
 	};
 	const dragDetails = {
+		// dragControls,
+		// onDragStart,
+		// dragListener: false,
 		drag: "y",
 		dragConstraints: wrapper,
 		dragElastic: {

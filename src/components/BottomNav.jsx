@@ -7,6 +7,7 @@ import Loader from "./Loader";
 import WidgetWrapper from "./WidgetWrapper";
 import DesktopWidget from "@/crotchet/apps/Widgets/DesktopWidget";
 import { matchSorter } from "match-sorter";
+import GlobalSearch from "./GlobalSearch";
 
 const BottomNavAction = ({ action }) => {
 	const [loading, setLoading] = useState(false);
@@ -55,39 +56,49 @@ const BottomNavAction = ({ action }) => {
 export function BottomNav({ hidden }) {
 	const wrapperRef = useRef(null);
 	const [searchQuery, setSearchQuery] = useState("");
-	const {
-		currentPage,
-		setCurrentPage,
-		globalActions,
-		openSearchPage,
-		openBottomSheet,
-	} = useAppContext();
+	const { currentPage, setCurrentPage, globalActions, openBottomSheet } =
+		useAppContext();
 	const navHeight = 56;
 
 	const activeClass =
 		"bg-content/5 dark:bg-content/10 border-content/5 dark:border-content/15 text-content";
 	const inActiveClass = "opacity-70 border-transparent";
+	let filteredActions = Object.entries(globalActions() ?? {})
+		.filter(([, value]) => value.global)
+		.map(([, value]) => value);
 
 	const refocusInput = () => {
 		if (!wrapperRef.current) return;
+
+		if (searchQuery?.length) return;
 
 		const input = wrapperRef.current.querySelector("#searchbar");
 		if (input) input.focus();
 	};
 
-	let filteredActions = Object.entries(globalActions() ?? {})
-		.filter(([, value]) => value.global)
-		.map(([, value]) => value);
 	if (searchQuery.length > 0) {
 		filteredActions = matchSorter(filteredActions, searchQuery, {
 			keys: ["label", "name", "tags"],
 		});
 	}
 
+	const handleClear = () => {
+		setSearchQuery("");
+		const input = wrapperRef.current.querySelector("#searchbar");
+		if (input) input.focus();
+	};
+
+	const handleSubmit = (e) => {
+		e.preventDefault();
+
+		const input = wrapperRef.current.querySelector("#searchbar");
+		if (input) input.blur();
+	};
+
 	return (
 		<div
 			ref={wrapperRef}
-			className="sticky bottom-0 z-50"
+			className="sticky bottom-0 z-50 overflow-hidden"
 			style={{ height: navHeight + "px" }}
 			onClick={refocusInput}
 		>
@@ -126,15 +137,11 @@ export function BottomNav({ hidden }) {
 							<button
 								className={clsx(
 									"flex-shrink-0 focus:outline-none rounded-full border inline-flex items-center justify-center h-9 w-16 px-2.5 text-center text-xs uppercase font-bold",
-									currentPage == "widgets"
+									currentPage == "listings"
 										? activeClass
 										: inActiveClass
 								)}
-								onClick={() =>
-									openSearchPage({
-										global: true,
-									})
-								}
+								onClick={() => setCurrentPage("listings")}
 							>
 								<svg
 									className="h-6"
@@ -143,16 +150,16 @@ export function BottomNav({ hidden }) {
 									strokeWidth={1.5}
 									stroke="currentColor"
 								>
-									{/* <path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"
-									/> */}
 									<path
 										strokeLinecap="round"
 										strokeLinejoin="round"
-										d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+										d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"
 									/>
+									{/* <path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+									/> */}
 								</svg>
 							</button>
 
@@ -179,7 +186,7 @@ export function BottomNav({ hidden }) {
 									<path
 										strokeLinecap="round"
 										strokeLinejoin="round"
-										d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z"
+										d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
 									/>
 								</svg>
 							</button>
@@ -216,22 +223,26 @@ export function BottomNav({ hidden }) {
 									strokeWidth={1.5}
 									stroke="currentColor"
 								>
-									<path
+									{/* <path
 										strokeLinecap="round"
 										strokeLinejoin="round"
 										d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"
+									/> */}
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										d="m6.75 7.5 3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z"
 									/>
 								</svg>
 							</button>
 						</motion.div>
 
 						<motion.div
-							className={clsx("relative ", {
+							className={clsx("relative overflow-hidden", {
 								"pointer-events-none": collapsed,
 							})}
 							style={{
 								height: Math.min(800, maxHeight) + "px",
-								overflow: "auto",
 							}}
 							animate={{
 								opacity: !collapsed
@@ -247,17 +258,28 @@ export function BottomNav({ hidden }) {
 									  }
 							}
 						>
-							<div className="pt-5 px-4 sticky top-0 z-10 backdrop-blur">
+							<div className="p-4 sticky top-0 z-10 backdrop-blur">
 								{dragRatio ? (
 									<div className="w-full flex items-center h-12 px-5 rounded-full border border-content/5 bg-content/5 text-xl/none placeholder:text-content/30">
-										<span className="text-content/30">
-											Type to search...
+										<span
+											className={clsx(
+												!searchQuery?.length
+													? "text-content/30"
+													: ""
+											)}
+										>
+											{searchQuery?.length > 0
+												? searchQuery
+												: "Type to search..."}
 										</span>
 									</div>
 								) : (
 									!collapsed &&
 									!hidden && (
-										<div className="relative">
+										<form
+											className="relative"
+											onSubmit={handleSubmit}
+										>
 											<input
 												id="searchbar"
 												autoFocus
@@ -273,6 +295,7 @@ export function BottomNav({ hidden }) {
 											/>
 
 											<button
+												type="button"
 												className={clsx(
 													"absolute top-0 bottom-0 my-auto right-1.5 w-8 h-8 flex items-center justify-center rounded-full",
 													{
@@ -280,9 +303,7 @@ export function BottomNav({ hidden }) {
 															!searchQuery,
 													}
 												)}
-												onClick={() =>
-													setSearchQuery("")
-												}
+												onClick={handleClear}
 											>
 												<svg
 													className="w-4"
@@ -295,15 +316,15 @@ export function BottomNav({ hidden }) {
 														strokeLinecap="round"
 														strokeLinejoin="round"
 														d="M6 18 18 6M6 6l12 12"
-													></path>
+													/>
 												</svg>
 											</button>
-										</div>
+										</form>
 									)
 								)}
 							</div>
 
-							<div className="p-5">
+							<div className="px-5 pb-5 h-full overflow-auto">
 								{filteredActions.length > 0 && (
 									<>
 										<h3 className="mb-1 text-content/50">
@@ -318,6 +339,20 @@ export function BottomNav({ hidden }) {
 										))}
 									</>
 								)}
+
+								{searchQuery.length > 0 &&
+									filteredActions.length <= 2 && (
+										<div
+											className={clsx("-mx-5", {
+												"border-t border-content/5 pt-4 mt-4":
+													filteredActions.length,
+											})}
+										>
+											<GlobalSearch
+												searchQuery={searchQuery}
+											/>
+										</div>
+									)}
 							</div>
 						</motion.div>
 					</div>

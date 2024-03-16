@@ -5,7 +5,7 @@ export default function GlobalSearch({ searchQuery }) {
 	if (!searchQuery?.length) return null;
 
 	return (
-		<>
+		<div className="flex flex-col gap-4 divide-y divide-content/5">
 			{Object.values(window.__crotchet.dataSources).map((source) => {
 				if (source.searchable === false) return null;
 
@@ -16,11 +16,10 @@ export default function GlobalSearch({ searchQuery }) {
 						limit={2}
 						contentOnly
 						searchQuery={searchQuery}
-						className="flex-col gap-1"
 					>
 						{({ ...props }) =>
 							props.data?.length > 0 && (
-								<div className="flex-col gap-1">
+								<div className="flex-col gap-2 pt-4 px-5">
 									<h3 className="text-content/50">
 										{source.label}
 									</h3>
@@ -37,6 +36,6 @@ export default function GlobalSearch({ searchQuery }) {
 					</DataFetcher>
 				);
 			})}
-		</>
+		</div>
 	);
 }

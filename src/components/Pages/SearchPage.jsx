@@ -104,10 +104,9 @@ export default function SearchPage({
 
 	return (
 		<div
-			className="relative"
+			className="relative overflow-x-hidden overflow-y-auto"
 			style={{
 				height: maxHeight ?? window.innerHeight + "px",
-				overflow: "auto",
 				...(inBottomSheet
 					? {
 							borderTopLeftRadius: 32,
@@ -117,7 +116,7 @@ export default function SearchPage({
 			}}
 		>
 			<div
-				className="sticky top-0 z-10 bg-card w-full p-2 flex flex-col"
+				className="sticky top-0 z-10 bg-card w-full flex flex-col"
 				style={{
 					...(!inBottomSheet
 						? {
@@ -126,7 +125,7 @@ export default function SearchPage({
 						: {}),
 				}}
 			>
-				<div className="w-full flex items-center gap-1">
+				<div className="p-2 w-full flex items-center gap-1">
 					<form className="flex-1 relative" onSubmit={handleSubmit}>
 						<input
 							ref={searchbar}
@@ -188,14 +187,8 @@ export default function SearchPage({
 				</div>
 
 				{filters && (
-					<div className="px-4 w-screen overflow-auto">
-						<div
-							className="max-w-4xl mx-auto flex items-center gap-2"
-							style={{
-								marginTop: "env(safe-area-inset-top)",
-								height: "60px",
-							}}
-						>
+					<div className="px-3 pb-2 w-screen overflow-x-auto">
+						<div className="max-w-4xl mx-auto flex items-center gap-2">
 							<button
 								data-group-filter="All"
 								className={`${
