@@ -296,7 +296,6 @@ export default function HeroIconsWidget() {
 
 	return (
 		<DataWidget
-			title=""
 			layout="grid"
 			columns={8}
 			source={dataSources.heroIcons}

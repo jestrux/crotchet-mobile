@@ -1,15 +1,15 @@
 import DataWidget from "../DataWidget";
 import { useEffect, useRef, useState } from "react";
 import GlobalSearch from "../GlobalSearch";
-import { Preferences } from "@capacitor/preferences";
 import useDebounce from "@/hooks/useDebounce";
 import { useDataFetch } from "@/providers/data";
+import clsx from "clsx";
 
 export default function SearchPage({
 	inBottomSheet,
 	placeholder = "Type to search...",
 	query: _query,
-	source,
+	source = {},
 	maxHeight,
 	collapse,
 	layout,
@@ -87,8 +87,7 @@ export default function SearchPage({
 
 	useEffect(() => {
 		if (source?.filter && !filters) getFilters();
-
-		searchbar.current.select();
+		// searchbar.current.select();
 	}, []);
 
 	const handleClear = () => {
@@ -107,12 +106,12 @@ export default function SearchPage({
 			className="relative overflow-x-hidden overflow-y-auto"
 			style={{
 				height: maxHeight ?? window.innerHeight + "px",
-				...(inBottomSheet
-					? {
-							borderTopLeftRadius: 32,
-							borderTopRightRadius: 32,
-					  }
-					: {}),
+				// ...(inBottomSheet
+				// 	? {
+				// 			borderTopLeftRadius: 32,
+				// 			borderTopRightRadius: 32,
+				// 	  }
+				// 	: {}),
 			}}
 		>
 			<div
@@ -125,13 +124,45 @@ export default function SearchPage({
 						: {}),
 				}}
 			>
-				<div className="p-2 w-full flex items-center gap-1">
+				<div
+					className="p-2 w-full flex items-center gap-1"
+					style={{
+						marginTop: inBottomSheet
+							? "env(safe-area-inset-top)"
+							: "",
+					}}
+				>
 					<form className="flex-1 relative" onSubmit={handleSubmit}>
+						{inBottomSheet && (
+							<button
+								type="button"
+								className="absolute z-10 inset-y-0 left-0 rounded-l-full pl-2 pr-1 flex items-center justify-center"
+								onClick={collapse}
+							>
+								<svg
+									className="w-6 opacity-40"
+									fill="none"
+									viewBox="0 0 24 24"
+									strokeWidth="2"
+									stroke="currentColor"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										d="M15.75 19.5 8.25 12l7.5-7.5"
+									/>
+								</svg>
+							</button>
+						)}
+
 						<input
 							ref={searchbar}
 							autoFocus
 							type="text"
-							className="w-full h-12 px-4 rounded-full border border-content/5 bg-content/5 text-xl/none placeholder:text-content/30 focus:outline-none"
+							className={clsx(
+								"w-full h-12 rounded-full border border-content/5 bg-content/5 text-xl/none placeholder:text-content/30 focus:outline-none",
+								inBottomSheet ? "px-10" : "px-4"
+							)}
 							placeholder={placeholder}
 							autoComplete="off"
 							value={searchQuery}
@@ -140,6 +171,10 @@ export default function SearchPage({
 							onKeyUp={(e) => {
 								if (e.key == "Enter") e.preventDefault();
 							}}
+							// onFocus={(e) => {
+							// 	const input = e.target;
+							// 	if (input.value.length > 0) input.select();
+							// }}
 						/>
 
 						{searchQuery && (
@@ -163,27 +198,6 @@ export default function SearchPage({
 							</button>
 						)}
 					</form>
-
-					{inBottomSheet && (
-						<button
-							className="mr-2 w-8 h-8 flex items-center justify-center"
-							onClick={collapse}
-						>
-							<svg
-								className="w-6 opacity-60"
-								fill="none"
-								viewBox="0 0 24 24"
-								strokeWidth="2"
-								stroke="currentColor"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									d="m19.5 8.25-7.5 7.5-7.5-7.5"
-								/>
-							</svg>
-						</button>
-					)}
 				</div>
 
 				{filters && (
@@ -223,7 +237,11 @@ export default function SearchPage({
 			</div>
 
 			<div className="p-3">
-				{global && <GlobalSearch searchQuery={searchQuery} />}
+				{global && (
+					<div className="-mx-5">
+						<GlobalSearch searchQuery={searchQuery} />
+					</div>
+				)}
 
 				{!global && source && (
 					<>

@@ -43,7 +43,7 @@ export function useDataFetch({
 	const [data, setData] = useState(null);
 	const query = useMutation({
 		mutationKey: [source?._id, getParams({ searchQuery, filters })],
-		mutationFn: source?.handler,
+		mutationFn: source?.handler ?? (() => {}),
 	});
 
 	const searchData = (results, query, searchFields) => {

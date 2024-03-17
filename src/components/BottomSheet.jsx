@@ -1,7 +1,6 @@
 import { clsx } from "clsx";
 import { Children, cloneElement, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Keyboard } from "@capacitor/keyboard";
 
 export default function BottomSheets({
 	hidden,
@@ -25,18 +24,19 @@ export default function BottomSheets({
 	// 	}
 	// }
 
-	const maxHeight = fullHeight
-		? window.innerHeight * 0.93
-		: Math.min(window.innerHeight * 0.93, 700);
+	const maxHeight = window.innerHeight;
+	// fullHeight ? window.innerHeight * 0.93
+	//   : Math.min(window.innerHeight * 0.93, 700);
 	const [dragRatio, setDragRatio] = useState(0);
 	const [_collapsed, setCollapsed] = useState(!open);
 	const collapsed = _collapsed || hidden;
 	const initialized = useRef(null);
 	const wrapper = useRef(null);
+	const fullRadius = fullHeight && !dragRatio ? 0 : 32;
 	const borderRadius = dragRatio
-		? 32 * (collapsed ? dragRatio : 1 - dragRatio)
+		? fullRadius * (collapsed ? dragRatio : 1 - dragRatio)
 		: !collapsed
-		? 32
+		? fullRadius
 		: 0;
 	const collapsedTransform = {
 		y: !collapsed
@@ -100,19 +100,6 @@ export default function BottomSheets({
 		if (collapsed) onClose();
 	}, [collapsed]);
 
-	useEffect(() => {
-		try {
-			Keyboard.setAccessoryBarVisible({
-				isVisible: false,
-			});
-			Keyboard.setResizeMode({
-				mode: "none",
-			});
-		} catch (error) {
-			//
-		}
-	}, []);
-
 	return (
 		<>
 			<motion.div
@@ -160,8 +147,8 @@ export default function BottomSheets({
 						? dragDetails
 						: {
 								initial: {
-									borderTopLeftRadius: 32,
-									borderTopRightRadius: 32,
+									borderTopLeftRadius: fullRadius,
+									borderTopRightRadius: fullRadius,
 								},
 						  })}
 				>
