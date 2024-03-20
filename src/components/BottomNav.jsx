@@ -55,11 +55,7 @@ export function BottomNav({ hidden, currentPage, setCurrentPage }) {
 	};
 
 	return (
-		<div
-			ref={wrapperRef}
-			className="fixed inset-x-0 bottom-0 z-50"
-			style={{ minHeight: navHeight + "px" }}
-		>
+		<div ref={wrapperRef}>
 			<BottomSheet
 				hidden={hidden}
 				peekSize={navHeight}
@@ -68,48 +64,58 @@ export function BottomNav({ hidden, currentPage, setCurrentPage }) {
 			>
 				{({ collapse, collapsed, expand, dragRatio }) => {
 					return (
-						<>
+						<div style={{ minHeight: navHeight + "px" }}>
 							<motion.div
-								className={clsx(
-									"px-8 absolute top-0 inset-x-0 flex items-center justify-between gap-4",
-									{
-										"pointer-events-none":
-											!collapsed || dragRatio,
-									}
-								)}
+								className={clsx("px-8 fixed inset-x-0", {
+									"pointer-events-none":
+										!collapsed || dragRatio,
+								})}
 								animate={
 									dragRatio
 										? {
 												opacity: 0,
+												y: "30%",
 										  }
 										: {
 												opacity: collapsed ? 1 : 0,
+												y: collapsed ? 0 : "20%",
 										  }
 								}
 								transition={
 									dragRatio
-										? {}
+										? {
+												duration: collapsed ? 0.6 : 0,
+										  }
 										: {
 												duration: collapsed ? 0.3 : 0,
 												delay: collapsed ? 0.1 : 0,
 										  }
 								}
 								style={{
-									height: navHeight + "px",
+									paddingBottom:
+										"env(safe-area-inset-bottom)",
 								}}
 							>
-								{pinnedApps.map((page, index) => (
-									<BottomNavButton
-										key={page + index}
-										page={page}
-										selected={currentPage == page}
-										onClick={() => {
-											if (currentPage != page)
-												setCurrentPage(page);
-											else if (page == "home") expand();
-										}}
-									/>
-								))}
+								<div
+									className="flex items-center justify-between gap-4"
+									style={{
+										height: navHeight + "px",
+									}}
+								>
+									{pinnedApps.map((page, index) => (
+										<BottomNavButton
+											key={page + index}
+											page={page}
+											selected={currentPage == page}
+											onClick={() => {
+												if (currentPage != page)
+													setCurrentPage(page);
+												else if (page == "home")
+													expand();
+											}}
+										/>
+									))}
+								</div>
 							</motion.div>
 
 							<motion.div
@@ -228,7 +234,7 @@ export function BottomNav({ hidden, currentPage, setCurrentPage }) {
 
 								<GlobalSearch searchQuery={searchQuery} />
 							</motion.div>
-						</>
+						</div>
 					);
 				}}
 			</BottomSheet>

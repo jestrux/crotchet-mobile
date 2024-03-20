@@ -135,7 +135,7 @@ export default function BottomSheet({
 			>
 				<motion.div
 					className={clsx(
-						"max-w-3xl mx-auto border-t border-content/5 relative pointer-events-auto focus:outline-none w-full backdrop-blur overflow-hidden",
+						"max-w-3xl mx-auto border-t border-content/5 relative pointer-events-auto focus:outline-none w-full backdrop-blur",
 						collapsed
 							? "bg-stone-100/85 dark:bg-card/85"
 							: "bg-stone-100/90 dark:bg-card/90"
@@ -143,7 +143,7 @@ export default function BottomSheet({
 					style={{
 						minHeight: peekSize + "px",
 						maxHeight: maxHeight + "px",
-						overflowY: "auto",
+						overflowY: dragRatio || collapsed ? "hidden" : "auto",
 					}}
 					{...(dismissible
 						? dragDetails
