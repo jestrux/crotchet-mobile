@@ -185,8 +185,12 @@ export const openUrl = async (path) => {
 	}
 
 	if (path.startsWith("crotchet://app/")) {
-		const scheme = new URL(path.replace("crotchet://app/", "https://"))
-			.host;
+		const scheme = new URL(
+			path.replace("crotchet://app/", "https://crotchet.app/")
+		).pathname
+			.substring(1)
+			.split("/")
+			?.at(0);
 		const app = window.__crotchet.apps[scheme];
 		const url = new URL(path);
 
@@ -197,7 +201,7 @@ export const openUrl = async (path) => {
 			);
 		}
 
-		return showToast("Invalid url: " + url);
+		return showToast("Unkown app: " + scheme);
 	}
 
 	if (onDesktop()) {
