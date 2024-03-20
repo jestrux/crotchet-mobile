@@ -61,6 +61,7 @@ export function BottomNav({ hidden, currentPage, setCurrentPage }) {
 			style={{ minHeight: navHeight + "px" }}
 		>
 			<BottomSheet
+				hidden={hidden}
 				peekSize={navHeight}
 				fullHeight
 				dismissible={!searchQuery?.length}
