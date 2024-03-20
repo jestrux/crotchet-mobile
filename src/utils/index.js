@@ -162,6 +162,10 @@ export const openUrl = async (path) => {
 			return copyImage(path.replace("crotchet://copy-image/", ""));
 		}
 
+		if (path.startsWith("crotchet://copy-url/")) {
+			return copyFromUrl(path.replace("crotchet://copy-url/", ""));
+		}
+
 		return copyToClipboard(path.replace("crotchet://copy/", ""));
 	}
 
@@ -269,11 +273,12 @@ export const formatDate = (
 	return value;
 };
 
-export const showToast = (text, image) => {
+export const showToast = (text, { image, position = "bottom" } = {}) => {
 	if (onDesktop()) return socketEmit("show-toast", { text, image });
 
 	Toast.show({
 		text,
+		position,
 	});
 };
 
@@ -309,6 +314,13 @@ export const copyToClipboard = (content, { withToast = true } = {}) => {
 		.catch((e) => showToast(`Copy failed: ${e}`));
 };
 
+export const copyFromUrl = async (url, { withToast = true } = {}) => {
+	return copyToClipboard(
+		await fetch(url).then((response) => response.text()),
+		{ withToast }
+	);
+};
+
 export const copyImage = async (url, { withToast = true } = {}) => {
 	const blob = await fetch(url).then((response) => response.blob());
 
@@ -321,7 +333,7 @@ export const copyImage = async (url, { withToast = true } = {}) => {
 			if (onDesktop()) {
 				socketEmit("copy-image", image);
 
-				if (withToast) showToast("Image copied!", image);
+				if (withToast) showToast("Image copied!", { image });
 
 				return resolve(image);
 			}
@@ -331,7 +343,7 @@ export const copyImage = async (url, { withToast = true } = {}) => {
 			})
 				.then(() => {
 					resolve(image);
-					if (withToast) showToast("Image copied!", image);
+					if (withToast) showToast("Image copied!");
 				})
 				.catch((e) => showToast(`Image copy failed: ${e}`));
 		};
