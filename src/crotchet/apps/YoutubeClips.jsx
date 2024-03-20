@@ -1,19 +1,22 @@
 import {
+	SearchPage,
 	openUrl,
 	registerAction,
 	registerApp,
 	registerDataSource,
 	toHms,
+	useAppContext,
 } from "@/crotchet";
 import { useEffect, useRef } from "react";
 
 const getYoutubeClipUrl = (clip) =>
-	`crotchet://app/youtube-clips?${new URLSearchParams(clip).toString()}`;
+	`crotchet://app/youtubeClips?${new URLSearchParams(clip).toString()}`;
 
-registerDataSource("firebase", "youtube-clips", {
+registerDataSource("firebase", "youtubeClips", {
 	label: "Youtube Clips",
 	collection: "videos",
 	orderBy: "updatedAt,desc",
+	layout: "grid",
 	// fieldMap: {
 	// 	video: "poster",
 	// 	title: "name",
@@ -21,7 +24,7 @@ registerDataSource("firebase", "youtube-clips", {
 	// },
 	mapEntry: (entry) => ({
 		...entry,
-		video: entry.poster,
+		video: `https://i.ytimg.com/vi/${entry._id}/hqdefault.jpg`,
 		title: entry.name,
 		subtitle: `${[entry.crop?.[0], entry.crop?.[1]]
 			?.map(toHms)
@@ -34,12 +37,12 @@ registerDataSource("firebase", "youtube-clips", {
 registerAction("getRandomYoutubeClip", {
 	global: true,
 	handler: async ({ dataSources }) => {
-		const res = await dataSources["youtube-clips"].random();
+		const res = await dataSources.youtubeClips.random();
 		return openUrl(getYoutubeClipUrl(res));
 	},
 });
 
-registerApp("youtube-clips", () => {
+registerApp("youtubeClips", () => {
 	const YoutubePlayerStates = {
 		unstarted: -1,
 		ended: 0,
@@ -50,11 +53,25 @@ registerApp("youtube-clips", () => {
 	};
 
 	return {
+		icon: (
+			<svg fill="currentColor" viewBox="0 0 24 24">
+				<path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+			</svg>
+		),
 		name: "Youtube Clips",
+		main: function LaCroix() {
+			const { dataSources } = useAppContext();
+			return (
+				<SearchPage
+					autoFocus={false}
+					source={dataSources.youtubeClips}
+				/>
+			);
+		},
 		load(path, { socketConnected }) {
 			if (socketConnected()) {
 				window.__crotchet.socketEmit("app", {
-					scheme: "youtube-clips",
+					scheme: "youtubeClips",
 					url: path,
 					window: {
 						width: 1280,

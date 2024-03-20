@@ -28,6 +28,7 @@ const AppContext = createContext({
 	setPref: (key, value) => {},
 	dataSources: {},
 	apps: {},
+	pinnedApps: [],
 	actions: {},
 	// eslint-disable-next-line no-unused-vars
 	globalActions: () => {},
@@ -66,6 +67,29 @@ export const useAppContext = () => {
 	return useContext(AppContext);
 };
 
+const getSocket = () => {
+	return new Promise((resolve, reject) => {
+		try {
+			getDoc(doc(db, "__crotchet", "desktop")).then((res) => {
+				const url = res.data().socket;
+				const _socket = io(url);
+				const ackTimeout = setTimeout(() => {
+					_socket.close();
+					reject("Socket connection timed out");
+				}, 2000);
+
+				_socket.on("connect", () => {
+					clearTimeout(ackTimeout);
+					resolve(_socket);
+				});
+			});
+		} catch (error) {
+			console.log("Socket connect error: ", error);
+			reject(error);
+		}
+	});
+};
+
 export default function AppProvider({ children }) {
 	const socket = useRef();
 	const [prefs, setPrefs] = useState();
@@ -84,17 +108,27 @@ export default function AppProvider({ children }) {
 				emit: socketEmit,
 			};
 		} else {
-			if (!socket.current) {
-				getDoc(doc(db, "__crotchet", "desktop")).then((res) => {
-					socket.current = io(res.data().socket);
-				});
+			if (!socket.current?.connected) {
+				getSocket()
+					.then((_socket) => {
+						socket.current = _socket;
+						console.log("Socket connected");
+						showToast("Desktop connected");
+						return _socket;
+					})
+					.catch((e) => {
+						console.log(e);
+					});
 			}
 		}
 	};
 
 	const globalActions = () => {
 		return Object.entries(window.__crotchet.actions ?? {})
-			.filter(([, value]) => value.global)
+			.filter(
+				([, { global, mobileOnly }]) =>
+					![!global, mobileOnly && onDesktop()].includes(true)
+			)
 			.map(([, value]) => value);
 	};
 
@@ -211,9 +245,26 @@ export default function AppProvider({ children }) {
 		copyToClipboard,
 		copyImage,
 		openUrl,
-		socket: () => socket.current,
-		socketEmit: (event, data) => {
-			if (socket.current) socket.current.emit(event, data);
+		socket: ({ retry = false } = {}) => {
+			if (!socket.current?.connected && retry) {
+				return getSocket()
+					.then((_socket) => {
+						socket.current = _socket;
+						console.log("Connected");
+						showToast("Desktop connected");
+						return _socket;
+					})
+					.catch((e) => {
+						console.log(e);
+						showToast("Desktop connect failed");
+					});
+			}
+
+			return socket.current;
+		},
+		socketEmit: async (event, data) => {
+			const _socket = await socket({ retry: true });
+			if (_socket) _socket.emit(event, data);
 		},
 		onDesktop,
 		socketConnected: () => {
@@ -236,6 +287,7 @@ export default function AppProvider({ children }) {
 					value={{
 						...appContextValue,
 						apps: window.__crotchet.apps,
+						pinnedApps: window.__crotchet.pinnedApps,
 						actions: window.__crotchet.actions,
 						dataSources: window.__crotchet.dataSources,
 					}}
@@ -251,6 +303,7 @@ export default function AppProvider({ children }) {
 			value={{
 				...appContextValue,
 				apps: window.__crotchet.apps,
+				pinnedApps: window.__crotchet.pinnedApps,
 				actions: window.__crotchet.actions,
 				dataSources: window.__crotchet.dataSources,
 			}}

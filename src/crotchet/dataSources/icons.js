@@ -16,7 +16,7 @@ registerDataSource("crawler", "simpleIcons", {
 			color: entry.color,
 			icon: `<div class="size-8 rounded-full bg-white flex items-center justify-center"><img class="w-4 h-4" src='${image}' /></div>`,
 			title: entry.name?.replace(".svg", ""),
-			url: `crotchet://copy/${image}`,
+			url: `crotchet://copy-url/${image}`,
 		};
 	},
 	// fieldMap: {

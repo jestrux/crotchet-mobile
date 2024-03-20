@@ -298,6 +298,7 @@ export default function HeroIconsWidget() {
 		<DataWidget
 			layout="grid"
 			columns={8}
+			iconOnly
 			source={dataSources.heroIcons}
 			widgetProps={{
 				icon: (
@@ -314,7 +315,7 @@ export default function HeroIconsWidget() {
 					{
 						icon: "search",
 						label: "search",
-						url: "crotchet://search/heroIcons?columns=7",
+						url: "crotchet://search/heroIcons?layout=grid&columns=7",
 					},
 				],
 			}}

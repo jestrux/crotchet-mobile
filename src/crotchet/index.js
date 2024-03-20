@@ -2,7 +2,9 @@ import dataSourceProviders from "@/providers/data/dataSourceProviders";
 import { camelCaseToSentenceCase, openUrl, randomId, shuffle } from "@/utils";
 
 export { useAppContext } from "@/providers/app";
+export { default as Input } from "@/components/Input";
 export { default as SearchPage } from "@/components/Pages/SearchPage";
+export { default as WidgetWrapper } from "@/components/WidgetWrapper";
 export { default as Widget } from "@/components/Widget";
 export { default as DataFetcher } from "@/providers/data/DataFetcher";
 export { default as DataWidget } from "@/components/DataWidget";
@@ -16,12 +18,12 @@ export const registerDataSource = (provider, name, props = {}) => {
 	const label = camelCaseToSentenceCase(
 		name.replace("-", " ").replace("_", " ")
 	);
-	const _handler = dataSourceProviders(provider, _props);
+	const _handler = dataSourceProviders(provider, _props) || _props.handler;
 
 	if (typeof _handler != "function")
 		throw `Unkown data provider: ${provider}`;
 
-	const handler = (payload) => _handler(payload);
+	const handler = (payload) => _handler(payload, window.__crotchet);
 
 	const get = async (payload = {}) => handler(payload);
 	const random = (payload) =>
@@ -46,16 +48,17 @@ export const registerAction = (name, action) => {
 	let _label = name,
 		_handler = action,
 		tags = [],
-		global = false;
+		global = false,
+		mobileOnly = false;
 
 	if (typeof action != "function") {
 		global = action.global;
+		mobileOnly = action.mobileOnly;
 		_label = action.label;
 		_handler = action.url ? () => openUrl(action.url) : action.handler;
 		tags = action.tags || [];
 	}
 
-	// const key = `${scheme}://${name}`;
 	const label = camelCaseToSentenceCase(
 		(_label || name).replace("-", " ").replace("_", " ")
 	);
@@ -67,6 +70,7 @@ export const registerAction = (name, action) => {
 		label,
 		tags,
 		global,
+		mobileOnly,
 		handler,
 	};
 
