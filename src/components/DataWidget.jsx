@@ -1,21 +1,28 @@
-import { Loader, ListItem, Widget } from "@/crotchet";
+import { Loader, ListItem, Widget, randomId } from "@/crotchet";
 import DataFetcher from "@/providers/data/DataFetcher";
 import { useEffect } from "react";
 import clsx from "clsx";
 import CardListItem from "./ListItem/CardListItem";
 import GridListItem from "./ListItem/GridListItem";
+import DragDropList from "./DragDropList";
 
 function DataWidgetContent({
 	layout,
-	columns = 2,
-	large,
+	columns,
+	iconOnly,
 	searchQuery,
+	source,
 	data,
 	isLoading,
 	refetch = () => {},
 	widgetProps,
 	children,
+	onReorder = () => {},
 }) {
+	layout = layout || source?.layout;
+	columns = columns || source?.columns || 2;
+
+	const card = layout == "card";
 	const grid = layout == "grid";
 	const masonry = layout == "masonry";
 
@@ -31,14 +38,35 @@ function DataWidgetContent({
 
 	if (!isLoading) {
 		if (!data) content = null;
-		else {
-			// large={large}
-			// data={entry}
-			// {...fieldMap}
-			// {...props}
+		else if (card) {
+			const items = data.map((entry) => ({
+				_id: entry._id || randomId(),
+				icon: entry.icon,
+				image: entry.image,
+				video: entry.video,
+				title: entry.title,
+				subtitle: entry.subtitle,
+				trailing: entry.trailing,
+				progress: entry.progress,
+				status: entry.status,
+				url: entry.url,
+			}));
 
-			const items = data.map((entry, index) => {
+			content = (
+				<DragDropList items={items} onChange={onReorder}>
+					{({ item }) => (
+						<div key={item._id} className="pb-2 w-full">
+							<CardListItem {...item} />
+						</div>
+					)}
+				</DragDropList>
+			);
+		} else {
+			const items = data.map((entry) => {
+				const _id = entry._id || randomId();
 				const entryProps = {
+					_id,
+					iconOnly,
 					icon: entry.icon,
 					image: entry.image,
 					video: entry.video,
@@ -50,12 +78,10 @@ function DataWidgetContent({
 					url: entry.url,
 				};
 
-				if (large) return <CardListItem key={index} {...entryProps} />;
-
 				if (grid || masonry) {
 					return (
 						<GridListItem
-							key={index}
+							key={_id}
 							{...entryProps}
 							grid={grid}
 							masonry={masonry}
@@ -66,7 +92,7 @@ function DataWidgetContent({
 					);
 				}
 
-				return <ListItem key={index} {...entryProps} />;
+				return <ListItem key={_id} {...entryProps} />;
 			});
 
 			if (masonry || grid) {
@@ -106,7 +132,7 @@ function DataWidgetContent({
 						<div
 							className={clsx(
 								"pb-2",
-								{ "grid gap-2": grid },
+								{ "grid gap-4": grid },
 								columnClasses
 							)}
 							style={{
@@ -120,9 +146,7 @@ function DataWidgetContent({
 			} else content = items;
 		}
 
-		if (typeof children == "function") {
-			content = children({ data, content });
-		}
+		if (typeof children == "function") return children({ data, content });
 	}
 
 	return (
@@ -132,14 +156,31 @@ function DataWidgetContent({
 	);
 }
 
-export default function DataWidget({ source, layout, columns, ...props }) {
+export default function DataWidget({
+	source,
+	searchQuery,
+	filters,
+	layout,
+	columns,
+	...props
+}) {
 	const content = (
-		<DataWidgetContent layout={layout} columns={columns} {...props} />
+		<DataWidgetContent
+			source={source}
+			layout={layout}
+			columns={columns}
+			{...props}
+		/>
 	);
 
 	if (source) {
 		return (
-			<DataFetcher source={source} {...props}>
+			<DataFetcher
+				source={source}
+				searchQuery={searchQuery}
+				filters={filters}
+				{...props}
+			>
 				{content}
 			</DataFetcher>
 		);

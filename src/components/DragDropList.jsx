@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 const reorder = (list, startIndex, endIndex) => {
@@ -16,14 +16,13 @@ const getItemStyle = (isDragging, draggableStyle) => ({
 
 const DragDropList = ({
 	items,
-	idKey = "id",
+	idKey = "_id",
 	onChange,
 	children,
 	className,
 	customHandle = false,
 }) => {
 	const [entries, setEntries] = useState(items);
-
 	const onDragEnd = (result) => {
 		if (!result.destination) return;
 
@@ -35,6 +34,10 @@ const DragDropList = ({
 		setEntries(newValues);
 		onChange(newValues);
 	};
+
+	useEffect(() => {
+		setEntries(items);
+	}, [items]);
 
 	return (
 		<DragDropContext onDragEnd={onDragEnd}>

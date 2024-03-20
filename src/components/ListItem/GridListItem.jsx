@@ -5,6 +5,7 @@ import { openUrl, Loader } from "@/crotchet";
 export default function GridListItem({
 	grid,
 	masonry,
+	iconOnly,
 	icon,
 	image,
 	video,
@@ -79,60 +80,75 @@ export default function GridListItem({
 		}
 
 		return (
-			<div className="min-h-full w-full flex flex-col items-center gap-2">
+			<div
+				className={clsx(
+					"min-h-full w-full flex flex-col gap-2",
+					icon?.length > 0 ? "items-center" : "items-start"
+				)}
+			>
 				{icon?.length ? (
 					<div
 						className="flex items-center justify-center"
 						dangerouslySetInnerHTML={{ __html: icon }}
 					/>
 				) : (
-					(image?.length || video?.length) && (
-						<div className="relative flex-shrink-0 bg-content/10 border border-content/10 rounded overflow-hidden w-full aspect-[16/9]">
-							<img
-								className={"absolute size-full object-cover"}
-								src={image?.length ? image : video}
-								alt=""
-							/>
-
-							{video?.length && (
-								<div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-									<div className="relative w-8 h-8 flex items-center justify-center rounded-full overflow-hidden bg-card">
-										<div className="absolute inset-0 bg-content/60"></div>
-										<svg
-											className="w-4 ml-0.5 relative text-canvas"
-											viewBox="0 0 24 24"
-											fill="currentColor"
-										>
-											<path
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
-											/>
-										</svg>
+					<div className="relative flex-shrink-0 bg-content/10 border border-content/10 rounded overflow-hidden w-full aspect-[16/9]">
+						{(image?.length || video?.length) && (
+							<>
+								<img
+									className={
+										"absolute size-full object-cover"
+									}
+									src={image?.length ? image : video}
+									alt=""
+								/>
+								{video?.length && (
+									<div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+										<div className="relative w-8 h-8 flex items-center justify-center rounded-full overflow-hidden bg-card">
+											<div className="absolute inset-0 bg-content/60"></div>
+											<svg
+												className="w-4 ml-0.5 relative text-canvas"
+												viewBox="0 0 24 24"
+												fill="currentColor"
+											>
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
+												/>
+											</svg>
+										</div>
 									</div>
-								</div>
-							)}
-						</div>
-					)
+								)}
+							</>
+						)}
+					</div>
 				)}
 
-				<div className="flex-1 min-w-0 space-y-1 text-center">
-					{title?.length > 0 && (
-						<h5 className="line-clamp-1 text-content text-sm/none font-medium first-letter:capitalize">
-							{title}
-						</h5>
-					)}
-					{subtitle?.toString().length > 0 && (
-						<p
-							className={clsx(
-								"text-xs/none line-clamp-1",
-								title?.length && "mt-1.5"
-							)}
-						>
-							{subtitle}
-						</p>
-					)}
-				</div>
+				{(!icon?.length || (icon?.length && !iconOnly)) && (
+					<div
+						className={clsx(
+							"flex-1 min-w-0 space-y-1",
+							icon?.length && "text-center"
+						)}
+					>
+						{title?.length > 0 && (
+							<h5 className="line-clamp-1 text-content text-sm/none font-medium first-letter:capitalize">
+								{title}
+							</h5>
+						)}
+						{subtitle?.toString().length > 0 && (
+							<p
+								className={clsx(
+									"text-xs/none line-clamp-1",
+									title?.length && "mt-1.5"
+								)}
+							>
+								{subtitle}
+							</p>
+						)}
+					</div>
+				)}
 			</div>
 		);
 	};
@@ -148,7 +164,7 @@ export default function GridListItem({
 			{content()}
 
 			{actionLoading && (
-				<div className="absolute right-0 inset-y-0 p-1 backdrop-blur-sm">
+				<div className="absolute inset-0 p-1 backdrop-blur-sm">
 					<Loader className="opacity-50" size={20} />
 				</div>
 			)}
