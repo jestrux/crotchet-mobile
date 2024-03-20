@@ -3,16 +3,39 @@ import { clsx } from "clsx";
 import BottomSheet from "./BottomSheet";
 import { useAppContext } from "@/providers/app";
 import { useRef, useState } from "react";
-import WidgetWrapper from "./WidgetWrapper";
-import DesktopWidget from "@/crotchet/apps/Widgets/DesktopWidget";
+import { Input } from "@/crotchet";
 import GlobalSearch from "./GlobalSearch";
-import useKeyboard from "@/hooks/useKeyboard";
 
-export function BottomNav({ hidden }) {
-	const { keyboardHeight } = useKeyboard();
+export const BottomNavButton = ({ page, selected, onClick }) => {
+	const { apps } = useAppContext();
+	const icon = apps?.[page]?.icon;
+	const activeIcon = apps?.[page]?.activeIcon || icon;
+	const activeClass =
+		"bg-content/5 dark:bg-content/10 border-content/5 dark:border-content/15 text-content";
+	const inActiveClass = "opacity-70 border-transparent";
+	const handleClick = () => {
+		if (typeof onClick == "function") onClick();
+	};
+
+	return (
+		<button
+			className={clsx(
+				"flex-shrink-0 focus:outline-none rounded-full border inline-flex items-center justify-center h-9 w-16 px-2.5 text-center text-xs uppercase font-bold",
+				selected ? activeClass : inActiveClass
+			)}
+			onClick={handleClick}
+		>
+			<span className={clsx("size-5", !selected && "opacity-70")}>
+				{selected ? activeIcon : icon}
+			</span>
+		</button>
+	);
+};
+
+export function BottomNav({ hidden, currentPage, setCurrentPage }) {
 	const [searchQuery, setSearchQuery] = useState("");
 	const wrapperRef = useRef(null);
-	const { currentPage, setCurrentPage, openBottomSheet } = useAppContext();
+	const { pinnedApps } = useAppContext();
 	const navHeight = 56;
 
 	const input = () => {
@@ -31,28 +54,20 @@ export function BottomNav({ hidden }) {
 		// searchbar.current.blur();
 	};
 
-	const activeClass =
-		"bg-content/5 dark:bg-content/10 border-content/5 dark:border-content/15 text-content";
-	const inActiveClass = "opacity-70 border-transparent";
-
 	return (
 		<div
 			ref={wrapperRef}
-			className="sticky bottom-0 z-50 overflow-hidden"
-			style={{ height: navHeight + "px" }}
+			className="fixed inset-x-0 bottom-0 z-50"
+			style={{ minHeight: navHeight + "px" }}
 		>
-			<BottomSheet peekSize={navHeight} fullHeight>
-				{({
-					collapse,
-					collapsed,
-					expand,
-					dragRatio,
-					// keyboardHeight = 0,
-				}) => {
-					// if (collapsed && searchQuery?.length) setSearchQuery("");
-
+			<BottomSheet
+				peekSize={navHeight}
+				fullHeight
+				dismissible={!searchQuery?.length}
+			>
+				{({ collapse, collapsed, expand, dragRatio }) => {
 					return (
-						<div>
+						<>
 							<motion.div
 								className={clsx(
 									"px-8 absolute top-0 inset-x-0 flex items-center justify-between gap-4",
@@ -82,117 +97,24 @@ export function BottomNav({ hidden }) {
 									height: navHeight + "px",
 								}}
 							>
-								<button
-									className={clsx(
-										"flex-shrink-0 focus:outline-none rounded-full border inline-flex items-center justify-center h-9 w-16 px-2.5 text-center text-xs uppercase font-bold",
-										currentPage == "listings"
-											? activeClass
-											: inActiveClass
-									)}
-									onClick={() => setCurrentPage("listings")}
-								>
-									<svg
-										className="h-6"
-										fill="none"
-										viewBox="0 0 24 24"
-										strokeWidth={1.5}
-										stroke="currentColor"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"
-										/>
-										{/* <path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-										/> */}
-									</svg>
-								</button>
-
-								<button
-									className={clsx(
-										"flex-shrink-0 focus:outline-none rounded-full border inline-flex items-center justify-center h-9 w-16 px-2.5 text-center text-xs uppercase font-bold",
-										currentPage == "home"
-											? activeClass
-											: inActiveClass
-									)}
-									onClick={() =>
-										currentPage == "home"
-											? expand()
-											: setCurrentPage("home")
-									}
-								>
-									<svg
-										fill="none"
-										viewBox="0 0 24 24"
-										strokeWidth={1.8}
-										stroke="currentColor"
-										className="h-5"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-										/>
-									</svg>
-								</button>
-
-								<button
-									className={clsx(
-										"flex-shrink-0 focus:outline-none rounded-full border inline-flex items-center justify-center h-9 w-16 px-2.5 text-center text-xs uppercase font-bold",
-										currentPage == "settings"
-											? activeClass
-											: inActiveClass
-									)}
-									// onClick={() => setCurrentPage("settings")}
-									onClick={() =>
-										openBottomSheet({
-											// title: "Control Desktop",
-											// ...props,
-											// image,
-											// fullHeight,
-											// dismissible: !fullHeight,
-											content: (
-												<div className="pb-8 px-3 pt-4">
-													<WidgetWrapper
-														widget={DesktopWidget}
-													/>
-												</div>
-											),
-										})
-									}
-								>
-									<svg
-										className="h-6"
-										fill="none"
-										viewBox="0 0 24 24"
-										strokeWidth={1.5}
-										stroke="currentColor"
-									>
-										{/* <path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"
-										/> */}
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											d="m6.75 7.5 3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z"
-										/>
-									</svg>
-								</button>
+								{pinnedApps.map((page, index) => (
+									<BottomNavButton
+										key={page + index}
+										page={page}
+										selected={currentPage == page}
+										onClick={() => {
+											if (currentPage != page)
+												setCurrentPage(page);
+											else if (page == "home") expand();
+										}}
+									/>
+								))}
 							</motion.div>
 
 							<motion.div
 								className={clsx("relative", {
 									"pointer-events-none": collapsed,
 								})}
-								style={{
-									// height: Math.min(800, maxHeight) + "px",
-									height: "100vh",
-								}}
 								animate={{
 									opacity: !collapsed
 										? dragRatio || 1
@@ -208,15 +130,12 @@ export function BottomNav({ hidden }) {
 								}
 							>
 								<div
-									className="px-4 pb-4 sticky top-0 z-10"
+									className="px-4 pb-4 sticky top-0 z-10 bg-stone-100/95 dark:bg-card/95 backdrop-blur"
 									style={{
-										marginTop:
+										paddingTop:
 											!collapsed && !dragRatio
 												? "env(safe-area-inset-top)"
 												: "1rem",
-										// marginTop: !collapsed
-										// 	? "env(safe-area-inset-top)"
-										// 	: "",
 									}}
 								>
 									<form
@@ -262,27 +181,17 @@ export function BottomNav({ hidden }) {
 											!collapsed &&
 											!hidden && (
 												<>
-													<input
+													<Input
 														id="searchbar"
 														autoFocus
 														type="text"
 														className="w-full h-full bg-transparent text-xl/none placeholder:text-content/30 focus:outline-none"
 														placeholder="Type to search..."
 														value={searchQuery}
-														onChange={(e) => {
-															setSearchQuery(
-																e.target.value
-															);
-														}}
-														// onFocus={(e) => {
-														// 	const input =
-														// 		e.target;
-														// 	if (
-														// 		input.value
-														// 			.length > 0
-														// 	)
-														// 		input.select();
-														// }}
+														onChange={
+															setSearchQuery
+														}
+														onEnter={handleSubmit}
 													/>
 
 													<button
@@ -316,36 +225,9 @@ export function BottomNav({ hidden }) {
 									</form>
 								</div>
 
-								<div className="h-full overflow-y-auto">
-									<GlobalSearch searchQuery={searchQuery} />
-
-									<div
-										className="h-16"
-										style={{
-											height: `${64 + keyboardHeight}px`,
-											marginTop:
-												"env(safe-area-inset-top)",
-											marginBottom:
-												"env(safe-area-inset-bottom)",
-										}}
-									>
-										&nbsp;
-									</div>
-								</div>
-								{/* <div className="px-5 pb-5">
-									<h3 className="mb-1 text-content/50">
-										Quick Actions
-									</h3>
-	
-									{globalActions().map((action) => (
-										<BottomNavAction
-											key={action._id}
-											action={action}
-										/>
-									))}
-								</div> */}
+								<GlobalSearch searchQuery={searchQuery} />
 							</motion.div>
-						</div>
+						</>
 					);
 				}}
 			</BottomSheet>

@@ -1,14 +1,29 @@
 import { BottomNav } from "@/components/BottomNav";
-import Widgets from "@/crotchet/apps/Widgets";
 import { SendIntent } from "send-intent";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { Filesystem } from "@capacitor/filesystem";
 import { App as CapacitorApp } from "@capacitor/app";
 import { onDesktop, useAppContext } from "@/crotchet";
 
+const AppScreen = ({ scheme }) => {
+	const { apps } = useAppContext();
+	const App = apps?.[scheme]?.main;
+
+	if (!App) {
+		return (
+			<div className="h-screen flex items-center justify-center">
+				Unkown app {scheme}
+			</div>
+		);
+	}
+
+	return <App />;
+};
+
 const App = () => {
-	const { currentPage, bottomSheets, openPage } = useAppContext();
+	const { pinnedApps, bottomSheets, openPage } = useAppContext();
+	const [currentPage, setCurrentPage] = useState("home");
 
 	const listenForShare = async () => {
 		try {
@@ -92,10 +107,14 @@ const App = () => {
 		};
 	}, []);
 
+	const BottomNavPlaceholder = () => {
+		return <div style={{ height: 60 }}>&nbsp;</div>;
+	};
+
 	return (
 		<div
 			id="crotchetAppWrapper"
-			className="h-[100dvh] overflow-auto relative"
+			className="h-screen overflow-hidden"
 			style={{
 				paddingTop: "env(safe-area-inset-top)",
 				paddingBottom: "env(safe-area-inset-bottom)",
@@ -127,20 +146,25 @@ const App = () => {
 				></div>
 			</div>
 
-			<div className="relative">
-				{/* {currentPage == "home" && <Widgets />} */}
+			{pinnedApps.map((app, index) => (
 				<div
-					className={clsx({
-						"opacity-0 pointer-events-none": currentPage != "home",
+					key={app + index}
+					className={clsx("fixed inset-0 overflow-auto", {
+						"opacity-0 pointer-events-none": currentPage != app,
 					})}
 				>
-					{/* <SearchPage source={dataSources.performance} /> */}
-					<Widgets />
+					<AppScreen scheme={app} />
+					<BottomNavPlaceholder />
 				</div>
-			</div>
+			))}
 
 			<div className="lg:hidden">
-				{!onDesktop() && <BottomNav hidden={bottomSheets.length} />}
+				{!onDesktop() && (
+					<BottomNav
+						{...{ currentPage, setCurrentPage }}
+						hidden={bottomSheets.length}
+					/>
+				)}
 			</div>
 		</div>
 	);

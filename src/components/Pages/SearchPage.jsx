@@ -1,29 +1,30 @@
-import DataWidget from "../DataWidget";
 import { useEffect, useRef, useState } from "react";
 import GlobalSearch from "../GlobalSearch";
-import useDebounce from "@/hooks/useDebounce";
-import { useDataFetch } from "@/providers/data";
 import clsx from "clsx";
+import useKeyboard from "@/hooks/useKeyboard";
+import { onDesktop, DataWidget, Input } from "@/crotchet";
 
 export default function SearchPage({
+	background,
+	filterColor,
+	autoFocus = true,
 	inBottomSheet,
 	placeholder = "Type to search...",
 	query: _query,
 	source = {},
-	maxHeight,
 	collapse,
 	layout,
 	columns,
 	liveSearch,
 	global = false,
 }) {
+	const { KeyboardPlaceholder } = useKeyboard();
 	liveSearch = liveSearch ?? source.searchable != true;
 	const [searchQuery, setSearchQuery] = useState(_query ?? "");
 	const [filters, setFilters] = useState(null);
-	const debouncedQuery = useDebounce(searchQuery, liveSearch ? 0 : 500);
 	const searchbar = useRef(null);
 	const [filter, _setFilter] = useState("");
-	const setFilter = async (value) => {
+	const setFilter = (value) => {
 		_setFilter(value);
 
 		// try {
@@ -34,33 +35,7 @@ export default function SearchPage({
 		// } catch (error) {
 		// 	/* empty */
 		// }
-
-		// refreshData();
 	};
-
-	const fetchParams = () => {
-		return {
-			clear: true,
-			source,
-			searchQuery,
-			...(!source?.filter
-				? {}
-				: {
-						filters: { [source.filter]: filter },
-				  }),
-		};
-	};
-
-	const {
-		// error,
-		isLoading,
-		data,
-		refetch: fetchEntries,
-	} = useDataFetch(fetchParams());
-
-	useEffect(() => {
-		fetchEntries(fetchParams());
-	}, [debouncedQuery, filter]);
 
 	const getFilters = () => {
 		source
@@ -70,7 +45,7 @@ export default function SearchPage({
 					data &&
 					data.map((entry) =>
 						typeof source.mapEntry == "function"
-							? source.mapEntry(entry)
+							? { ...entry, ...source.mapEntry(entry) }
 							: entry
 					)
 			)
@@ -88,152 +63,161 @@ export default function SearchPage({
 	useEffect(() => {
 		if (source?.filter && !filters) getFilters();
 		// searchbar.current.select();
-	}, []);
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [source]);
 
 	const handleClear = () => {
 		setSearchQuery("");
-		searchbar.current.focus();
+
+		const input = searchbar.current;
+
+		if (input?.getAttribute("is-focused")) searchbar.current?.focus();
 	};
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
+		searchbar.current?.blur();
 		// if (query?.length && query != searchQuery) setSearchQuery(query);
 		// searchbar.current.blur();
 	};
 
+	const filterProps = (selected) => {
+		return {
+			className: clsx(
+				"flex-shrink-0 focus:outline-none rounded-lg border inline-flex items-center justify-center h-8 px-2.5 text-center text-xs uppercase font-bold",
+				selected
+					? filterColor?.length
+						? `bg-[${filterColor}] border-[${filterColor}] dark:bg-white/10 dark:border-white/10 dark:text-white`
+						: "bg-content/5 border-content/20 dark:bg-white/10 dark:border-white/10 dark:text-white"
+					: "opacity-70 border-transparent"
+			),
+			style: {
+				wordSpacing: "0.25rem",
+				// background: selected && filterColor?.length ? filterColor : "",
+				// borderColor: selected && filterColor?.length ? filterColor : "",
+			},
+		};
+	};
+
 	return (
-		<div
-			className="relative overflow-x-hidden overflow-y-auto"
-			style={{
-				height: maxHeight ?? window.innerHeight + "px",
-				// ...(inBottomSheet
-				// 	? {
-				// 			borderTopLeftRadius: 32,
-				// 			borderTopRightRadius: 32,
-				// 	  }
-				// 	: {}),
-			}}
-		>
-			<div
-				className="sticky top-0 z-10 bg-card w-full flex flex-col"
-				style={{
-					...(!inBottomSheet
-						? {
-								paddingTop: "2rem",
-						  }
-						: {}),
-				}}
-			>
+		<>
+			<div className="sticky top-0 z-10 bg-stone-100/95 dark:!bg-card/95 dark:text-white backdrop-blur w-full flex flex-col">
 				<div
-					className="p-2 w-full flex items-center gap-1"
+					className="absolute inset-0 dark:hidden"
+					style={{ background }}
+				></div>
+
+				<div
+					className="relative w-full flex flex-col"
 					style={{
-						marginTop: inBottomSheet
-							? "env(safe-area-inset-top)"
-							: "",
+						...(onDesktop()
+							? {
+									marginTop: "2rem",
+							  }
+							: {
+									marginTop: "env(safe-area-inset-top)",
+							  }),
 					}}
 				>
-					<form className="flex-1 relative" onSubmit={handleSubmit}>
-						{inBottomSheet && (
-							<button
-								type="button"
-								className="absolute z-10 inset-y-0 left-0 rounded-l-full pl-2 pr-1 flex items-center justify-center"
-								onClick={collapse}
-							>
-								<svg
-									className="w-6 opacity-40"
-									fill="none"
-									viewBox="0 0 24 24"
-									strokeWidth="2"
-									stroke="currentColor"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										d="M15.75 19.5 8.25 12l7.5-7.5"
-									/>
-								</svg>
-							</button>
-						)}
-
-						<input
-							ref={searchbar}
-							autoFocus
-							type="text"
-							className={clsx(
-								"w-full h-12 rounded-full border border-content/5 bg-content/5 text-xl/none placeholder:text-content/30 focus:outline-none",
-								inBottomSheet ? "px-10" : "px-4"
-							)}
-							placeholder={placeholder}
-							autoComplete="off"
-							value={searchQuery}
-							name="q"
-							onChange={(e) => setSearchQuery(e.target.value)}
-							onKeyUp={(e) => {
-								if (e.key == "Enter") e.preventDefault();
-							}}
-							// onFocus={(e) => {
-							// 	const input = e.target;
-							// 	if (input.value.length > 0) input.select();
-							// }}
-						/>
-
-						{searchQuery && (
-							<button
-								className="absolute top-0 bottom-0 my-auto right-1.5 w-8 h-8 flex items-center justify-center rounded-full"
-								onClick={handleClear}
-							>
-								<svg
-									className="w-4"
-									fill="none"
-									viewBox="0 0 24 24"
-									strokeWidth="1.5"
-									stroke="currentColor"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										d="M6 18 18 6M6 6l12 12"
-									></path>
-								</svg>
-							</button>
-						)}
-					</form>
-				</div>
-
-				{filters && (
-					<div className="px-3 pb-2 w-screen overflow-x-auto">
-						<div className="max-w-4xl mx-auto flex items-center gap-2">
-							<button
-								data-group-filter="All"
-								className={`${
-									!filter
-										? "bg-content/5 border-content/20 text-[--appbar-color] dark:bg-white/10 dark:border-white/10 dark:text-white"
-										: "opacity-70 border-transparent"
-								} flex-shrink-0 focus:outline-none rounded-lg border inline-flex items-center justify-center h-8 px-2.5 text-center text-xs uppercase font-bold`}
-								onClick={() => setFilter("")}
-							>
-								All
-							</button>
-							{filters.map((group) => (
+					<div className="py-2 px-3 w-full flex items-center gap-1">
+						<form
+							className="flex-1 relative"
+							onSubmit={handleSubmit}
+						>
+							{inBottomSheet && (
 								<button
-									key={group}
-									data-group-filter={group}
-									className={`${
-										filter == group
-											? "bg-content/5 border-content/20 text-[--appbar-color] dark:bg-white/10 dark:border-white/10 dark:text-white"
-											: "opacity-70 border-transparent"
-									} flex-shrink-0 focus:outline-none rounded-lg border inline-flex items-center justify-center h-8 px-2.5 text-center text-xs uppercase font-bold`}
-									style={{ wordSpacing: "0.25rem" }}
-									onClick={() => setFilter(group)}
+									type="button"
+									className="absolute z-10 inset-y-0 left-0 rounded-l-full pl-2 pr-1 flex items-center justify-center"
+									onClick={collapse}
 								>
-									{group}
+									<svg
+										className="w-6 opacity-40"
+										fill="none"
+										viewBox="0 0 24 24"
+										strokeWidth="2"
+										stroke="currentColor"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											d="M15.75 19.5 8.25 12l7.5-7.5"
+										/>
+									</svg>
 								</button>
-							))}
+							)}
 
-							<span>&nbsp;</span>
-						</div>
+							<Input
+								ref={searchbar}
+								autoFocus={autoFocus}
+								type="text"
+								className={clsx(
+									"w-full h-12 dark:bg-content/5 border border-content/5 text-xl/none placeholder:text-content/30 focus:outline-none",
+									filterColor?.length
+										? `bg-[${filterColor}]`
+										: "bg-content/5",
+									inBottomSheet
+										? "rounded-full px-10"
+										: "rounded-md px-4"
+								)}
+								placeholder={placeholder}
+								autoComplete="off"
+								name="q"
+								value={searchQuery}
+								onChange={setSearchQuery}
+								onEnter={handleSubmit}
+								{...(!liveSearch ? { debounce: 500 } : {})}
+							/>
+
+							{searchQuery && (
+								<button
+									className="absolute top-0 bottom-0 my-auto right-1.5 w-8 h-8 flex items-center justify-center rounded-full"
+									onClick={handleClear}
+								>
+									<svg
+										className="w-4"
+										fill="none"
+										viewBox="0 0 24 24"
+										strokeWidth="1.5"
+										stroke="currentColor"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											d="M6 18 18 6M6 6l12 12"
+										></path>
+									</svg>
+								</button>
+							)}
+						</form>
 					</div>
-				)}
+
+					{filters?.length && (
+						<div className="px-3 pb-2 w-screen overflow-x-auto">
+							<div className="max-w-4xl mx-auto flex items-center gap-2">
+								<button
+									data-group-filter="All"
+									{...filterProps(!filter)}
+									onClick={() => setFilter("")}
+								>
+									All
+								</button>
+								{filters.map((group) => (
+									<button
+										key={group}
+										data-group-filter={group}
+										{...filterProps(filter == group)}
+										onClick={() => setFilter(group)}
+									>
+										{group}
+									</button>
+								))}
+
+								<span>&nbsp;</span>
+							</div>
+						</div>
+					)}
+				</div>
 			</div>
 
 			<div className="p-3">
@@ -244,173 +228,25 @@ export default function SearchPage({
 				)}
 
 				{!global && source && (
-					<>
-						{searchQuery?.length > 0 && (
-							<div className="text-content/50 truncate mb-2">
-								Search results for{" "}
-								<span className="font-bold">{searchQuery}</span>{" "}
-							</div>
-						)}
-
-						<DataWidget
-							layout={layout}
-							columns={columns}
-							data={data}
-							isLoading={isLoading}
-							widgetProps={{ noPadding: true }}
-						/>
-					</>
+					<DataWidget
+						source={source}
+						searchQuery={searchQuery}
+						// limit: 100,
+						{...(!source?.filter
+							? {}
+							: {
+									filters: { [source.filter]: filter },
+							  })}
+						layout={layout || source?.layout}
+						columns={columns || source?.columns}
+						// data={data}
+						// isLoading={isLoading}
+						widgetProps={{ noPadding: true }}
+					/>
 				)}
+
+				{!inBottomSheet && <KeyboardPlaceholder />}
 			</div>
-		</div>
+		</>
 	);
-
-	// return (
-	// 	<div
-	// 		className="relative"
-	// 		style={{
-	// 			height: maxHeight ?? window.innerHeight + "px",
-	// 			overflow: "auto",
-	// 			...(inBottomSheet
-	// 				? {
-	// 						borderTopLeftRadius: 32,
-	// 						borderTopRightRadius: 32,
-	// 				  }
-	// 				: {}),
-	// 		}}
-	// 	>
-	// 		<div
-	// 			className="sticky top-0 z-10 bg-card w-full p-2 flex flex-col"
-	// 			style={{
-	// 				...(!inBottomSheet
-	// 					? {
-	// 							paddingTop: "2rem",
-	// 					  }
-	// 					: {}),
-	// 			}}
-	// 		>
-	// 			<div className="w-full flex items-center gap-1">
-	// 				<form className="flex-1 relative" onSubmit={handleSubmit}>
-	// 					<input
-	// 						ref={searchbar}
-	// 						autoFocus
-	// 						type="text"
-	// 						className="w-full h-12 px-4 rounded-full border border-content/5 bg-content/5 text-xl/none placeholder:text-content/30 focus:outline-none"
-	// 						placeholder={placeholder}
-	// 						autoComplete="off"
-	// 						value={query}
-	// 						name="q"
-	// 						onChange={(e) => {
-	// 							setQuery(e.target.value);
-	// 							if (!e.target.value?.length || liveSearch)
-	// 								setSearchQuery(e.target.value);
-	// 						}}
-	// 					/>
-
-	// 					{query && (
-	// 						<button
-	// 							className="absolute top-0 bottom-0 my-auto right-1.5 w-8 h-8 flex items-center justify-center rounded-full"
-	// 							onClick={handleClear}
-	// 						>
-	// 							<svg
-	// 								className="w-4"
-	// 								fill="none"
-	// 								viewBox="0 0 24 24"
-	// 								strokeWidth="1.5"
-	// 								stroke="currentColor"
-	// 							>
-	// 								<path
-	// 									strokeLinecap="round"
-	// 									strokeLinejoin="round"
-	// 									d="M6 18 18 6M6 6l12 12"
-	// 								></path>
-	// 							</svg>
-	// 						</button>
-	// 					)}
-	// 				</form>
-
-	// 				{inBottomSheet && (
-	// 					<button
-	// 						className="mr-2 w-8 h-8 flex items-center justify-center"
-	// 						onClick={collapse}
-	// 					>
-	// 						<svg
-	// 							className="w-6 opacity-60"
-	// 							fill="none"
-	// 							viewBox="0 0 24 24"
-	// 							strokeWidth="2"
-	// 							stroke="currentColor"
-	// 						>
-	// 							<path
-	// 								strokeLinecap="round"
-	// 								strokeLinejoin="round"
-	// 								d="m19.5 8.25-7.5 7.5-7.5-7.5"
-	// 							/>
-	// 						</svg>
-	// 					</button>
-	// 				)}
-	// 			</div>
-
-	// 			<div
-	// 				className="px-4 max-w-4xl mx-auto flex items-center gap-2"
-	// 				style={{
-	// 					marginTop: "env(safe-area-inset-top)",
-	// 					height: "60px",
-	// 				}}
-	// 			>
-	// 				<button
-	// 					data-group-filter="All"
-	// 					className={`${
-	// 						!filter
-	// 							? "bg-white border-white/20 text-[--appbar-color] dark:bg-white/10 dark:border-white/10 dark:text-white"
-	// 							: "opacity-70 border-transparent"
-	// 					} flex-shrink-0 focus:outline-none rounded-lg border inline-flex items-center justify-center h-8 px-2.5 text-center text-xs uppercase font-bold`}
-	// 					onClick={() => setFilter("")}
-	// 				>
-	// 					All
-	// 				</button>
-	// 				{filters.map((group) => (
-	// 					<button
-	// 						key={group}
-	// 						data-group-filter={group}
-	// 						className={`${
-	// 							filter == group
-	// 								? "bg-white border-white/20 text-[--appbar-color] dark:bg-white/10 dark:border-white/10 dark:text-white"
-	// 								: "opacity-70 border-transparent"
-	// 						} flex-shrink-0 focus:outline-none rounded-lg border inline-flex items-center justify-center h-8 px-2.5 text-center text-xs uppercase font-bold`}
-	// 						style={{ wordSpacing: "0.25rem" }}
-	// 						onClick={() => setFilter(group)}
-	// 					>
-	// 						{group}
-	// 					</button>
-	// 				))}
-
-	// 				<span>&nbsp;</span>
-	// 			</div>
-	// 		</div>
-
-	// 		<div className="p-3">
-	// 			{global && <GlobalSearch searchQuery={searchQuery} />}
-
-	// 			{!global && source && (
-	// 				<>
-	// 					{searchQuery?.length > 0 && (
-	// 						<div className="text-content/50 truncate mb-2">
-	// 							Search results for{" "}
-	// 							<span className="font-bold">{searchQuery}</span>{" "}
-	// 						</div>
-	// 					)}
-
-	// 					<DataWidget
-	// 						layout={layout}
-	// 						columns={columns}
-	// 						source={source}
-	// 						searchQuery={searchQuery}
-	// 						widgetProps={{ noPadding: true }}
-	// 					/>
-	// 				</>
-	// 			)}
-	// 		</div>
-	// 	</div>
-	// );
 }

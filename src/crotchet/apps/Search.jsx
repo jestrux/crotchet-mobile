@@ -10,9 +10,9 @@ registerApp("search", () => {
 			const {
 				q,
 				query,
-				columns = 2,
-				layout = "grid",
-				live = true,
+				columns,
+				layout,
+				live,
 				width = 780,
 				height = 800,
 				// width = 360,
@@ -45,12 +45,13 @@ registerApp("search", () => {
 				});
 			}
 
+			const actualSource = dataSources[source];
 			openSearchPage({
 				...params,
 				query: q ?? query,
-				source: dataSources[source],
-				layout,
-				columns,
+				source: actualSource,
+				layout: layout || actualSource?.layout,
+				columns: columns || actualSource?.columns,
 				liveSearch: live,
 				global: !source,
 			});
@@ -65,13 +66,14 @@ registerApp("search", () => {
 			...params
 		}) {
 			const { dataSources } = useAppContext();
+			const actualSource = dataSources[source];
 
 			return (
 				<SearchPage
 					{...params}
 					query={q ?? query}
-					layout={layout}
-					columns={columns}
+					layout={layout || actualSource?.layout}
+					columns={columns || actualSource?.columns}
 					source={dataSources[source]}
 					liveSearch={live}
 					global={!source}

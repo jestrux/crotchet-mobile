@@ -1,11 +1,11 @@
 import { clsx } from "clsx";
 import { Children, cloneElement, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import useKeyboard from "@/hooks/useKeyboard";
 
-export default function BottomSheets({
+export default function BottomSheet({
 	hidden,
 	open,
-	title,
 	peekSize = 0,
 	dismissible = true,
 	fullHeight = false,
@@ -13,6 +13,7 @@ export default function BottomSheets({
 	children,
 	onClose = () => {},
 }) {
+	const { KeyboardPlaceholder } = useKeyboard();
 	// const dragControls = useDragControls();
 	// function onDragStart(e, info) {
 	// 	// We will ignore the request to drag if it's not coming from the handle
@@ -142,6 +143,7 @@ export default function BottomSheets({
 					style={{
 						minHeight: peekSize + "px",
 						maxHeight: maxHeight + "px",
+						overflowY: "auto",
 					}}
 					{...(dismissible
 						? dragDetails
@@ -152,14 +154,10 @@ export default function BottomSheets({
 								},
 						  })}
 				>
-					{title && (
-						<h3 className="text-lg font-bold mt-6 mb-1 px-5">
-							{title}
-						</h3>
-					)}
-
 					<div
-						style={{ minHeight: minHeight ? `${minHeight}px` : "" }}
+						style={{
+							minHeight: fullHeight ? `${maxHeight}px` : "",
+						}}
 					>
 						{typeof children == "function"
 							? children({
@@ -184,6 +182,8 @@ export default function BottomSheets({
 										collapse: () => setCollapsed(true),
 									});
 							  })}
+
+						<KeyboardPlaceholder />
 					</div>
 				</motion.div>
 			</motion.div>

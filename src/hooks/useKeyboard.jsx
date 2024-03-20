@@ -30,5 +30,18 @@ export default function useKeyboard() {
 		};
 	}, []);
 
-	return { keyboardHeight };
+	const KeyboardPlaceholder = () => (
+		<div
+			className="h-16"
+			style={{
+				height: `${keyboardHeight}px`,
+				// marginTop: "env(safe-area-inset-top)",
+				marginBottom: "env(safe-area-inset-bottom)",
+			}}
+		>
+			&nbsp;
+		</div>
+	);
+
+	return { keyboardHeight, KeyboardPlaceholder };
 }
