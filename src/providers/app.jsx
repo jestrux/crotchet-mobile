@@ -113,7 +113,6 @@ export default function AppProvider({ children }) {
 					.then((_socket) => {
 						socket.current = _socket;
 						console.log("Socket connected");
-						showToast("Desktop connected");
 						return _socket;
 					})
 					.catch((e) => {
@@ -245,25 +244,33 @@ export default function AppProvider({ children }) {
 		copyToClipboard,
 		copyImage,
 		openUrl,
-		socket: ({ retry = false } = {}) => {
+		socket: ({ retry = false, silent = false } = {}) => {
 			if (!socket.current?.connected && retry) {
 				return getSocket()
 					.then((_socket) => {
 						socket.current = _socket;
-						console.log("Connected");
-						showToast("Desktop connected");
+
+						console.log("Socket connected");
+
+						if (!silent) showToast("Desktop connected");
+
 						return _socket;
 					})
 					.catch((e) => {
 						console.log(e);
-						showToast("Desktop connect failed");
+
+						if (!silent) showToast("Desktop connect failed");
 					});
 			}
 
 			return socket.current;
 		},
 		socketEmit: async (event, data) => {
-			const _socket = await socket({ retry: true });
+			const _socket = await window.__crotchet.socket({
+				retry: true,
+				silent: true,
+			});
+
 			if (_socket) _socket.emit(event, data);
 		},
 		onDesktop,
