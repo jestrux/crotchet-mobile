@@ -39,8 +39,14 @@ module.exports = async function openApp({ scheme, url, window = {} }) {
 				app.dock.hide();
 		});
 
+		win.webContents.openDevTools({ mode: "right" });
 		crotchetApp.windows[scheme] = win;
 	}
+
+	// Temporarily load a blank page to clear any saved data
+	crotchetApp.windows[scheme].loadURL(
+		"data:text/plain;base64,SGVsbG8sIHdvcmxk"
+	);
 
 	try {
 		crotchetApp.windows[scheme].webContents.executeJavaScript(
@@ -52,14 +58,13 @@ module.exports = async function openApp({ scheme, url, window = {} }) {
 					window.__crotchet.socketEmit(event, payload);
 				});
 
-				const { searchParams } = new URL("crotchet://app${url}");
-				const props = Object.fromEntries(searchParams.entries());
-
 				if(!window.__crotchet) window.__crotchet = {};
+
+				const { searchParams } = new URL("crotchet://app${url}");
 
 				window.__crotchet.app = {
 					scheme: "${scheme}",
-					props
+					props: Object.fromEntries(searchParams.entries()),
 				}
 			`,
 			true
@@ -68,10 +73,10 @@ module.exports = async function openApp({ scheme, url, window = {} }) {
 		console.log("Failed to set app: ", error);
 	}
 
-	crotchetApp.windows[scheme].webContents.openDevTools({ mode: "right" });
 	crotchetApp.windows[scheme].loadURL(
 		isDev ? "http://localhost:5173/" : `file://${buildDir("index.html")}`
 	);
+
 	// crotchetApp.windows[scheme].loadURL(`http://${getIp()}:3127${url}`);
 
 	if (!app.dock.isVisible()) app.dock.show();
