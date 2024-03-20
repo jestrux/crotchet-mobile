@@ -1,4 +1,4 @@
-import { Children, cloneElement } from "react";
+import { Children, cloneElement, useEffect, useRef } from "react";
 import { useDataFetch } from ".";
 import Loader from "@/components/Loader";
 
@@ -7,6 +7,8 @@ export default function DataFetcher({
 	source = {
 		provider: "",
 	},
+	searchQuery,
+	filters,
 	limit = 3000,
 	first,
 	shuffle: shuffleData,
@@ -14,13 +16,22 @@ export default function DataFetcher({
 	showLoader = false,
 	...props
 }) {
+	const initialized = useRef(false);
 	const { isLoading, isPending, data, refetch, shuffle } = useDataFetch({
 		source,
+		searchQuery,
+		filters,
 		limit,
 		first,
 		shuffle: shuffleData,
 		...props,
 	});
+
+	useEffect(() => {
+		if (!initialized.current) initialized.current = true;
+		else refetch({ searchQuery, filters });
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [searchQuery, filters]);
 
 	if (contentOnly) {
 		if (isLoading && showLoader) {

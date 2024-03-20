@@ -67,7 +67,7 @@ export function useDataFetch({
 		) {
 			data = data.reduce((agg, entry) => {
 				if (typeof source.mapEntry == "function")
-					entry = source.mapEntry(entry);
+					entry = { ...entry, ...source.mapEntry(entry) };
 
 				const matches = Object.entries(filters).every(
 					([key, value]) =>
@@ -78,7 +78,10 @@ export function useDataFetch({
 				return [...agg, ...(matches ? [entry] : [])];
 			}, []);
 		} else if (typeof source.mapEntry == "function") {
-			data = data.map(source.mapEntry);
+			data = data.map((entry) => ({
+				...entry,
+				...source.mapEntry(entry),
+			}));
 		}
 
 		if (![true, false].includes(source.searchable) && searchQuery?.length) {
@@ -100,7 +103,7 @@ export function useDataFetch({
 		return data.slice(0, limit);
 	};
 
-	const handleFetch = async (paramsChanged = true) => {
+	const handleFetch = async ({ searchQuery } = {}, paramsChanged = true) => {
 		let res =
 			!paramsChanged && data
 				? data
@@ -122,20 +125,20 @@ export function useDataFetch({
 
 	const handleRefetch = (newProps) => {
 		if (newProps) {
-			if (newProps.searchQuery != undefined) {
+			if (newProps.searchQuery != undefined)
 				setSearchQuery(newProps.searchQuery);
-			}
 
-			if (newProps.filters != undefined) {
-				setFilters(newProps.filters);
-			}
+			if (newProps.filters != undefined) setFilters(newProps.filters);
 		}
 
-		handleFetch(getParams({ searchQuery, filters }) != paramsRef.current);
+		handleFetch(
+			{ searchQuery, filters, ...(newProps || {}) },
+			getParams({ searchQuery, filters }) != paramsRef.current
+		);
 	};
 
 	useEffect(() => {
-		handleFetch();
+		handleFetch({ searchQuery, filters });
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
