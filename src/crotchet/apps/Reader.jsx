@@ -18,7 +18,9 @@ registerDataSource("firebase", "reader", {
 
 		return {
 			...item,
-			...(isVideo ? { video: item.image } : { image: item.image }),
+			...(isVideo
+				? { video: item.image || "placeholder" }
+				: { image: item.image || "placeholder" }),
 			title: item.title || "Untitled",
 			subtitle: item.description,
 			tags: [item.group],
