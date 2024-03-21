@@ -4,7 +4,7 @@ import { useAppContext } from "@/crotchet";
 import { matchSorter } from "match-sorter";
 import BottomNavAction from "./BottomNavAction";
 
-export default function GlobalSearch({ searchQuery = "" }) {
+export default function GlobalSearch({ searchQuery = "", onClose = () => {} }) {
 	const { globalActions } = useAppContext();
 	let filteredActions = Object.entries(globalActions() ?? {})
 		.filter(([, value]) => value.global)
@@ -19,7 +19,7 @@ export default function GlobalSearch({ searchQuery = "" }) {
 	return (
 		<div className="flex flex-col gap-4 divide-y divide-content/5">
 			{filteredActions.length > 0 && (
-				<div className="pt-2 space-y-1 px-5">
+				<div className="pt-2 space-y-1 px-5" onClick={onClose}>
 					<h3 className="text-content/50">Quick Actions</h3>
 
 					<div>

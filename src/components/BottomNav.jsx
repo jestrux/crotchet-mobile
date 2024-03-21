@@ -232,7 +232,10 @@ export function BottomNav({ hidden, currentPage, setCurrentPage }) {
 									</form>
 								</div>
 
-								<GlobalSearch searchQuery={searchQuery} />
+								<GlobalSearch
+									searchQuery={searchQuery}
+									onClose={collapse}
+								/>
 							</motion.div>
 						</div>
 					);
