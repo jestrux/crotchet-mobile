@@ -12,6 +12,8 @@ PODS:
   - CapacitorCordova (5.6.0)
   - CapacitorFilesystem (5.2.1):
     - Capacitor
+  - CapacitorHaptics (5.0.7):
+    - Capacitor
   - CapacitorKeyboard (5.0.8):
     - Capacitor
   - CapacitorPreferences (5.0.7):
@@ -31,6 +33,7 @@ DEPENDENCIES:
   - "CapacitorCommunitySpeechRecognition (from `../../node_modules/@capacitor-community/speech-recognition`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorFilesystem (from `../../node_modules/@capacitor/filesystem`)"
+  - "CapacitorHaptics (from `../../node_modules/@capacitor/haptics`)"
   - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
   - "CapacitorPreferences (from `../../node_modules/@capacitor/preferences`)"
   - "CapacitorShare (from `../../node_modules/@capacitor/share`)"
@@ -52,6 +55,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorFilesystem:
     :path: "../../node_modules/@capacitor/filesystem"
+  CapacitorHaptics:
+    :path: "../../node_modules/@capacitor/haptics"
   CapacitorKeyboard:
     :path: "../../node_modules/@capacitor/keyboard"
   CapacitorPreferences:
@@ -71,12 +76,13 @@ SPEC CHECKSUMS:
   CapacitorCommunitySpeechRecognition: b404ef82fa846dd48f6417eb0c47955645ca0996
   CapacitorCordova: 931b48fcdbc9bc985fc2f16cec9f77c794a27729
   CapacitorFilesystem: 9f3e3c7fea2fff12f46dd5b07a2914f2103e4cfc
+  CapacitorHaptics: 7c7c206f0c96a628fed073830c96d28c4b2e772e
   CapacitorKeyboard: aec619a578235c6ce279075009a2689c2cf5c42c
   CapacitorPreferences: 77ac427e98db83bace772455f8ba447430382c4c
   CapacitorShare: c6a1ebbf0114ff9e863b966cd6052678fa25d480
   CapacitorToast: c8bb89eeb59a23c1fc298f138cc06c8ff4d90ac1
   SendIntent: 0a17b6984c4f27e9dfa56513267ba2c044a5a6c8
 
-PODFILE CHECKSUM: e2f60dbad5ca920233fc4f2df20a3cf0ef1ad266
+PODFILE CHECKSUM: ed0d467126b176e74faa86eae5a9854ad5d3fdfa
 
 COCOAPODS: 1.12.0

@@ -143,7 +143,10 @@ export default function BottomSheet({
 					style={{
 						minHeight: peekSize + "px",
 						maxHeight: maxHeight + "px",
-						overflowY: dragRatio || collapsed ? "hidden" : "auto",
+						overflowY:
+							!fullHeight || dragRatio || collapsed
+								? "hidden"
+								: "auto",
 					}}
 					{...(dismissible
 						? dragDetails
@@ -168,6 +171,7 @@ export default function BottomSheet({
 									collapsed,
 									expand: () => setCollapsed(false),
 									collapse: () => setCollapsed(true),
+									dismiss: () => setCollapsed(true),
 							  })
 							: Children.map(children, (child) => {
 									if (!child?.type) return null;
@@ -180,6 +184,7 @@ export default function BottomSheet({
 										collapsed,
 										expand: () => setCollapsed(false),
 										collapse: () => setCollapsed(true),
+										dismiss: () => setCollapsed(true),
 									});
 							  })}
 

@@ -16,6 +16,7 @@ import SearchPage from "@/components/Pages/SearchPage";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "./firebaseApp";
 import { io } from "socket.io-client";
+import ShareSheet from "@/components/ShareSheet";
 
 const STORE_KEY = "crotchet-app";
 
@@ -31,10 +32,12 @@ const AppContext = createContext({
 	pinnedApps: [],
 	actions: {},
 	// eslint-disable-next-line no-unused-vars
-	globalActions: () => {},
+	globalActions: (filter = (action) => {}) => {},
 	bottomSheets: [],
 	// eslint-disable-next-line no-unused-vars
 	openBottomSheet: ({ title, subtitle, content, fullHeight } = {}) => {},
+	// eslint-disable-next-line no-unused-vars
+	openShareSheet: ({ text, image, url } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
 	openPage: ({ image, title, subtitle, content = [], source } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
@@ -122,12 +125,19 @@ export default function AppProvider({ children }) {
 		}
 	};
 
-	const globalActions = () => {
+	const globalActions = (filter) => {
 		return Object.entries(window.__crotchet.actions ?? {})
-			.filter(
-				([, { global, mobileOnly }]) =>
-					![!global, mobileOnly && onDesktop()].includes(true)
-			)
+			.filter(([, action]) => {
+				const { global, mobileOnly } = action;
+
+				if (!global) return false;
+
+				if (mobileOnly && onDesktop()) return false;
+
+				if (typeof filter == "function") return filter(action);
+
+				return true;
+			})
 			.map(([, value]) => value);
 	};
 
@@ -177,12 +187,17 @@ export default function AppProvider({ children }) {
 		});
 	};
 
-	const openBottomSheet = ({ minHeight = 250, ...sheet }) => {
+	const openBottomSheet = ({ minHeight = 250, content, ...sheet }) => {
 		setBottomSheets((sheets) => [
 			...sheets,
-			{ ...sheet, minHeight, _id: randomId() },
+			{ ...sheet, content, minHeight, _id: randomId() },
 		]);
 	};
+
+	const openShareSheet = ({ text, image, url } = {}) =>
+		openBottomSheet({
+			content: <ShareSheet {...{ text, url, image }} />,
+		});
 
 	const openPage = ({
 		image,
@@ -230,6 +245,7 @@ export default function AppProvider({ children }) {
 		registerDataSource,
 		bottomSheets,
 		openBottomSheet,
+		openShareSheet,
 		openPage,
 		openSearchPage,
 		user: {

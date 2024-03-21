@@ -2,6 +2,7 @@ import { gradients } from "@/constants";
 import { Clipboard } from "@capacitor/clipboard";
 import { Toast } from "@capacitor/toast";
 import { AppLauncher } from "@capacitor/app-launcher";
+import { Share } from "@capacitor/share";
 
 export const KeyMap = {
 	Escape: 0,
@@ -157,6 +158,12 @@ export const dispatch = (event, payload) => {
 export const onDesktop = () => document.body.classList.contains("on-electron");
 
 export const openUrl = async (path) => {
+	if (path.startsWith("crotchet://open/")) {
+		window.open(path.replace("crotchet://open/", ""), "_blank");
+		return;
+		// return openUrl(path.replace("crotchet://open/", ""));
+	}
+
 	if (path.startsWith("crotchet://copy")) {
 		if (path.startsWith("crotchet://copy-image/")) {
 			return copyImage(path.replace("crotchet://copy-image/", ""));
@@ -167,6 +174,51 @@ export const openUrl = async (path) => {
 		}
 
 		return copyToClipboard(path.replace("crotchet://copy/", ""));
+	}
+
+	if (path.startsWith("crotchet://broadcast/")) {
+		if (path.startsWith("crotchet://broadcast/image/")) {
+			const image = await fetchImage(
+				encodeURI(path.replace("crotchet://broadcast/image/", ""))
+			);
+			console.log("Broadcast image: ", image);
+			Share.share({
+				files: [image],
+			});
+			return;
+		}
+
+		if (path.startsWith("crotchet://broadcast/url/")) {
+			Share.share({
+				url: encodeURI(path.replace("crotchet://broadcast/url/", "")),
+			});
+			return;
+		}
+
+		Share.share({
+			text: encodeURI(path.replace("crotchet://broadcast/url/", "")),
+		});
+
+		return;
+	}
+
+	if (path.startsWith("crotchet://share")) {
+		const share = window.__crotchet.openShareSheet;
+
+		if (path.startsWith("crotchet://share-image/")) {
+			share({
+				image: path.replace("crotchet://share-image/", ""),
+			});
+		} else if (path.startsWith("crotchet://share-url/")) {
+			share({
+				url: path.replace("crotchet://share-url/", ""),
+			});
+		} else
+			share({
+				text: path.replace("crotchet://share/", ""),
+			});
+
+		return;
 	}
 
 	if (path.startsWith("crotchet://search")) {
@@ -325,35 +377,36 @@ export const copyFromUrl = async (url, { withToast = true } = {}) => {
 	);
 };
 
-export const copyImage = async (url, { withToast = true } = {}) => {
+const fetchImage = async (url) => {
 	const blob = await fetch(url).then((response) => response.blob());
 
 	return new Promise((resolve) => {
 		const reader = new FileReader();
 
-		reader.onload = async () => {
-			const image = reader.result;
-
-			if (onDesktop()) {
-				socketEmit("copy-image", image);
-
-				if (withToast) showToast("Image copied!", { image });
-
-				return resolve(image);
-			}
-
-			return Clipboard.write({
-				image,
-			})
-				.then(() => {
-					resolve(image);
-					if (withToast) showToast("Image copied!");
-				})
-				.catch((e) => showToast(`Image copy failed: ${e}`));
-		};
+		reader.onload = () => resolve(reader.result);
 
 		reader.readAsDataURL(blob);
 	});
+};
+
+export const copyImage = async (url, { withToast = true } = {}) => {
+	const image = await fetchImage(url);
+	if (onDesktop()) {
+		socketEmit("copy-image", image);
+
+		if (withToast) showToast("Image copied!", { image });
+
+		return image;
+	}
+
+	return Clipboard.write({
+		image,
+	})
+		.then(() => {
+			if (withToast) showToast("Image copied!");
+			return image;
+		})
+		.catch((e) => showToast(`Image copy failed: ${e}`));
 };
 
 export const toHms = (number) => {

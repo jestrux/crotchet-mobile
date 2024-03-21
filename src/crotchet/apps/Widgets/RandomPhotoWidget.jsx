@@ -24,9 +24,8 @@ export default function RandomPhotoWidget() {
 			// color="white"
 			content={({ data }) => ({
 				backgroundImage: data?.image,
-				url: !data?.image
-					? null
-					: `crotchet://copy-image/${data.image}`,
+				share: data?.share,
+				url: data?.url,
 				button: {
 					label: "Shuffle",
 					type: "shuffle",

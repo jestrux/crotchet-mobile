@@ -30,9 +30,13 @@ export const useOnInit = (callback) => {
 	}, []);
 };
 
-export const onActionClick = (action, { actionTypeMap = {} }) => {
+export const onActionClick = (
+	action,
+	{ propagate, actionTypeMap = {} } = {}
+) => {
 	return async (e) => {
-		if (typeof e?.stopPropagation == "function") e.stopPropagation();
+		if (!propagate && typeof e?.stopPropagation == "function")
+			e.stopPropagation();
 
 		if (!action) return null;
 
@@ -54,7 +58,10 @@ export const onActionClick = (action, { actionTypeMap = {} }) => {
 	};
 };
 
-export const useActionClick = (action, { actionTypeMap = {} }) => {
+export const useActionClick = (
+	action,
+	{ propagate = false, actionTypeMap = {} } = {}
+) => {
 	const loadingRef = useRef();
 	const [loading, setLoading] = useState(false);
 
@@ -65,7 +72,7 @@ export const useActionClick = (action, { actionTypeMap = {} }) => {
 			setLoading(true);
 		}, 500);
 
-		await onActionClick(action, { actionTypeMap })(e);
+		await onActionClick(action, { propagate, actionTypeMap })(e);
 
 		setLoading(false);
 

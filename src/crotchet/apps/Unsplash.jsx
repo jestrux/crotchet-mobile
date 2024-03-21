@@ -22,6 +22,7 @@ registerDataSource("unsplash", "unsplash", {
 		title: entry.alt_description,
 		subtitle: entry.description,
 		image: entry.urls.regular,
+		share: `crotchet://share-image/${entry.urls.regular}`,
 		url: `crotchet://copy-image/${entry.urls.regular}`,
 	}),
 	searchable: true,

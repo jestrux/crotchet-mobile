@@ -6,9 +6,7 @@ import BottomNavAction from "./BottomNavAction";
 
 export default function GlobalSearch({ searchQuery = "", onClose = () => {} }) {
 	const { globalActions } = useAppContext();
-	let filteredActions = Object.entries(globalActions() ?? {})
-		.filter(([, value]) => value.global)
-		.map(([, value]) => value);
+	let filteredActions = globalActions();
 
 	if (searchQuery.length > 0) {
 		filteredActions = matchSorter(filteredActions, searchQuery, {

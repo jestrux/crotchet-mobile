@@ -11,12 +11,15 @@ import {
 	Loader,
 	getGradient,
 	onActionClick,
+	openUrl,
 	useActionClick,
 	useEffect,
 	useSourceGet,
 	useState,
 } from "@/crotchet";
 import clsx from "clsx";
+import { useLongPress } from "@/hooks/useLongPress";
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
 
 const WidgetIcons = {
 	share: <ShareIcon className="w-3" />,
@@ -78,9 +81,19 @@ const WidgetContent = ({ inset, content, loading, actionTypeMap }) => {
 		title,
 		subtitle,
 		button,
+		share,
 		url,
 		onClick,
 	} = content || {};
+
+	const gestures = useLongPress(() => {
+		if (share?.length) {
+			Haptics.impact({ style: ImpactStyle.Medium });
+			openUrl(share);
+		}
+
+		console.log("long press: ", share);
+	});
 
 	const { loading: buttonLoading, onClick: handleButtonClick } =
 		useActionClick(button, { actionTypeMap });
@@ -112,6 +125,7 @@ const WidgetContent = ({ inset, content, loading, actionTypeMap }) => {
 							? `url(${backgroundImage})`
 							: "",
 					}}
+					{...gestures}
 					onClick={handleContentClick}
 				></div>
 			)}
@@ -143,6 +157,7 @@ const WidgetContent = ({ inset, content, loading, actionTypeMap }) => {
 										aspectRatio: "3/1",
 										borderRadius: inset ? "5px" : 0,
 									}}
+									{...gestures}
 									onClick={handleContentClick}
 								>
 									{(image || video) != "placeholder" && (
@@ -180,6 +195,7 @@ const WidgetContent = ({ inset, content, loading, actionTypeMap }) => {
 								"pt-2 pointer-events-auto flex-shrink-0",
 								{ "px-3 pb-2": !inset }
 							)}
+							{...gestures}
 							onClick={handleContentClick}
 						>
 							<div className="mb-1.5">
