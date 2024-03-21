@@ -2,6 +2,95 @@ import { useMutation } from "@tanstack/react-query";
 import { shuffle as doShuffle } from "@/utils";
 import { useEffect, useRef, useState } from "react";
 import { matchSorter } from "match-sorter";
+import { useOnInit } from "@/crotchet";
+
+export const sourceGet = async (
+	source,
+	{ limit, single, random, ...payload } = {}
+) => {
+	let handler, mapEntry;
+
+	if (typeof source == "function") handler = source;
+	else if (
+		[typeof source?.get, typeof source?.handler].includes("function")
+	) {
+		handler = typeof source.get == "function" ? source.get : source.handler;
+		random = random || source.random;
+		single = single || source.single;
+		mapEntry = source.mapEntry;
+	}
+
+	if (typeof handler != "function") return null;
+
+	let res = await handler(payload);
+
+	res = typeof mapEntry == "function" ? res.map(mapEntry) : res;
+
+	if (random) res = doShuffle(doShuffle(res));
+
+	if (single) return res[0];
+
+	if (limit) return res.slice(0, limit);
+
+	return res;
+};
+
+export function useSourceGet(source, { shuffle, single, ...props } = {}) {
+	const loadingRef = useRef();
+	const [res, setRes] = useState({
+		loading: false,
+		data: null,
+		error: null,
+	});
+
+	const onChange = (newState) => {
+		setRes((res) => ({
+			...res,
+			...newState,
+		}));
+	};
+
+	const doFetch = async () => {
+		if (!source) return;
+
+		onChange({
+			error: null,
+			// data: null,
+		});
+
+		loadingRef.current = setTimeout(() => {
+			onChange({
+				loading: true,
+			});
+		}, 1500);
+
+		try {
+			const data = await sourceGet(source, { single, shuffle, ...props });
+			onChange({
+				loading: false,
+				data,
+			});
+		} catch (error) {
+			onChange({
+				loading: false,
+				error,
+			});
+		} finally {
+			if (loadingRef.current) clearInterval(loadingRef.current);
+		}
+	};
+
+	useOnInit(doFetch);
+
+	return {
+		...res,
+		refetch: () => {
+			console.log("Refetch...");
+			if (res.loading) return null;
+			doFetch();
+		},
+	};
+}
 
 export function useDataFetch({
 	source,

@@ -1,6 +1,10 @@
+import { sourceGet } from "@/providers/data";
 import dataSourceProviders from "@/providers/data/dataSourceProviders";
-import { camelCaseToSentenceCase, openUrl, randomId, shuffle } from "@/utils";
+import { camelCaseToSentenceCase, openUrl, randomId } from "@/utils";
+import { useEffect, useRef, useState } from "react";
 
+export { useSourceGet, sourceGet } from "@/providers/data";
+export { useState, useEffect, useRef } from "react";
 export { useAppContext } from "@/providers/app";
 export { default as Input } from "@/components/Input";
 export { default as SearchPage } from "@/components/Pages/SearchPage";
@@ -12,6 +16,67 @@ export { default as ListItem } from "@/components/ListItem";
 export { default as Loader } from "@/components/Loader";
 
 export * from "@/utils";
+
+export const useOnInit = (callback) => {
+	const initialized = useRef(false);
+
+	useEffect(() => {
+		if (!initialized.current) {
+			callback();
+			initialized.current = true;
+		}
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+};
+
+export const onActionClick = (action, { actionTypeMap = {} }) => {
+	return async (e) => {
+		if (typeof e?.stopPropagation == "function") e.stopPropagation();
+
+		if (!action) return null;
+
+		try {
+			if (typeof action == "string")
+				return await Promise.resolve(openUrl(action));
+			else if (typeof action == "function")
+				return await Promise.resolve(action());
+			if (action.url) return await Promise.resolve(openUrl(action.url));
+			else if (typeof action.onClick == "function")
+				return await Promise.resolve(action.onClick());
+			else if (typeof actionTypeMap[action?.type] == "function")
+				return await Promise.resolve(actionTypeMap[action?.type]());
+		} catch (error) {
+			//
+		}
+
+		return null;
+	};
+};
+
+export const useActionClick = (action, { actionTypeMap = {} }) => {
+	const loadingRef = useRef();
+	const [loading, setLoading] = useState(false);
+
+	const onClick = async (e) => {
+		if (!action) return null;
+
+		loadingRef.current = setTimeout(() => {
+			setLoading(true);
+		}, 500);
+
+		await onActionClick(action, { actionTypeMap })(e);
+
+		setLoading(false);
+
+		if (loadingRef.current) clearInterval(loadingRef.current);
+	};
+
+	return {
+		onClick,
+		loading,
+	};
+};
 
 export const registerDataSource = (provider, name, props = {}) => {
 	const { fieldMap, mapEntry, searchable, searchFields, ..._props } = props;
@@ -25,9 +90,16 @@ export const registerDataSource = (provider, name, props = {}) => {
 
 	const handler = (payload) => _handler(payload, window.__crotchet);
 
-	const get = async (payload = {}) => handler(payload);
-	const random = (payload) =>
-		get(payload).then((res) => shuffle(shuffle(res))[0]);
+	const get = ({ shuffle, limit, single, ...payload } = {}) =>
+		sourceGet(
+			{
+				handler,
+			},
+			{ shuffle, limit, single, ...payload }
+		);
+
+	const random = async (payload = {}) =>
+		get({ shuffle: true, single: true, ...payload });
 
 	window.__crotchet.dataSources[name] = {
 		..._props,
@@ -75,9 +147,9 @@ export const registerAction = (name, action) => {
 	};
 
 	window.addEventListener(`menu-item-click:${name}`, async () => {
-		console.log("Handling...", label);
-		const res = await handler();
-		console.log("Handled: ", label, res);
+		// console.log("Handling...", label);
+		await handler();
+		// console.log("Handled: ", label, res);
 	});
 };
 
