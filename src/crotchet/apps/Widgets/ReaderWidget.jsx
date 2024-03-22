@@ -25,8 +25,8 @@ export default function ReaderWidget() {
 					url: "crotchet://search/reader?layout=card",
 				},
 			]}
-			content={({ data = {} }) => ({
-				...data,
+			content={({ data }) => ({
+				...(data || {}),
 				button: !data
 					? {}
 					: {

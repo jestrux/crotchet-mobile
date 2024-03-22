@@ -1,7 +1,6 @@
 import { gradients } from "@/constants";
 import { Clipboard } from "@capacitor/clipboard";
 import { Toast } from "@capacitor/toast";
-import { AppLauncher } from "@capacitor/app-launcher";
 import { Share } from "@capacitor/share";
 
 export const KeyMap = {
@@ -141,6 +140,48 @@ export const KeyMap = {
 	AudioRandom: 133,
 };
 
+export const clickToDownload = async function (url, fileName = "download") {
+	let newUrl;
+
+	try {
+		newUrl = await fetch(url)
+			.then((response) => response.blob())
+			.then((blob) => URL.createObjectURL(blob));
+	} catch (error) {
+		console.log("Failed to blob: ", error);
+		newUrl = url;
+	}
+
+	var link = document.createElement("a");
+	link.setAttribute("download", fileName);
+	link.setAttribute("href", newUrl);
+	link.setAttribute("target", "_blank");
+	link.click();
+	link.remove();
+};
+
+export const cleanObject = (obj = {}) => {
+	return Object.fromEntries(
+		Object.entries(obj).filter(
+			([, value]) => (value ?? "").toString().length
+		)
+	);
+};
+
+export const isValidUrl = (urlString) => {
+	const urlPattern = new RegExp(
+		"^(https?:\\/\\/)?" + // validate protocol
+			"((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // validate domain name
+			"((\\d{1,3}\\.){3}\\d{1,3}))" + // validate OR ip (v4) address
+			"(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // validate port and path
+			"(\\?[;&a-z\\d%_.~+=-]*)?" + // validate query string
+			"(\\#[-a-z\\d_]*)?$",
+		"i"
+	); // validate fragment locator
+
+	return !!urlPattern.test(urlString);
+};
+
 export const socketEmit = (event, payload) =>
 	dispatch("socket-emit", {
 		event,
@@ -158,10 +199,14 @@ export const dispatch = (event, payload) => {
 export const onDesktop = () => document.body.classList.contains("on-electron");
 
 export const openUrl = async (path) => {
+	if (path.startsWith("crotchet://download/")) {
+		console.log("Download:", path.replace("crotchet://download/", ""));
+		showToast("Download:", path.replace("crotchet://download/", ""));
+		return clickToDownload(path.replace("crotchet://download/", ""));
+	}
+
 	if (path.startsWith("crotchet://open/")) {
-		window.open(path.replace("crotchet://open/", ""), "_blank");
-		return;
-		// return openUrl(path.replace("crotchet://open/", ""));
+		return openUrl(path.replace("crotchet://open/", ""));
 	}
 
 	if (path.startsWith("crotchet://copy")) {
@@ -181,7 +226,6 @@ export const openUrl = async (path) => {
 			const image = await fetchImage(
 				encodeURI(path.replace("crotchet://broadcast/image/", ""))
 			);
-			console.log("Broadcast image: ", image);
 			Share.share({
 				files: [image],
 			});
@@ -205,7 +249,17 @@ export const openUrl = async (path) => {
 	if (path.startsWith("crotchet://share")) {
 		const share = window.__crotchet.openShareSheet;
 
-		if (path.startsWith("crotchet://share-image/")) {
+		if (path.startsWith("crotchet://share-object/")) {
+			share(
+				cleanObject(
+					JSON.parse(
+						decodeURIComponent(
+							path.replace("crotchet://share-object/", "")
+						)
+					)
+				)
+			);
+		} else if (path.startsWith("crotchet://share-image/")) {
 			share({
 				image: path.replace("crotchet://share-image/", ""),
 			});
@@ -265,20 +319,7 @@ export const openUrl = async (path) => {
 		);
 	}
 
-	try {
-		const url = new URL(path);
-		const { value } = await AppLauncher.canOpenUrl({
-			url,
-		});
-
-		if (!value) return window.open(url.href, "_blank");
-
-		AppLauncher.openUrl({
-			url,
-		});
-	} catch (error) {
-		showToast("Can't open url");
-	}
+	window.open(path, "_blank");
 };
 
 export const randomId = () => Math.random().toString(36).slice(2);
@@ -330,6 +371,8 @@ export const formatDate = (
 };
 
 export const showToast = (text, { image, position = "bottom" } = {}) => {
+	console.log(text);
+
 	if (onDesktop()) return socketEmit("show-toast", { text, image });
 
 	Toast.show({

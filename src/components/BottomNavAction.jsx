@@ -3,16 +3,22 @@ import Loader from "./Loader";
 import { useActionClick } from "@/crotchet";
 
 export default function BottomNavAction({ vertical, action, className }) {
-	const { loading, onClick } = useActionClick(action, { propagate: true });
+	const { loading, onClick } = useActionClick(action, {
+		propagate: true,
+	});
+	const inShareSheet = action.context == "share";
 
 	return (
 		<button
-			key={action._id}
 			disabled={loading}
 			onClick={onClick}
 			className={clsx(
-				"w-full text-left outline:focus-none flex items-center gap-2 text-base leading-none disabled:opacity-50",
-				vertical ? "flex-col gap-3" : "h-12",
+				"relative w-full text-left outline:focus-none flex items-center gap-2 text-base leading-none disabled:opacity-50",
+				vertical
+					? "flex-col gap-3"
+					: inShareSheet
+					? "h-14 flex-row-reverse"
+					: "h-12",
 				className
 			)}
 		>
@@ -20,12 +26,16 @@ export default function BottomNavAction({ vertical, action, className }) {
 				<div
 					className={clsx(
 						"flex-shrink-0 opacity-80",
-						vertical ? "w-6" : "w-5 p-0.5"
+						vertical
+							? "w-6"
+							: inShareSheet
+							? "w-6 p-0.5"
+							: "w-5 p-0.5"
 					)}
 				>
 					{action.icon ? (
 						action.icon
-					) : (
+					) : inShareSheet ? null : (
 						<svg
 							className={clsx(vertical ? "size-6" : "size-4")}
 							fill="none"
@@ -43,9 +53,17 @@ export default function BottomNavAction({ vertical, action, className }) {
 				</div>
 			}
 
-			<div className="flex-1">{action.label}</div>
+			<div className="flex-1 line-clamp-1 text-sm/none">
+				{action.label}
+			</div>
 
-			{loading && <Loader className="opacity-50" size={25} />}
+			{loading && (
+				<Loader
+					className="opacity-50"
+					fillParent={vertical}
+					size={25}
+				/>
+			)}
 		</button>
 	);
 }

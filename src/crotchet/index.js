@@ -41,15 +41,18 @@ export const onActionClick = (
 		if (!action) return null;
 
 		try {
-			if (typeof action == "string")
-				return await Promise.resolve(openUrl(action));
-			else if (typeof action == "function")
-				return await Promise.resolve(action());
-			if (action.url) return await Promise.resolve(openUrl(action.url));
+			if (typeof action.handler == "function")
+				return await Promise.resolve(action.handler());
 			else if (typeof action.onClick == "function")
 				return await Promise.resolve(action.onClick());
 			else if (typeof actionTypeMap[action?.type] == "function")
 				return await Promise.resolve(actionTypeMap[action?.type]());
+			else if (action.url)
+				return await Promise.resolve(openUrl(action.url));
+			else if (typeof action == "function")
+				return await Promise.resolve(action());
+			else if (typeof action == "string")
+				return await Promise.resolve(openUrl(action));
 		} catch (error) {
 			//
 		}
@@ -106,7 +109,7 @@ export const registerDataSource = (provider, name, props = {}) => {
 		);
 
 	const random = async (payload = {}) =>
-		get({ shuffle: true, single: true, ...payload });
+		get({ random: true, single: true, ...payload });
 
 	window.__crotchet.dataSources[name] = {
 		..._props,
@@ -127,28 +130,42 @@ export const registerAction = (name, action) => {
 	let _label = name,
 		_handler = action,
 		tags = [],
+		icon,
 		global = false,
+		context,
+		shareType,
 		mobileOnly = false;
 
 	if (typeof action != "function") {
+		icon = action.icon;
 		global = action.global;
+		context = action.context;
+		shareType = action.shareType;
 		mobileOnly = action.mobileOnly;
 		_label = action.label;
-		_handler = action.url ? () => openUrl(action.url) : action.handler;
+		_handler = action.handler
+			? action.handler
+			: action.url
+			? () => openUrl(action.url)
+			: null;
 		tags = action.tags || [];
 	}
 
 	const label = camelCaseToSentenceCase(
 		(_label || name).replace("-", " ").replace("_", " ")
 	);
-	const handler = (...params) => _handler({ ...window.__crotchet, params });
+
+	const handler = (payload) => _handler(payload, window.__crotchet);
 
 	window.__crotchet.actions[name] = {
 		_id: randomId(),
+		icon,
 		name,
 		label,
 		tags,
 		global,
+		context,
+		shareType,
 		mobileOnly,
 		handler,
 	};

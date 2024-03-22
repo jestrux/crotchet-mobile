@@ -136,7 +136,9 @@ export default function BottomSheet({
 				<motion.div
 					className={clsx(
 						"max-w-3xl mx-auto border-t border-content/5 relative pointer-events-auto focus:outline-none w-full backdrop-blur",
-						collapsed
+						!peekSize
+							? "bg-canvas"
+							: collapsed
 							? "bg-stone-100/85 dark:bg-card/85"
 							: "bg-stone-100/90 dark:bg-card/90"
 					)}

@@ -91,8 +91,6 @@ const WidgetContent = ({ inset, content, loading, actionTypeMap }) => {
 			Haptics.impact({ style: ImpactStyle.Medium });
 			openUrl(share);
 		}
-
-		console.log("long press: ", share);
 	});
 
 	const { loading: buttonLoading, onClick: handleButtonClick } =

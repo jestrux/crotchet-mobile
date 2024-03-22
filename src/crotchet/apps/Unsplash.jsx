@@ -22,7 +22,15 @@ registerDataSource("unsplash", "unsplash", {
 		title: entry.alt_description,
 		subtitle: entry.description,
 		image: entry.urls.regular,
-		share: `crotchet://share-image/${entry.urls.regular}`,
+		share: `crotchet://share-object/${encodeURIComponent(
+			JSON.stringify({
+				preview: entry.urls.regular,
+				title: entry.alt_description,
+				url: entry.links.html,
+				download: entry.urls.full,
+				image: entry.urls.full,
+			})
+		)}`,
 		url: `crotchet://copy-image/${entry.urls.regular}`,
 	}),
 	searchable: true,
@@ -36,7 +44,7 @@ registerAction("searchUnsplash", {
 
 registerAction("getRandomPicture", {
 	global: true,
-	handler: async ({ copyImage, dataSources, showToast }) => {
+	handler: async (_, { copyImage, dataSources, showToast }) => {
 		try {
 			const image = await dataSources.unsplash.random();
 			copyImage(image.urls.regular, { withToast: true });

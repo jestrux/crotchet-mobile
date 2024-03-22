@@ -63,7 +63,7 @@ registerDataSource("custom", "apartments", {
 	},
 });
 
-registerAction("rentersByStatus", ({ openPage, dataSources }) => {
+registerAction("rentersByStatus", (_, { openPage, dataSources }) => {
 	const source = dataSources.renters;
 	const rentersVerificationQuery = (status) => /*sql*/ `
 		SELECT r.image, r.name, r.due_date, (case when r.verified = 1 then 'verified' else 'pending' end) as verified, json_object('name', a.name, 'image', a.image) as apartment
@@ -107,7 +107,7 @@ registerAction("rentersByStatus", ({ openPage, dataSources }) => {
 	});
 });
 
-registerAction("overdueRenters", ({ openPage, dataSources }) =>
+registerAction("overdueRenters", (_, { openPage, dataSources }) =>
 	openPage({
 		image: "random",
 		title: "Overdue renters",

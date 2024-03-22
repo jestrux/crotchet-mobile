@@ -29,6 +29,7 @@ registerDataSource("firebase", "youtubeClips", {
 		subtitle: `${[entry.crop?.[0], entry.crop?.[1]]
 			?.map(toHms)
 			.join(", ")} - ${toHms(entry.duration)}`,
+		share: `crotchet://share-url/${entry.url}`,
 		url: getYoutubeClipUrl(entry),
 	}),
 	searchFields: ["name"],
@@ -36,7 +37,7 @@ registerDataSource("firebase", "youtubeClips", {
 
 registerAction("getRandomYoutubeClip", {
 	global: true,
-	handler: async ({ dataSources }) => {
+	handler: async (_, { dataSources }) => {
 		const res = await dataSources.youtubeClips.random();
 		return openUrl(getYoutubeClipUrl(res));
 	},

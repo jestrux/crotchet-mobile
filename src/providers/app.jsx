@@ -32,7 +32,7 @@ const AppContext = createContext({
 	pinnedApps: [],
 	actions: {},
 	// eslint-disable-next-line no-unused-vars
-	globalActions: (filter = (action) => {}) => {},
+	globalActions: (filters = { share: false }) => {},
 	bottomSheets: [],
 	// eslint-disable-next-line no-unused-vars
 	openBottomSheet: ({ title, subtitle, content, fullHeight } = {}) => {},
@@ -125,16 +125,16 @@ export default function AppProvider({ children }) {
 		}
 	};
 
-	const globalActions = (filter) => {
+	const globalActions = ({ share = false } = {}) => {
 		return Object.entries(window.__crotchet.actions ?? {})
 			.filter(([, action]) => {
-				const { global, mobileOnly } = action;
+				const { global, mobileOnly, context } = action;
+
+				if (share) return context == "share";
 
 				if (!global) return false;
 
 				if (mobileOnly && onDesktop()) return false;
-
-				if (typeof filter == "function") return filter(action);
 
 				return true;
 			})
@@ -194,9 +194,29 @@ export default function AppProvider({ children }) {
 		]);
 	};
 
-	const openShareSheet = ({ text, image, url } = {}) =>
+	const openShareSheet = ({
+		preview,
+		title,
+		subtitle,
+		url,
+		image,
+		text,
+		download,
+	} = {}) =>
 		openBottomSheet({
-			content: <ShareSheet {...{ text, url, image }} />,
+			content: (
+				<ShareSheet
+					{...{
+						preview,
+						title,
+						subtitle,
+						url,
+						image,
+						text,
+						download,
+					}}
+				/>
+			),
 		});
 
 	const openPage = ({
@@ -338,7 +358,6 @@ export default function AppProvider({ children }) {
 					key={sheet._id}
 					open
 					{...sheet}
-					peekSize={40}
 					onClose={() =>
 						setTimeout(() => {
 							setBottomSheets((sheets) =>
