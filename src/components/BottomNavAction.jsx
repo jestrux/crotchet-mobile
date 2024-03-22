@@ -2,11 +2,15 @@ import clsx from "clsx";
 import Loader from "./Loader";
 import { useActionClick } from "@/crotchet";
 
-export default function BottomNavAction({ vertical, action, className }) {
+export default function BottomNavAction({
+	vertical,
+	action,
+	className,
+	inShareSheet = false,
+}) {
 	const { loading, onClick } = useActionClick(action, {
 		propagate: true,
 	});
-	const inShareSheet = action.context == "share";
 
 	return (
 		<button
@@ -53,7 +57,14 @@ export default function BottomNavAction({ vertical, action, className }) {
 				</div>
 			}
 
-			<div className="flex-1 line-clamp-1 text-sm/none">
+			<div
+				className={clsx(
+					"flex-1",
+					inShareSheet && vertical
+						? "text-sm line-clamp-1"
+						: "truncate"
+				)}
+			>
 				{action.label}
 			</div>
 

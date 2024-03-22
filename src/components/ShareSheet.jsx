@@ -253,6 +253,7 @@ export default function ShareSheet({
 								vertical
 								className="bg-card shadow dark:border border-content/5 p-4 rounded-lg"
 								action={action}
+								inShareSheet
 							/>
 						))}
 					</div>
@@ -265,6 +266,7 @@ export default function ShareSheet({
 								className="px-4"
 								key={action.__id}
 								action={action}
+								inShareSheet
 							/>
 						))}
 					</div>

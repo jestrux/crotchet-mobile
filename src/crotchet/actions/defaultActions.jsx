@@ -8,12 +8,12 @@ import {
 } from "@/crotchet";
 import DesktopWidget from "../apps/Widgets/DesktopWidget";
 
-export const uploadFile = async ({ showToast }) => {
+export const uploadFile = async (_, { showToast }) => {
 	await firebaseUploadFile();
 	showToast("Uploaded");
 };
 
-// export const updateWhyLead = async ({ showToast }) => {
+// export const updateWhyLead = async (_, { showToast }) => {
 // 	await firebaseUploadFile({
 // 		name: "index.html",
 // 		file: new Blob([(await readClipboard()).value], {
@@ -29,7 +29,7 @@ export const uploadFile = async ({ showToast }) => {
 export const remote = {
 	global: true,
 	mobileOnly: true,
-	handler: async ({ socket, openBottomSheet }) => {
+	handler: async (_, { socket, openBottomSheet }) => {
 		const _socket = await socket({ retry: true });
 
 		if (_socket) {
