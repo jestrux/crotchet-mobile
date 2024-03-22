@@ -3,8 +3,6 @@ PODS:
     - CapacitorCordova
   - CapacitorApp (5.0.7):
     - Capacitor
-  - CapacitorAppLauncher (5.0.7):
-    - Capacitor
   - CapacitorClipboard (5.0.7):
     - Capacitor
   - CapacitorCommunitySpeechRecognition (2.1.0):
@@ -28,7 +26,6 @@ PODS:
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
-  - "CapacitorAppLauncher (from `../../node_modules/@capacitor/app-launcher`)"
   - "CapacitorClipboard (from `../../node_modules/@capacitor/clipboard`)"
   - "CapacitorCommunitySpeechRecognition (from `../../node_modules/@capacitor-community/speech-recognition`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
@@ -45,8 +42,6 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorApp:
     :path: "../../node_modules/@capacitor/app"
-  CapacitorAppLauncher:
-    :path: "../../node_modules/@capacitor/app-launcher"
   CapacitorClipboard:
     :path: "../../node_modules/@capacitor/clipboard"
   CapacitorCommunitySpeechRecognition:
@@ -71,7 +66,6 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Capacitor: ebfc16cdb8116d04c101686b080342872da42d43
   CapacitorApp: 17fecd0e6cb23feafac7eb0939417389038b0979
-  CapacitorAppLauncher: 7b2705481a74cbe322441bd374f56194de59ab1a
   CapacitorClipboard: 45e5e25f2271f98712985d422776cdc5a779cca1
   CapacitorCommunitySpeechRecognition: b404ef82fa846dd48f6417eb0c47955645ca0996
   CapacitorCordova: 931b48fcdbc9bc985fc2f16cec9f77c794a27729
@@ -83,6 +77,6 @@ SPEC CHECKSUMS:
   CapacitorToast: c8bb89eeb59a23c1fc298f138cc06c8ff4d90ac1
   SendIntent: 0a17b6984c4f27e9dfa56513267ba2c044a5a6c8
 
-PODFILE CHECKSUM: ed0d467126b176e74faa86eae5a9854ad5d3fdfa
+PODFILE CHECKSUM: 22be84d8f7d5c6019e8bcc815d39fb32a2ef552e
 
 COCOAPODS: 1.12.0
