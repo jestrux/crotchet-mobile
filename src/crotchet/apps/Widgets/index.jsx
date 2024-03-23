@@ -9,6 +9,7 @@ import RentersWidget from "@/crotchet/apps/Widgets/RentersWidget";
 import HeroIconsWidget from "./HeroIconsWidget";
 import QuickActionsWidget from "./QuickActionsWidget";
 import PerformanceWidget from "./PerformanceWidget";
+import ChartzWidget from "./ChartzWidget";
 
 export default function Widgets() {
 	return (
@@ -52,7 +53,7 @@ export default function Widgets() {
 				<WidgetWrapper
 					columnSpan={1}
 					aspectRatio="1/1"
-					// widget={MusicWidget}
+					widget={ChartzWidget}
 				/>
 
 				<WidgetWrapper
