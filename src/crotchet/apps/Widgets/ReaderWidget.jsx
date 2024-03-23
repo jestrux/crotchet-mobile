@@ -6,11 +6,7 @@ export default function ReaderWidget() {
 
 	return (
 		<Widget
-			source={{
-				...dataSources.reader,
-				single: true,
-				random: true,
-			}}
+			source={dataSources.reader.random}
 			actions={(data = []) => [
 				...(data
 					? [

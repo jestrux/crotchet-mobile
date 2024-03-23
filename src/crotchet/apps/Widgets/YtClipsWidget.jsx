@@ -14,11 +14,7 @@ export default function YtClipsWidget() {
 				</svg>
 			}
 			title="Yt Clips"
-			source={{
-				...source,
-				single: true,
-				random: true,
-			}}
+			source={source.random}
 			actions={(data) => [
 				...(data
 					? [

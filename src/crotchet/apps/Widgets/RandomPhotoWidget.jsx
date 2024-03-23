@@ -14,11 +14,8 @@ export default function RandomPhotoWidget() {
 					url: "crotchet://action/searchUnsplash",
 				},
 			]}
-			source={{
-				...dataSources.unsplash,
-				single: true,
-				random: true,
-			}}
+			source={dataSources.themeWallpapers.random}
+			// dataSources.themeWallpapers.random
 			// backgroundImage="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w1Njg3MDF8MHwxfHNlYXJjaHwyfHxiZWFjaHxlbnwwfHx8fDE3MTEwMjA5NjV8MA&ixlib=rb-4.0.3&q=80&w=1080"
 			// backgroundImage="gradient"
 			// color="white"

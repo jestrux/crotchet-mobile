@@ -1,28 +1,40 @@
 import { useMutation } from "@tanstack/react-query";
-import { shuffle as doShuffle } from "@/utils";
+import { shuffle as doShuffle, objectExcept, objectTake } from "@/utils";
 import { useEffect, useRef, useState } from "react";
 import { matchSorter } from "match-sorter";
 import { useOnInit } from "@/crotchet";
 
-export const sourceGet = async (
-	source,
-	{ limit, single, random, ...payload } = {}
-) => {
-	let handler, mapEntry;
+export const sourceGet = async (source, props = {}) => {
+	if (typeof source == "function") source = { handler: source };
 
-	if (typeof source == "function") handler = source;
-	else if (
-		[typeof source?.get, typeof source?.handler].includes("function")
-	) {
+	const getterFields = [
+		"limit",
+		"single",
+		"random",
+		"fieldMap",
+		"mapEntry",
+		"searchable",
+		"searchFields",
+	];
+	const payload = objectExcept(props, getterFields);
+	let { limit, single, random, mapEntry } = objectTake(
+		{ ...source, ...props },
+		getterFields
+	);
+
+	let handler;
+
+	if ([typeof source?.get, typeof source?.handler].includes("function")) {
 		handler = typeof source.get == "function" ? source.get : source.handler;
 		random = random || source.random;
 		single = single || source.single;
-		mapEntry = source.mapEntry;
 	}
 
 	if (typeof handler != "function") return null;
 
 	let res = await handler(payload);
+
+	if (!Array.isArray(res)) return res;
 
 	res = typeof mapEntry == "function" ? res.map(mapEntry) : res;
 

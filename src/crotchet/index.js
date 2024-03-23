@@ -131,7 +131,13 @@ export const registerDataSource = (provider, name, props = {}) => {
 			{
 				handler,
 			},
-			{ shuffle, limit, single, ...payload }
+			{
+				...objectTake(props, sourceFields),
+				shuffle,
+				limit,
+				single,
+				...payload,
+			}
 		);
 
 	const random = async (payload = {}) =>
