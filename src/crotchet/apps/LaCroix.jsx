@@ -11,12 +11,13 @@ registerDataSource("sql", "pier", {
 	dbUrl: "https://firebasestorage.googleapis.com/v0/b/letterplace-c103c.appspot.com/o/dev.db?alt=media&token=9493e08d-9b41-4760-8d86-20be77393280",
 });
 
-registerDataSource("custom", "renters", {
-	// fieldMap: {
-	// 	title: "name",
-	// 	subtitle: "due_date|date",
-	// 	status: "verified",
-	// },
+registerDataSource("crotchet://pier", "renters", {
+	query: /*sql*/ `
+		SELECT r.image, r.name, r.due_date, (case when r.verified = 1 then 'verified' else 'pending' end) as verified, json_object('name', a.name, 'image', a.image) as apartment
+		FROM renter as r
+		LEFT JOIN apartment as a
+		ON r.apartment = a._id;
+	`,
 	mapEntry: (entry) => ({
 		image: entry.image,
 		title: entry.name,
@@ -25,24 +26,15 @@ registerDataSource("custom", "renters", {
 	}),
 	filter: "status",
 	searchFields: ["name"],
-	handler: (_, { dataSources }) => {
-		return dataSources.pier.get({
-			query: /*sql*/ `
-				SELECT r.image, r.name, r.due_date, (case when r.verified = 1 then 'verified' else 'pending' end) as verified, json_object('name', a.name, 'image', a.image) as apartment
-				FROM renter as r
-				LEFT JOIN apartment as a
-				ON r.apartment = a._id;
-			`,
-		});
-	},
 });
 
-registerDataSource("custom", "apartments", {
-	// fieldMap: {
-	// 	title: "name",
-	// 	subtitle: "due_date|date",
-	// 	status: "verified",
-	// },
+registerDataSource("crotchet://pier", "apartments", {
+	query: /*sql*/ `
+		SELECT a.*, c.name as complex
+		FROM apartment as a
+		LEFT JOIN complex as c
+		ON a.complex = c._id;
+	`,
 	layout: "grid",
 	mapEntry: (entry) => ({
 		image: entry.image,
@@ -51,16 +43,6 @@ registerDataSource("custom", "apartments", {
 	}),
 	filter: "type",
 	searchFields: ["name"],
-	handler: (_, { dataSources }) => {
-		return dataSources.pier.get({
-			query: /*sql*/ `
-				SELECT a.*, c.name as complex
-				FROM apartment as a
-				LEFT JOIN complex as c
-				ON a.complex = c._id;
-			`,
-		});
-	},
 });
 
 registerAction("rentersByStatus", (_, { openPage, dataSources }) => {
