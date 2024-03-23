@@ -1,4 +1,9 @@
-import { registerAction, registerDataSource, shuffle } from "@/crotchet";
+import {
+	getShareUrl,
+	registerAction,
+	registerDataSource,
+	shuffle,
+} from "@/crotchet";
 
 const randomSearchQuery = () =>
 	shuffle(
@@ -14,23 +19,27 @@ const randomSearchQuery = () =>
 		])
 	)[0];
 
+registerDataSource("crotchet://unsplash", "themeWallpapers", {
+	collection: "wallpaper",
+});
+
 registerDataSource("unsplash", "unsplash", {
-	fieldMap: {},
 	mapEntry: (entry) => ({
 		...entry,
 		collection: entry.search,
 		title: entry.alt_description,
 		subtitle: entry.description,
 		image: entry.urls.regular,
-		share: `crotchet://share-object/${encodeURIComponent(
-			JSON.stringify({
+		share: getShareUrl(
+			{
 				preview: entry.urls.regular,
 				title: entry.alt_description,
 				url: entry.links.html,
 				download: entry.urls.full,
 				image: entry.urls.full,
-			})
-		)}`,
+			},
+			"object"
+		),
 		url: `crotchet://copy-image/${entry.urls.regular}`,
 	}),
 	searchable: true,
