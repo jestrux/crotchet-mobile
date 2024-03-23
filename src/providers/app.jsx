@@ -225,6 +225,7 @@ export default function AppProvider({ children }) {
 		content,
 		source,
 		fullHeight = true,
+		noScroll = false,
 		type = "custom",
 		...props
 	}) => {
@@ -232,7 +233,8 @@ export default function AppProvider({ children }) {
 			...props,
 			image,
 			fullHeight,
-			dismissible: !fullHeight,
+			noScroll,
+			dismissible: !fullHeight || noScroll,
 			content:
 				type == "search" ? (
 					<SearchPage

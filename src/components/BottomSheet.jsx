@@ -6,6 +6,7 @@ import useKeyboard from "@/hooks/useKeyboard";
 export default function BottomSheet({
 	hidden,
 	open,
+	noScroll = false,
 	peekSize = 0,
 	dismissible = true,
 	fullHeight = false,
@@ -146,7 +147,7 @@ export default function BottomSheet({
 						minHeight: peekSize + "px",
 						maxHeight: maxHeight + "px",
 						overflowY:
-							!fullHeight || dragRatio || collapsed
+							!fullHeight || dragRatio || collapsed || noScroll
 								? "hidden"
 								: "auto",
 					}}
@@ -161,14 +162,14 @@ export default function BottomSheet({
 				>
 					<div
 						style={{
-							minHeight: fullHeight ? `${maxHeight}px` : "",
+							minHeight: fullHeight ? `${maxHeight - 2}px` : "",
 						}}
 					>
 						{typeof children == "function"
 							? children({
 									fullHeight,
 									minHeight,
-									maxHeight,
+									maxHeight: maxHeight - 2,
 									dragRatio,
 									collapsed,
 									expand: () => setCollapsed(false),
@@ -181,7 +182,7 @@ export default function BottomSheet({
 									return cloneElement(child, {
 										fullHeight,
 										minHeight,
-										maxHeight,
+										maxHeight: maxHeight - 2,
 										dragRatio,
 										collapsed,
 										expand: () => setCollapsed(false),

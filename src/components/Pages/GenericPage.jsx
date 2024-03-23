@@ -6,6 +6,8 @@ import { getGradient, openUrl } from "@/utils";
 import { useAppContext } from "@/providers/app";
 
 export default function GenericPage({
+	noPadding = false,
+	centerContent = false,
 	image,
 	gradient,
 	title,
@@ -14,23 +16,26 @@ export default function GenericPage({
 	content = [],
 	fullHeight,
 	maxHeight,
-	collapse,
+	dismiss,
 }) {
 	const { dataSources } = useAppContext();
 	const headingSet = image || title || subtitle;
 
 	return (
 		<div
-			className="relative px-6 py-10"
+			className={clsx(
+				"relative flex flex-col items-stretch",
+				!noPadding ? "px-6 py-10" : ""
+			)}
 			style={
 				fullHeight
 					? {
 							height: maxHeight + "px",
-							overflow: "auto",
+					  }
+					: {
 							borderTopLeftRadius: 32,
 							borderTopRightRadius: 32,
 					  }
-					: {}
 			}
 		>
 			<div
@@ -41,7 +46,7 @@ export default function GenericPage({
 			>
 				<button
 					className="w-6 h-6 flex items-center justify-center bg-content text-card shadow-sm rounded-full"
-					onClick={collapse}
+					onClick={dismiss}
 				>
 					<svg
 						className="w-4"
@@ -63,7 +68,7 @@ export default function GenericPage({
 				<div
 					className={clsx(
 						"pb-2 border-content/10 overflow-hidden flex flex-col",
-						image && "-mt-10 -mx-6"
+						image && !noPadding && "-mt-10 -mx-6"
 					)}
 				>
 					{image && (
@@ -76,6 +81,7 @@ export default function GenericPage({
 									image == "gradient"
 										? getGradient(gradient)
 										: "",
+								paddingTop: "env(safe-area-inset-top)",
 							}}
 						>
 							{image == "gradient" ? null : [
@@ -125,7 +131,11 @@ export default function GenericPage({
 				</div>
 			)}
 
-			<div className="flex flex-col gap-4">
+			<div
+				className={clsx("flex-1 flex flex-col gap-4", {
+					"justify-center": centerContent,
+				})}
+			>
 				{source ? (
 					<DataWidget
 						large
@@ -206,6 +216,8 @@ export default function GenericPage({
 											widgetProps={{ noPadding: true }}
 										/>
 									);
+							} else if (type == "custom") {
+								content = section.value;
 							} else {
 								content = (
 									<div className="text-base/loose">
