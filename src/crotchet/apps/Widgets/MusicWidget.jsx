@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Loader from "@/components/Loader";
 import Widget from "@/components/Widget";
+import { shuffle, useOnInit } from "@/crotchet";
 
 let savedToken,
 	authEnd = 0;
@@ -85,6 +86,10 @@ const MusicWidget = () => {
 	const [playlist, setPlaylist] = useState(null);
 	const songs = playlist?.songs || [];
 	const { playing, playSong, stopSong, togglePlay, onSongEnd } = useAudio();
+
+	useOnInit(() => {
+		handleSetMood(shuffle(shuffle(Object.keys(moods)))[0]);
+	});
 
 	const handleSetMood = (mood) => {
 		fetchPlaylistDetails(moods[mood]);
