@@ -2,14 +2,19 @@ import { useEffect, useRef, useState } from "react";
 import GlobalSearch from "../GlobalSearch";
 import clsx from "clsx";
 import useKeyboard from "@/hooks/useKeyboard";
-import { onDesktop, DataWidget, Input } from "@/crotchet";
+import {
+	onDesktop,
+	DataWidget,
+	Input,
+	camelCaseToSentenceCase,
+} from "@/crotchet";
 
 export default function SearchPage({
 	background,
 	filterColor,
 	autoFocus = true,
 	inBottomSheet,
-	placeholder = "Type to search...",
+	placeholder,
 	query: _query,
 	source = {},
 	collapse,
@@ -18,6 +23,14 @@ export default function SearchPage({
 	liveSearch,
 	global = false,
 }) {
+	placeholder =
+		placeholder ||
+		`Type to search${
+			source.name.length
+				? " " + camelCaseToSentenceCase(source.name).toLowerCase()
+				: ""
+		}...`;
+
 	const { KeyboardPlaceholder } = useKeyboard();
 	liveSearch = liveSearch ?? source.searchable != true;
 	const [searchQuery, setSearchQuery] = useState(_query ?? "");
