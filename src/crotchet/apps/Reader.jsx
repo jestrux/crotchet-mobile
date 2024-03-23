@@ -4,6 +4,7 @@ import {
 	SearchPage,
 	registerDataSource,
 	registerAction,
+	getShareUrl,
 } from "@/crotchet";
 
 registerDataSource("firebase", "reader", {
@@ -25,7 +26,15 @@ registerDataSource("firebase", "reader", {
 			title: item.title || "Untitled",
 			subtitle: item.description,
 			tags: [item.group],
-			share: `crotchet://share-url/${item.url}`,
+			share: getShareUrl(
+				{
+					preview: item.image,
+					title: item.name,
+					subtitle: item.description,
+					url: item.url,
+				},
+				"object"
+			),
 		};
 	},
 });
