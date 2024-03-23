@@ -32,10 +32,9 @@ export const BottomNavButton = ({ page, selected, onClick }) => {
 	);
 };
 
-export function BottomNav({ hidden, currentPage, setCurrentPage }) {
+export function BottomNav({ hidden, pinnedApps, currentPage, setCurrentPage }) {
 	const [searchQuery, setSearchQuery] = useState("");
 	const wrapperRef = useRef(null);
-	const { pinnedApps } = useAppContext();
 	const navHeight = 56;
 
 	const input = () => {
@@ -58,7 +57,7 @@ export function BottomNav({ hidden, currentPage, setCurrentPage }) {
 		<div ref={wrapperRef}>
 			<BottomSheet
 				hidden={hidden}
-				peekSize={navHeight}
+				peekSize={pinnedApps?.length ? navHeight : 0}
 				fullHeight
 				dismissible={!searchQuery?.length}
 			>
@@ -102,19 +101,21 @@ export function BottomNav({ hidden, currentPage, setCurrentPage }) {
 										height: navHeight + "px",
 									}}
 								>
-									{pinnedApps.map((page, index) => (
-										<BottomNavButton
-											key={page + index}
-											page={page}
-											selected={currentPage == page}
-											onClick={() => {
-												if (currentPage != page)
-													setCurrentPage(page);
-												else if (page == "home")
-													expand();
-											}}
-										/>
-									))}
+									{(pinnedApps || ["", "home", ""]).map(
+										(page, index) => (
+											<BottomNavButton
+												key={page + index}
+												page={page}
+												selected={currentPage == page}
+												onClick={() => {
+													if (currentPage != page)
+														setCurrentPage(page);
+													else if (page == "home")
+														expand();
+												}}
+											/>
+										)
+									)}
 								</div>
 							</motion.div>
 

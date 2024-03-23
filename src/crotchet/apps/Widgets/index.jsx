@@ -49,7 +49,19 @@ export default function Widgets() {
 			</div>
 
 			<div className="w-full col-span-6 grid items-start grid-cols-2 gap-3">
-				<WidgetWrapper aspectRatio="2/1" widget={MusicWidget} />
+				<WidgetWrapper
+					columnSpan={1}
+					aspectRatio="1/1"
+					// widget={MusicWidget}
+				/>
+
+				<WidgetWrapper
+					columnSpan={1}
+					aspectRatio="1/1"
+					widget={MusicWidget}
+				/>
+
+				{/* <WidgetWrapper aspectRatio="2/1" widget={MusicWidget} /> */}
 
 				<WidgetWrapper aspectRatio="2/1" widget={HeroIconsWidget} />
 

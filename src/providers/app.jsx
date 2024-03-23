@@ -1,4 +1,3 @@
-import { Preferences } from "@capacitor/preferences";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import BottomSheet from "@/components/BottomSheet";
 import {
@@ -18,18 +17,9 @@ import { db } from "./firebaseApp";
 import { io } from "socket.io-client";
 import ShareSheet from "@/components/ShareSheet";
 
-const STORE_KEY = "crotchet-app";
-
 const AppContext = createContext({
-	prefs: {},
-	currentPage: "home",
-	// eslint-disable-next-line no-unused-vars
-	setCurrentPage: (page) => {},
-	// eslint-disable-next-line no-unused-vars
-	setPref: (key, value) => {},
 	dataSources: {},
 	apps: {},
-	pinnedApps: [],
 	actions: {},
 	// eslint-disable-next-line no-unused-vars
 	globalActions: (filters = { share: false }) => {},
@@ -95,7 +85,6 @@ const getSocket = () => {
 
 export default function AppProvider({ children }) {
 	const socket = useRef();
-	const [prefs, setPrefs] = useState();
 	const [bottomSheets, setBottomSheets] = useState([]);
 
 	const setupSocket = () => {
@@ -163,29 +152,8 @@ export default function AppProvider({ children }) {
 		} catch (error) {
 			console.log("Socket error: ", error);
 		}
-
-		if (!prefs) {
-			Preferences.get({ key: "app" }).then(({ value }) => {
-				try {
-					setPrefs(JSON.parse(value ?? "{}"));
-				} catch (error) {
-					setPrefs({});
-				}
-			});
-		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
-
-	const setPref = (key, value) => {
-		setPrefs((prefs) => {
-			const newPrefs = { ...prefs, [key]: value };
-			Preferences.set({
-				key: STORE_KEY,
-				value: JSON.stringify(newPrefs),
-			});
-			return newPrefs;
-		});
-	};
 
 	const openBottomSheet = ({ minHeight = 250, content, ...sheet }) => {
 		setBottomSheets((sheets) => [
@@ -257,13 +225,7 @@ export default function AppProvider({ children }) {
 
 	const openSearchPage = (props) => openPage({ ...props, type: "search" });
 
-	if (!prefs) return null;
-
 	const appContextValue = {
-		prefs,
-		setPref,
-		currentPage: prefs.currentPage ?? "home",
-		setCurrentPage: (page) => setPref("currentPage", page),
 		registerDataSource,
 		bottomSheets,
 		openBottomSheet,
@@ -332,7 +294,6 @@ export default function AppProvider({ children }) {
 					value={{
 						...appContextValue,
 						apps: window.__crotchet.apps,
-						pinnedApps: window.__crotchet.pinnedApps,
 						actions: window.__crotchet.actions,
 						dataSources: window.__crotchet.dataSources,
 					}}
@@ -348,7 +309,6 @@ export default function AppProvider({ children }) {
 			value={{
 				...appContextValue,
 				apps: window.__crotchet.apps,
-				pinnedApps: window.__crotchet.pinnedApps,
 				actions: window.__crotchet.actions,
 				dataSources: window.__crotchet.dataSources,
 			}}

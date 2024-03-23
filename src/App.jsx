@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { Filesystem } from "@capacitor/filesystem";
 import { App as CapacitorApp } from "@capacitor/app";
-import { onDesktop, useAppContext } from "@/crotchet";
+import { onDesktop, useAppContext, useLocalStorageState } from "@/crotchet";
 
 const AppScreen = ({ scheme }) => {
 	const { apps } = useAppContext();
@@ -22,8 +22,9 @@ const AppScreen = ({ scheme }) => {
 };
 
 const App = () => {
-	const { pinnedApps, bottomSheets, openPage } = useAppContext();
+	const { bottomSheets, openPage } = useAppContext();
 	const [currentPage, setCurrentPage] = useState("home");
+	const [pinnedApps] = useLocalStorageState("pinnedApps");
 
 	const listenForShare = async () => {
 		try {
@@ -146,7 +147,7 @@ const App = () => {
 				></div>
 			</div>
 
-			{pinnedApps.map((app, index) => (
+			{(pinnedApps || ["", "home", ""]).map((app, index) => (
 				<div
 					key={app + index}
 					className={clsx("fixed inset-0 overflow-auto", {
@@ -161,7 +162,11 @@ const App = () => {
 			<div className="lg:hidden">
 				{!onDesktop() && (
 					<BottomNav
-						{...{ currentPage, setCurrentPage }}
+						{...{
+							pinnedApps,
+							currentPage,
+							setCurrentPage,
+						}}
 						hidden={bottomSheets.length}
 					/>
 				)}

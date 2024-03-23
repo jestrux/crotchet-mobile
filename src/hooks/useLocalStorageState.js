@@ -1,36 +1,52 @@
-import { useState } from "react";
-import { useAppContext } from "@/providers/app";
+import { useRef, useState } from "react";
+import { getPrefs } from "@/hooks/usePrefs";
+import { useOnInit } from "@/crotchet";
 
-// Borrowed from https://usehooks.com/useLocalStorage/
-function useLocalStorageState(key, initialValue) {
-	const { prefs, setPref } = useAppContext();
+const defaultPreferences = {
+	pinnedApps: [
+		"youtubeClips",
+		// "laCroix",
+		"home",
+		"reader",
+	],
+};
+
+export default function useLocalStorageState(key, initialValue) {
+	const [loading, setLoading] = useState(!window.__crotchet?.__prefs);
+	const setValueRef = useRef();
+
 	const [storedValue, setStoredValue] = useState(() => {
 		if (key == undefined || key == null) return initialValue;
 
+		const prefs = window.__crotchet?.__prefs;
+
 		try {
-			return prefs[key] ?? initialValue;
+			if (prefs?.[key]) return prefs[key] ?? initialValue;
 		} catch (error) {
-			return initialValue;
+			//
 		}
+
+		return initialValue;
 	});
 
 	const setValue = (value) => {
-		try {
-			const valueToStore =
-				value instanceof Function ? value(storedValue) : value;
+		const valueToStore =
+			typeof value == "function" ? value(storedValue) : value;
 
-			setStoredValue(valueToStore);
+		setStoredValue(valueToStore);
 
-			if (key == undefined || key == null) return;
-
-			setPref(key, valueToStore);
-		} catch (error) {
-			// A more advanced implementation would handle the error case
-			console.log(error);
-		}
+		if (typeof setValueRef.current == "function")
+			setValueRef.current(key, valueToStore);
 	};
 
-	return [storedValue, setValue];
-}
+	useOnInit(() => {
+		getPrefs("__crotchet", defaultPreferences).then(([value, setter]) => {
+			setValueRef.current = setter;
+			const val = value?.[key] ?? initialValue;
+			if (val != storedValue) setStoredValue(val);
+			setLoading(false);
+		});
+	});
 
-export default useLocalStorageState;
+	return [storedValue, setValue, loading];
+}

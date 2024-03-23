@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from "react";
 
 export { useSourceGet, sourceGet } from "@/providers/data";
 export { useState, useEffect, useRef } from "react";
+export { default as useLocalStorageState } from "@/hooks/useLocalStorageState";
 export { useAppContext } from "@/providers/app";
 export { default as Input } from "@/components/Input";
 export { default as SearchPage } from "@/components/Pages/SearchPage";
@@ -35,6 +36,7 @@ export const useOnInit = (callback) => {
 			initialized.current = true;
 		}
 
+		return () => (initialized.current = false);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 };
