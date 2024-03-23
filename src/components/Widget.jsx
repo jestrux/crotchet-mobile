@@ -13,9 +13,7 @@ import {
 	onActionClick,
 	openUrl,
 	useActionClick,
-	useEffect,
 	useSourceGet,
-	useState,
 } from "@/crotchet";
 import clsx from "clsx";
 import { useLongPress } from "@/hooks/useLongPress";
@@ -230,7 +228,7 @@ const WidgetContent = ({ inset, content, loading, actionTypeMap }) => {
 										{ "mb-2": !inset },
 										backgroundImage?.length
 											? "bg-black text-white ring-white/10"
-											: "bg-card text-canvas ring-content/[0.08]"
+											: "bg-card text-canvas ring-white/[0.08]"
 									)}
 									onClick={handleButtonClick}
 								>
@@ -292,16 +290,8 @@ const Widget = ({
 		return _content ?? null;
 	};
 
-	const [content, setContent] = useState(getContent());
-	const [actions, setActions] = useState(getActions());
-
-	useEffect(() => {
-		if (source && !loading && data) {
-			setContent(getContent({ data }));
-			setActions(getActions({ data }));
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [source, data, loading]);
+	const content = getContent({ data });
+	const actions = getActions({ data });
 
 	return (
 		<div className="h-full flex flex-col relative text-content/60">
@@ -359,7 +349,7 @@ const Widget = ({
 									key={index}
 									className={clsx(
 										"relative focus:outline-none w-6 h-6 transition-colors rounded-full flex items-center justify-center",
-										"ring-1 ring-content/5",
+										"ring-1 ring-white/5",
 										{
 											"bg-content/[0.08] dark:bg-content/15 border border-content/10":
 												!color?.length,
