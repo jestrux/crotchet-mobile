@@ -1,6 +1,15 @@
 import { sourceGet } from "@/providers/data";
-import dataSourceProviders from "@/providers/data/dataSourceProviders";
-import { camelCaseToSentenceCase, openUrl, randomId } from "@/utils";
+import dataSourceProviders, {
+	getCrotchetDataSourceProvider,
+} from "@/providers/data/dataSourceProviders";
+import {
+	camelCaseToSentenceCase,
+	cleanObject,
+	objectExcept,
+	objectTake,
+	openUrl,
+	randomId,
+} from "@/utils";
 import { useEffect, useRef, useState } from "react";
 
 export { useSourceGet, sourceGet } from "@/providers/data";
@@ -89,14 +98,31 @@ export const useActionClick = (
 };
 
 export const registerDataSource = (provider, name, props = {}) => {
-	const { fieldMap, mapEntry, searchable, searchFields, ..._props } = props;
+	const sourceFields = ["fieldMap", "mapEntry", "searchable", "searchFields"];
+
+	if (provider.startsWith("crotchet://")) {
+		const _source = getCrotchetDataSourceProvider(
+			provider.replace("crotchet://", ""),
+			name,
+			objectExcept(props, sourceFields)
+		);
+
+		if (!_source) return;
+
+		props = {
+			...props,
+			..._source,
+			...objectTake(props, sourceFields),
+		};
+	}
+
 	const label = camelCaseToSentenceCase(
 		name.replace("-", " ").replace("_", " ")
 	);
-	const _handler = dataSourceProviders(provider, _props) || _props.handler;
+	const _handler = dataSourceProviders(provider, props) || props.handler;
 
 	if (typeof _handler != "function")
-		throw `Unkown data provider: ${provider}`;
+		return console.error(`Unkown data provider: ${provider}`);
 
 	const handler = (payload) => _handler(payload, window.__crotchet);
 
@@ -112,18 +138,28 @@ export const registerDataSource = (provider, name, props = {}) => {
 		get({ random: true, single: true, ...payload });
 
 	window.__crotchet.dataSources[name] = {
-		..._props,
+		...objectExcept(props, sourceFields),
 		_id: randomId(),
 		name,
 		label,
-		fieldMap,
-		mapEntry,
-		searchable,
-		searchFields,
+		...objectTake(props, sourceFields),
 		handler,
 		get,
 		random,
 	};
+
+	const pendingDataSources = window.__crotchet.pendingDataSources?.[name];
+
+	if (pendingDataSources) {
+		pendingDataSources.forEach(([provider, childName, props], index) => {
+			registerDataSource(provider, childName, props);
+			delete window.__crotchet.pendingDataSources[name][index];
+		});
+
+		window.__crotchet.pendingDataSources = cleanObject(
+			window.__crotchet.pendingDataSources
+		);
+	}
 };
 
 export const registerAction = (name, action) => {
@@ -133,14 +169,14 @@ export const registerAction = (name, action) => {
 		icon,
 		global = false,
 		context,
-		shareType,
+		match,
 		mobileOnly = false;
 
 	if (typeof action != "function") {
 		icon = action.icon;
 		global = action.global;
 		context = action.context;
-		shareType = action.shareType;
+		match = action.match;
 		mobileOnly = action.mobileOnly;
 		_label = action.label;
 		_handler = action.handler
@@ -165,7 +201,7 @@ export const registerAction = (name, action) => {
 		tags,
 		global,
 		context,
-		shareType,
+		match,
 		mobileOnly,
 		handler,
 	};

@@ -160,6 +160,18 @@ export const clickToDownload = async function (url, fileName = "download") {
 	link.remove();
 };
 
+export const objectExcept = (obj = {}, excludedFields = []) => {
+	return Object.fromEntries(
+		Object.entries(obj).filter(([key]) => !excludedFields.includes(key))
+	);
+};
+
+export const objectTake = (obj = {}, excludedFields = []) => {
+	return Object.fromEntries(
+		Object.entries(obj).filter(([key]) => excludedFields.includes(key))
+	);
+};
+
 export const cleanObject = (obj = {}) => {
 	return Object.fromEntries(
 		Object.entries(obj).filter(
@@ -197,6 +209,22 @@ export const dispatch = (event, payload) => {
 };
 
 export const onDesktop = () => document.body.classList.contains("on-electron");
+
+export const getShareUrl = (content, type = "text") => {
+	if (!content) return "";
+
+	if (type != "object") {
+		if (!content?.length) return "";
+
+		if (type == "text") return `crotchet://share-url/${content}`;
+
+		return `crotchet://share-${type}/${content}`;
+	}
+
+	return `crotchet://share-object/${encodeURIComponent(
+		JSON.stringify(content)
+	)}`;
+};
 
 export const openUrl = async (path) => {
 	if (path.startsWith("crotchet://download/")) {
