@@ -6,30 +6,34 @@ export default async function unsplashFetcher({
 	searchQuery,
 	collection,
 } = {}) {
-	const darkMode =
-		window.matchMedia &&
-		window.matchMedia("(prefers-color-scheme: dark)").matches;
-	collection = collection || darkMode ? "darkWallpaper" : "lightWallpaper";
-
 	if (searchQuery) {
 		return webFetcher({
 			url: "https://api.unsplash.com/search/photos",
 			params: {
 				query: searchQuery,
 				client_id: import.meta.env.VITE_unsplashClientId,
-				per_page: 24,
+				per_page: 30,
 			},
 			responseField: "results",
 		});
 	}
 
+	if (!collection?.length) return [];
+
+	const darkMode =
+		window.matchMedia &&
+		window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+	collection =
+		collection == "wallpaper"
+			? darkMode
+				? "darkWallpaper"
+				: "lightWallpaper"
+			: collection;
+
 	const random = "https://api.unsplash.com/photos/random";
 	const collectionMaps = {
 		random,
-		"": random,
-		true: random,
-		undefined: random,
-		null: random,
 		darkWallpaper:
 			"https://api.unsplash.com/collections/UI2FFD9lkxs/photos",
 		lightWallpaper:
@@ -47,7 +51,7 @@ export default async function unsplashFetcher({
 		url: collectionUrl,
 		params: {
 			client_id: import.meta.env.VITE_unsplashClientId,
-			count: 24,
+			per_page: 30,
 		},
 	});
 
