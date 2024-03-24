@@ -188,6 +188,7 @@ export default function AppProvider({ children }) {
 		});
 
 	const openPage = ({
+		background,
 		image,
 		title,
 		content,
@@ -199,6 +200,7 @@ export default function AppProvider({ children }) {
 	}) => {
 		openBottomSheet({
 			...props,
+			background,
 			image,
 			fullHeight,
 			noScroll,

@@ -229,6 +229,7 @@ registerApp("youtubeClips", () => {
 			const props = Object.fromEntries(url.searchParams.entries());
 
 			openPage({
+				background: "black",
 				noPadding: true,
 				noScroll: true,
 				centerContent: true,

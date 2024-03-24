@@ -97,7 +97,6 @@ export function useSourceGet(source, { shuffle, single, ...props } = {}) {
 	return {
 		...res,
 		refetch: () => {
-			console.log("Refetch...");
 			if (res.loading) return null;
 			doFetch();
 		},

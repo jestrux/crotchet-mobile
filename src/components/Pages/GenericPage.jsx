@@ -20,6 +20,7 @@ export default function GenericPage({
 }) {
 	const { dataSources } = useAppContext();
 	const headingSet = image || title || subtitle;
+	if (typeof content == "function") content = content({ dismiss });
 
 	return (
 		<div
@@ -39,13 +40,16 @@ export default function GenericPage({
 			}
 		>
 			<div
-				className="fixed top-5 right-5 z-10"
+				className={clsx(
+					"sticky top-0 z-10 flex items-center justify-end pointer-events-none",
+					!noPadding ? "-translate-y-6 translate-x-2" : ""
+				)}
 				style={{
-					marginTop: "env(safe-area-inset-top)",
+					marginTop: fullHeight ? "env(safe-area-inset-top)" : "",
 				}}
 			>
 				<button
-					className="w-6 h-6 flex items-center justify-center bg-content text-card shadow-sm rounded-full"
+					className="pointer-events-auto w-6 h-6 flex items-center justify-center bg-content text-card shadow-sm rounded-full"
 					onClick={dismiss}
 				>
 					<svg

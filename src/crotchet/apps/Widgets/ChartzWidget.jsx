@@ -14,7 +14,7 @@ import { Loader, useAppContext, usePrefsState } from "@/crotchet";
 import ChartComponent from "../Chartz";
 
 export default function ChartzWidget() {
-	const { openPage, openBottomSheet } = useAppContext();
+	const { openBottomSheet } = useAppContext();
 	const chartzDrawerRef = useRef((data) => {
 		if (!window.chartzDrawer) window.chartzDrawer = new ChartDrawer();
 
@@ -77,17 +77,13 @@ export default function ChartzWidget() {
 		<Widget
 			title="Chartz"
 			actions={actions}
-			onClick={() => {
-				console.log("Open chartz...");
+			onClick={() =>
 				openBottomSheet({
-					// fullHeight: true,
-					// noPadding: true,
-					// noScroll: true,
-					// centerContent: true,
-					// title: props.name,
+					fullHeight: true,
+					noScroll: true,
 					content: <ChartComponent chartType={chartType} />,
-				});
-			}}
+				})
+			}
 		>
 			<div
 				id="chartzWidgetContent"

@@ -1,4 +1,5 @@
 import { webFetcher } from "./web/useWeb";
+import { random as randomItem } from "@/utils";
 
 const CrotchetUnsplashCache = {};
 
@@ -51,6 +52,7 @@ export default async function unsplashFetcher({
 		url: collectionUrl,
 		params: {
 			client_id: import.meta.env.VITE_unsplashClientId,
+			page: randomItem([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
 			per_page: 30,
 		},
 	});

@@ -60,9 +60,7 @@ export default function BottomNavAction({
 			<div
 				className={clsx(
 					"flex-1",
-					inShareSheet && vertical
-						? "text-sm line-clamp-1"
-						: "truncate"
+					inShareSheet && vertical ? "text-sm " : ""
 				)}
 			>
 				{action.label}

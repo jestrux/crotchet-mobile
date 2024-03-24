@@ -425,9 +425,11 @@ export const readClipboard = async () => {
 };
 
 export const copyToClipboard = (content, { withToast = true } = {}) => {
+	const message = content.length < 10 ? `${content} copied` : "Copied";
+
 	if (onDesktop()) {
 		socketEmit("copy", content);
-		if (withToast) showToast("Copied!");
+		if (withToast) showToast(message);
 		return;
 	}
 
@@ -436,7 +438,7 @@ export const copyToClipboard = (content, { withToast = true } = {}) => {
 		url: content,
 	})
 		.then(() => {
-			if (withToast) showToast("Copied!");
+			if (withToast) showToast(message);
 		})
 		.catch((e) => showToast(`Copy failed: ${e}`));
 };

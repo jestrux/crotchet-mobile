@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import useKeyboard from "@/hooks/useKeyboard";
 
 export default function BottomSheet({
+	background,
 	hidden,
 	open,
 	noScroll = false,
@@ -136,7 +137,7 @@ export default function BottomSheet({
 			>
 				<motion.div
 					className={clsx(
-						"max-w-3xl mx-auto border-t border-content/5 relative pointer-events-auto focus:outline-none w-full backdrop-blur",
+						"md:max-w-lg mx-auto border-t border-content/5 relative pointer-events-auto focus:outline-none w-full backdrop-blur",
 						!peekSize
 							? "bg-canvas"
 							: collapsed
@@ -144,6 +145,16 @@ export default function BottomSheet({
 							: "bg-stone-100/90 dark:bg-card/90"
 					)}
 					style={{
+						...(["white", "black"].includes(background)
+							? {
+									background,
+									color:
+										background == "white"
+											? "black"
+											: "white",
+									borderColor: background,
+							  }
+							: {}),
 						minHeight: peekSize + "px",
 						maxHeight: maxHeight + "px",
 						overflowY:
@@ -162,14 +173,14 @@ export default function BottomSheet({
 				>
 					<div
 						style={{
-							minHeight: fullHeight ? `${maxHeight - 2}px` : "",
+							minHeight: fullHeight ? `${maxHeight}px` : "",
 						}}
 					>
 						{typeof children == "function"
 							? children({
 									fullHeight,
 									minHeight,
-									maxHeight: maxHeight - 2,
+									maxHeight: maxHeight,
 									dragRatio,
 									collapsed,
 									expand: () => setCollapsed(false),
@@ -182,7 +193,7 @@ export default function BottomSheet({
 									return cloneElement(child, {
 										fullHeight,
 										minHeight,
-										maxHeight: maxHeight - 2,
+										maxHeight: maxHeight,
 										dragRatio,
 										collapsed,
 										expand: () => setCollapsed(false),
