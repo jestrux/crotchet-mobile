@@ -7,8 +7,13 @@ import {
 	SearchPage,
 } from "@/crotchet";
 
-registerDataSource("sql", "pier", {
-	dbUrl: "https://firebasestorage.googleapis.com/v0/b/letterplace-c103c.appspot.com/o/dev.db?alt=media&token=9493e08d-9b41-4760-8d86-20be77393280",
+// registerDataSource("sql", "pier", {
+// 	dbUrl: "https://firebasestorage.googleapis.com/v0/b/letterplace-c103c.appspot.com/o/dev.db?alt=media&token=9493e08d-9b41-4760-8d86-20be77393280",
+// });
+
+registerDataSource("libSql", "pier", {
+	dbUrl: "libsql://pier-test-jestrux.turso.io",
+	authToken: import.meta.env.VITE_libSqlAuthToken,
 });
 
 registerDataSource("crotchet://pier", "renters", {

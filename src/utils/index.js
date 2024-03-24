@@ -511,9 +511,11 @@ export const simulateClick = (cb) => {
 export const objectFieldChoices = (choices) =>
 	choices.map((choice) => {
 		const label = objectField(choice, "label");
+		const value = objectField(choice, "value");
 		return {
 			tempId: label,
-			label: label,
+			label,
+			value,
 			...(typeof choice == "object" ? choice : {}),
 		};
 	});
@@ -528,6 +530,10 @@ export const objectAsLabelValue = (object) => {
 
 export const shuffle = (array) => {
 	return [...array].sort(() => Math.random() - 0.5);
+};
+
+export const random = (array) => {
+	return shuffle(shuffle(array))[0];
 };
 
 export const camelCaseToSentenceCase = (text) => {

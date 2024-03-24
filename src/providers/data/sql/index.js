@@ -1,5 +1,5 @@
-import initSqlJs from "sql.js";
-import sqliteUrl from "@/assets/sql-wasm.wasm?url";
+// import initSqlJs from "sql.js";
+// import sqliteUrl from "@/assets/sql-wasm.wasm?url";
 
 let SQL;
 const CrotchetSQLCache = {};
@@ -15,10 +15,12 @@ export default class CrotchetSQL {
 		if (CrotchetSQLCache[this.dbUrl]) return CrotchetSQLCache[this.dbUrl];
 
 		if (!SQL) {
-			SQL = await initSqlJs({
-				// locateFile: (file) => `https://sql.js.org/dist/${file}`,
-				locateFile: () => sqliteUrl,
-			});
+			// SQL = await initSqlJs({
+			// 	locateFile: () => sqliteUrl,
+			// });
+			SQL = {
+				Database: () => {},
+			};
 		}
 
 		if (this.dbUrl?.length) {
