@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from "react";
 
 export { useSourceGet, sourceGet } from "@/providers/data";
 export { useState, useEffect, useRef } from "react";
-export { default as useLocalStorageState } from "@/hooks/useLocalStorageState";
+export { default as usePrefsState } from "@/providers/prefs/usePrefsState";
 export { useAppContext } from "@/providers/app";
 export { default as Input } from "@/components/Input";
 export { default as SearchPage } from "@/components/Pages/SearchPage";

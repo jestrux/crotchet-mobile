@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
-import { getPrefs } from "@/hooks/usePrefs";
 import { useOnInit } from "@/crotchet";
+import { getPrefs } from "./pref-utils";
 
 const defaultPreferences = {
 	pinnedApps: [
@@ -11,7 +11,7 @@ const defaultPreferences = {
 	],
 };
 
-export default function useLocalStorageState(key, initialValue) {
+export default function usePrefsState(key, initialValue) {
 	const [loading, setLoading] = useState(!window.__crotchet?.__prefs);
 	const setValueRef = useRef();
 

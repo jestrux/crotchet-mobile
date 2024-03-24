@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { Filesystem } from "@capacitor/filesystem";
 import { App as CapacitorApp } from "@capacitor/app";
-import { onDesktop, useAppContext, useLocalStorageState } from "@/crotchet";
+import { onDesktop, useAppContext, usePrefsState } from "@/crotchet";
 
 const AppScreen = ({ scheme }) => {
 	const { apps } = useAppContext();
@@ -24,7 +24,7 @@ const AppScreen = ({ scheme }) => {
 const App = () => {
 	const { bottomSheets, openPage } = useAppContext();
 	const [currentPage, setCurrentPage] = useState("home");
-	const [pinnedApps] = useLocalStorageState("pinnedApps");
+	const [pinnedApps] = usePrefsState("pinnedApps");
 
 	const listenForShare = async () => {
 		try {
