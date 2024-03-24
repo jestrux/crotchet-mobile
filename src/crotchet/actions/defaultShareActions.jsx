@@ -1,4 +1,5 @@
 import { cleanObject } from "@/crotchet";
+import UseImage from "../apps/UseImage";
 
 const shareSheetSlug = ({ url, image, text }) =>
 	image?.length
@@ -56,7 +57,7 @@ export const share = {
 export const copy = {
 	icon: (
 		<svg fill="currentColor" viewBox="0 0 24 24">
-			<path d="M16 5l-1.42 1.42-1.59-1.59V16h-1.98V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11c0 1.1-.9 2-2 2H6c-1.11 0-2-.9-2-2V10c0-1.11.89-2 2-2h3v2H6v11h12V10h-3V8h3c1.1 0 2 .89 2 2z" />
+			<path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
 		</svg>
 	),
 	context: "share",
@@ -69,13 +70,34 @@ export const copy = {
 export const copyImage = {
 	icon: (
 		<svg fill="currentColor" viewBox="0 0 24 24">
-			<path d="M16 5l-1.42 1.42-1.59-1.59V16h-1.98V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11c0 1.1-.9 2-2 2H6c-1.11 0-2-.9-2-2V10c0-1.11.89-2 2-2h3v2H6v11h12V10h-3V8h3c1.1 0 2 .89 2 2z" />
+			<path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
 		</svg>
 	),
 	context: "share",
 	match: "image",
 	handler: ({ image } = {}, { openUrl }) =>
 		openUrl(`crotchet://copy-image/${image}`),
+};
+
+export const useImage = {
+	icon: (
+		<svg fill="currentColor" viewBox="0 0 24 24">
+			<path d="M2 6H0v5h.01L0 20c0 1.1.9 2 2 2h18v-2H2V6zm20-2h-8l-2-2H6c-1.1 0-1.99.9-1.99 2L4 16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM7 15l4.5-6 3.5 4.51 2.5-3.01L21 15H7z" />
+		</svg>
+	),
+	context: "share",
+	match: "image",
+	handler: ({ image } = {}, { openPage }) => {
+		openPage({
+			fullHeight: false,
+			content: [
+				{
+					type: "custom",
+					value: <UseImage image={image} />,
+				},
+			],
+		});
+	},
 };
 
 export const download = {

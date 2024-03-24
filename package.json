@@ -40,6 +40,7 @@
 		"@tanstack/react-query": "^5.20.5",
 		"airtable": "^0.12.2",
 		"clsx": "^2.1.0",
+		"colorthief": "^2.4.0",
 		"firebase": "^10.7.2",
 		"framer-motion": "^11.0.5",
 		"match-sorter": "^6.3.4",
