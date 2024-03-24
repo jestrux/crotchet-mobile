@@ -1,19 +1,6 @@
 // https://code.tutsplus.com/tutorials/how-to-draw-a-pie-chart-and-doughnut-chart-using-javascript-and-html5-canvas--cms-27197
+import { objectFieldChoices, random } from "@/utils";
 import { chartThemes, dataSets } from "./chart-utils";
-
-export const defaultOptions = {
-	padding: 5,
-	data: dataSets[1],
-	settings: {
-		fontFamily: "Georgia, serif",
-		fontSize: 50,
-		categoryLabel: true,
-		categoryAmount: "%",
-		doughnutHoleSize: 0.35,
-		borders: 6,
-	},
-	colors: chartThemes[0],
-};
 
 export const schema = {
 	data: {
@@ -28,6 +15,11 @@ export const schema = {
 		label: "Chart Properties",
 		collapsed: true,
 		children: {
+			fontFamily: {
+				type: "text",
+				defaultValue: "Georgia, serif",
+				choices: ["Georgia, serif"],
+			},
 			categoryLabel: {
 				type: "radio",
 				inline: true,
@@ -41,12 +33,13 @@ export const schema = {
 						value: true,
 					},
 				],
+				defaultValue: true,
 			},
 			categoryAmount: {
 				type: "radio",
 				inline: true,
-				defaultValue: defaultOptions.settings.categoryAmount,
 				choices: ["hide", "#", "%"],
+				defaultValue: "%",
 			},
 			fontSize: {
 				type: "radio",
@@ -56,7 +49,7 @@ export const schema = {
 					{ label: "md", value: 40 },
 					{ label: "lg", value: 50 },
 				],
-				defaultValue: defaultOptions.settings.fontSize,
+				defaultValue: 50,
 			},
 			doughnutHoleSize: {
 				label: "Donut hole",
@@ -67,7 +60,7 @@ export const schema = {
 					{ label: "md", value: 0.35 },
 					{ label: "lg", value: 0.7 },
 				],
-				defaultValue: defaultOptions.settings.doughnutHoleSize,
+				defaultValue: 0.35,
 			},
 			borders: {
 				type: "radio",
@@ -77,7 +70,7 @@ export const schema = {
 					{ label: "md", value: 3 },
 					{ label: "lg", value: 6 },
 				],
-				defaultValue: defaultOptions.settings.borders,
+				defaultValue: 6,
 			},
 		},
 	},
@@ -88,9 +81,34 @@ export const schema = {
 	},
 };
 
+export const defaultPierChartOptions = {
+	padding: 5,
+	data: dataSets[1],
+	settings: Object.fromEntries(
+		Object.entries(schema.settings.children).map(([key, value]) => [
+			key,
+			value.defaultValue,
+		])
+	),
+	colors: chartThemes[0],
+};
+
+export const randomPierChartOptions = () => {
+	return {
+		data: random(dataSets),
+		settings: Object.fromEntries(
+			Object.entries(schema.settings.children).map(([key, value]) => [
+				key,
+				random(objectFieldChoices(value.choices)).value,
+			])
+		),
+		colors: chartThemes[0],
+	};
+};
+
 class PieChart {
 	constructor(options) {
-		Object.entries(defaultOptions).forEach(([key, value]) => {
+		Object.entries(defaultPierChartOptions).forEach(([key, value]) => {
 			if (options[key] === undefined) options[key] = value;
 		});
 

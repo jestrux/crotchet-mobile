@@ -1,4 +1,5 @@
 // https://code.tutsplus.com/tutorials/how-to-draw-bar-charts-using-javascript-and-html5-canvas--cms-28561
+import { objectFieldChoices, random } from "@/utils";
 import { dataSets, chartThemes as defaultChartThemes } from "./chart-utils";
 
 const chartThemes = structuredClone(defaultChartThemes).map((theme) => {
@@ -6,20 +7,6 @@ const chartThemes = structuredClone(defaultChartThemes).map((theme) => {
 
 	return theme;
 });
-
-export const defaultOptions = {
-	padding: 40,
-	gridColor: "black",
-	data: dataSets[2],
-	settings: {
-		barCorners: 20,
-		gridSpacing: "normal",
-		barSpacing: 20,
-		labels: 25,
-		borders: 2.5,
-	},
-	colors: chartThemes[2],
-};
 
 export const schema = {
 	data: {
@@ -43,6 +30,7 @@ export const schema = {
 					{ label: "md", value: 32.5 },
 					{ label: "lg", value: 40 },
 				],
+				defaultValue: 25,
 			},
 			barCorners: {
 				type: "radio",
@@ -51,6 +39,7 @@ export const schema = {
 					{ label: "flat", value: 0 },
 					{ label: "rounded", value: 20 },
 				],
+				defaultValue: 20,
 			},
 			barSpacing: {
 				type: "radio",
@@ -61,11 +50,13 @@ export const schema = {
 					{ label: "md", value: 40 },
 					{ label: "lg", value: 60 },
 				],
+				defaultValue: 20,
 			},
 			gridSpacing: {
 				type: "radio",
 				inline: true,
 				choices: ["normal", "dense"],
+				defaultValue: "normal",
 			},
 			borders: {
 				type: "radio",
@@ -77,7 +68,7 @@ export const schema = {
 				],
 				// type: "range",
 				inline: true,
-				defaultValue: defaultOptions.borders,
+				defaultValue: 2.5,
 				meta: {
 					min: 0,
 					max: 6,
@@ -94,9 +85,37 @@ export const schema = {
 	},
 };
 
+export const defaultBarChartOptions = {
+	padding: 40,
+	gridColor: "black",
+	data: dataSets[2],
+	settings: Object.fromEntries(
+		Object.entries(schema.settings.children).map(([key, value]) => [
+			key,
+			value.defaultValue,
+		])
+	),
+	colors: chartThemes[2],
+};
+
+export const randomBarChartOptions = () => {
+	return {
+		padding: 40,
+		gridColor: "black",
+		data: random(dataSets),
+		settings: Object.fromEntries(
+			Object.entries(schema.settings.children).map(([key, value]) => [
+				key,
+				random(objectFieldChoices(value.choices)).value,
+			])
+		),
+		colors: chartThemes[2],
+	};
+};
+
 class BarChart {
 	constructor(options) {
-		Object.entries(defaultOptions).forEach(([key, value]) => {
+		Object.entries(defaultBarChartOptions).forEach(([key, value]) => {
 			if (options[key] === undefined) options[key] = value;
 		});
 
