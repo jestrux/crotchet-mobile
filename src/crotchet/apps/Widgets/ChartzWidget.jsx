@@ -10,9 +10,11 @@ import {
 	randomBarChartOptions,
 } from "../Chartz/bar-chart";
 import { ChartDrawer } from "../Chartz/ChartDrawer";
-import { Loader, usePrefsState } from "@/crotchet";
+import { Loader, useAppContext, usePrefsState } from "@/crotchet";
+import ChartComponent from "../Chartz";
 
 export default function ChartzWidget() {
+	const { openPage, openBottomSheet } = useAppContext();
 	const chartzDrawerRef = useRef((data) => {
 		if (!window.chartzDrawer) window.chartzDrawer = new ChartDrawer();
 
@@ -72,7 +74,21 @@ export default function ChartzWidget() {
 	};
 
 	return (
-		<Widget title="Chartz" actions={actions} snoPadding>
+		<Widget
+			title="Chartz"
+			actions={actions}
+			onClick={() => {
+				console.log("Open chartz...");
+				openBottomSheet({
+					// fullHeight: true,
+					// noPadding: true,
+					// noScroll: true,
+					// centerContent: true,
+					// title: props.name,
+					content: <ChartComponent chartType={chartType} />,
+				});
+			}}
+		>
 			<div
 				id="chartzWidgetContent"
 				className="h-full flex flex-col relative"
@@ -115,9 +131,10 @@ export default function ChartzWidget() {
 														type == chartType,
 												}
 											)}
-											onClick={() =>
-												handleSetChartType(type)
-											}
+											onClick={(e) => {
+												e.stopPropagation();
+												handleSetChartType(type);
+											}}
 										>
 											{type}
 										</button>

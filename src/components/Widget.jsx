@@ -269,6 +269,7 @@ const Widget = ({
 	source,
 	content: _content,
 	actionButton,
+	onClick,
 }) => {
 	noScroll = noScroll || _content;
 	const { data, loading, refetch } = useSourceGet(source);
@@ -294,7 +295,10 @@ const Widget = ({
 	const actions = getActions({ data });
 
 	return (
-		<div className="h-full flex flex-col relative text-content/60">
+		<div
+			className="h-full flex flex-col relative text-content/60"
+			{...(typeof onClick == "function" ? { onClick } : {})}
+		>
 			{(icon || title?.length > 0) && (
 				<div className="rounded-t-2xl relative z-30 flex-shrink-0 h-10 flex items-center gap-1.5 px-3.5 bg-content/5">
 					{icon && (

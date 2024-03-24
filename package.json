@@ -19,6 +19,7 @@
 		"desktop:package": "electron-packager ./electron --appname=Crotchet --platform=darwin --arch=x64 --icon=electron/icon.icns --overwrite"
 	},
 	"dependencies": {
+		"@adobe/react-spectrum": "^3.34.1",
 		"@capacitor-community/electron": "^5.0.1",
 		"@capacitor-community/speech-recognition": "^5.0.0",
 		"@capacitor/app": "^5.0.7",

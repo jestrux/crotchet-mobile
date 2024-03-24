@@ -1,14 +1,16 @@
-import useLocalStorageState from "./useLocalStorageState";
+import usePrefsState from "../providers/prefs/usePrefsState";
 
 export default function useDataSchema(
 	key,
 	defaultValue,
 	mainCallback = () => {}
 ) {
-	const keySet = typeof key == "string";
+	const keySet =
+		typeof key == "string" &&
+		(defaultValue == undefined || typeof defaultValue == "function");
 	if (!keySet) defaultValue = key;
 
-	const [data, setData] = useLocalStorageState(
+	const [data, setData] = usePrefsState(
 		keySet ? key : null,
 		defaultValue || {}
 	);

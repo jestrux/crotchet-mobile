@@ -19,3 +19,13 @@ export const gradients = {
 	"New 9": ["#737DFE", "#FFCAC9"],
 	"New 10": ["#2F80ED", "#B2FFDA"],
 };
+
+export const DEFAULT_COLORS = [
+	"#007bff",
+	"#DC3535",
+	"#28a745",
+	"#ffc107",
+	"#ff2e6d",
+	// "black",
+	// "white",
+];
