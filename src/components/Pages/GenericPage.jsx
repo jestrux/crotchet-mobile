@@ -4,6 +4,7 @@ import WidgetWrapper from "../WidgetWrapper";
 import DataFetcher from "@/providers/data/DataFetcher";
 import { getGradient, openUrl } from "@/utils";
 import { useAppContext } from "@/providers/app";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 export default function GenericPage({
 	noPadding = false,
@@ -217,7 +218,9 @@ export default function GenericPage({
 										<DataWidget
 											large
 											{...section}
-											widgetProps={{ noPadding: true }}
+											widgetProps={{
+												noPadding: true,
+											}}
 										/>
 									);
 							} else if (type == "custom") {
@@ -257,7 +260,9 @@ export default function GenericPage({
 										</div>
 									)}
 
-									{content}
+									<ErrorBoundary onReset={dismiss}>
+										{content}
+									</ErrorBoundary>
 								</div>
 							);
 						}

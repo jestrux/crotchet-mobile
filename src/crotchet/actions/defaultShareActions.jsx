@@ -92,6 +92,10 @@ export const useImage = {
 			fullHeight: false,
 			content: [
 				{
+					type: "image",
+					value: image,
+				},
+				{
 					type: "custom",
 					value: <UseImage image={image} />,
 				},
