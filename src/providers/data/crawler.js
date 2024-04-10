@@ -1,3 +1,5 @@
+import { crawlUrl } from "@/utils";
+
 const CrotchetCrawlerCache = {};
 
 export default class CrotchetCrawler {
@@ -17,12 +19,7 @@ export default class CrotchetCrawler {
 		if (CrotchetCrawlerCache[this.url])
 			return CrotchetCrawlerCache[this.url];
 
-		const res = await fetch(
-			`https://us-central1-letterplace-c103c.cloudfunctions.net/api/crawl/${encodeURIComponent(
-				this.url
-			)}`
-		).then((res) => res.json());
-
+		const res = await crawlUrl(this.url);
 		const siteContent = document.createElement("div");
 		siteContent.innerHTML = res.data;
 

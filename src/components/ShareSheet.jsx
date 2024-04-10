@@ -1,5 +1,6 @@
 import {
 	cleanObject,
+	crawlUrl,
 	isValidUrl,
 	randomId,
 	useAppContext,
@@ -97,23 +98,16 @@ export default function ShareSheet({
 		if (isValidUrl(value)) {
 			if (preview && (title || subtitle)) return;
 
-			fetch(
-				`https://us-central1-letterplace-c103c.cloudfunctions.net/api/crawl/${encodeURIComponent(
-					value
-				)}`
-			)
-				.then((res) => res.json())
-				.then((res) => {
-					const { image, title, description } = res.meta || {};
-					const values = cleanObject({
-						preview: content?.preview || image,
-						title: content?.title || title,
+			crawlUrl(value).then((res) => {
+				const { image, title, description } = res.meta || {};
+				setContent(
+					cleanObject({
+						preview: image || content?.preview,
+						title: title || content?.title,
 						subtitle: description,
-					});
-
-					setContent(values);
-				})
-				.catch(() => {});
+					})
+				);
+			});
 
 			return setContent({
 				url: value,
@@ -137,9 +131,9 @@ export default function ShareSheet({
 		return (
 			<div className="flex-1">
 				<PreviewCard
-					image={preview}
-					title={title}
-					description={subtitle || url}
+					image={content.preview}
+					title={content.title}
+					description={content.subtitle || url}
 				/>
 			</div>
 		);

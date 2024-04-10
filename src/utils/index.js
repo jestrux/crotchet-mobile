@@ -235,7 +235,10 @@ export const crawlUrl = async (url) => {
 		)}`
 	).then((res) => res.json());
 
-	if (res?.meta) res.meta.subtitle = res.meta.description;
+	if (res?.meta) {
+		res.meta = cleanObject(res.meta);
+		res.meta.subtitle = res.meta.description;
+	}
 
 	return res;
 };

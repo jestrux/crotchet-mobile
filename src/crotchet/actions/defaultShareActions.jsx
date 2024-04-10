@@ -134,18 +134,22 @@ export const crawlUrl = {
 	),
 	context: "share",
 	match: "url",
-	handler: async ({ open, ...data }, { utils, openPage, showToast }) => {
-		const { url, title, subtitle, preview } = cleanObject(data);
-
-		let payload = {
-			url,
-			image: preview,
-			title,
-			subtitle,
-			description: subtitle,
-		};
-
+	handler: async (
+		{ open = true, ...data },
+		{ utils, openPage, showToast }
+	) => {
 		try {
+			const { url, title, subtitle, description, preview } =
+				cleanObject(data);
+
+			let payload = {
+				url,
+				image: preview,
+				title,
+				subtitle,
+				description: description || subtitle,
+			};
+
 			if (!title?.length && !subtitle?.length && !preview?.length) {
 				let res = await utils.crawlUrl(url);
 
