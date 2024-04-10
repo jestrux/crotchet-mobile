@@ -175,7 +175,9 @@ export const objectTake = (obj = {}, excludedFields = []) => {
 export const cleanObject = (obj = {}) => {
 	return Object.fromEntries(
 		Object.entries(obj).filter(
-			([, value]) => (value ?? "").toString().length
+			([, value]) =>
+				(value ?? "").toString().length &&
+				!["undefined", "false", "0", "null"].includes(value)
 		)
 	);
 };
@@ -224,6 +226,18 @@ export const getShareUrl = (content, type = "text") => {
 	return `crotchet://share-object/${encodeURIComponent(
 		JSON.stringify(content)
 	)}`;
+};
+
+export const crawlUrl = async (url) => {
+	var res = await fetch(
+		`https://us-central1-letterplace-c103c.cloudfunctions.net/api/crawl/${encodeURIComponent(
+			url
+		)}`
+	).then((res) => res.json());
+
+	if (res?.meta) res.meta.subtitle = res.meta.description;
+
+	return res;
 };
 
 export const openUrl = async (path) => {
@@ -310,12 +324,23 @@ export const openUrl = async (path) => {
 	}
 
 	if (path.startsWith("crotchet://action/")) {
-		const scheme = path.replace("crotchet://action/", "");
+		const url = new URL(
+			path.replace("crotchet://action/", "https://crotchet.app/")
+		);
+		const scheme = url.pathname.substring(1).split("/")?.at(0);
+		const params = Object.fromEntries(url.searchParams.entries());
+		const paramValues = Object.values(params);
+		let args;
+
+		if (paramValues.length) {
+			if (paramValues.length == 1 && params.param) args = paramValues[0];
+			else args = params;
+		}
+
 		const action = window.__crotchet.actions[scheme];
+		if (action?.handler) return await action.handler(args);
 
-		if (action?.handler) return await action.handler();
-
-		showToast(`Action ${scheme} not found`);
+		return showToast(`Action ${scheme} not found`);
 	}
 
 	if (path.startsWith("crotchet://app/")) {
@@ -528,6 +553,12 @@ export const objectField = (object, field) => {
 
 export const objectAsLabelValue = (object) => {
 	return Object.entries(object).map(([label, value]) => ({ label, value }));
+};
+
+export const objectToQueryParams = (obj = {}) => {
+	const url = new URL("https://crotchet.app/");
+	Object.keys(obj).forEach((key) => url.searchParams.set(key, obj[key]));
+	return url.searchParams.toString();
 };
 
 export const shuffle = (array) => {
