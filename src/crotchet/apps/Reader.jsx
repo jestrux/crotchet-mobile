@@ -6,6 +6,8 @@ import {
 	registerAction,
 	getShareUrl,
 } from "@/crotchet";
+import { db } from "@/providers/data/firebase";
+import { addDoc, collection, getDocs } from "firebase/firestore";
 
 registerDataSource("firebase", "reader", {
 	collection: "reader",
@@ -57,10 +59,37 @@ registerAction("addToReadingList", {
 		</svg>
 	),
 	handler: async (
-		{ preview, image, title, subtitle, url },
-		{ showToast }
+		{ preview, title, subtitle, url },
+		{ utils, openUrl, showToast }
 	) => {
-		showToast("Add to reader: " + (title || url));
+		var payload = await openUrl(
+			`crotchet://action/crawlUrl?${utils.objectToQueryParams({
+				preview,
+				title,
+				subtitle,
+				url,
+				open: false,
+			})}`
+		);
+
+		if (!payload?.title) return showToast("Nothing to add");
+
+		try {
+			const collectionRef = collection(db, "reader");
+			const entries = (await getDocs(collectionRef)).docs;
+
+			await addDoc(collectionRef, {
+				...(payload ?? {}),
+				index: (entries?.length ?? 0) + 1,
+				group: "🌎 General",
+				createdAt: new Date(),
+			});
+
+			showToast(`${payload.title || "Entry"} Added `);
+		} catch (error) {
+			showToast(`Failed to add ${payload.title}`);
+			console.log(error);
+		}
 	},
 });
 
