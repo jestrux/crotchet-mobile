@@ -139,8 +139,14 @@ export const crawlUrl = {
 		{ utils, openPage, showToast }
 	) => {
 		try {
-			const { url, title, subtitle, description, preview } =
-				cleanObject(data);
+			const {
+				url,
+				title,
+				subtitle,
+				description,
+				preview,
+				data: responseData,
+			} = cleanObject(data);
 
 			let payload = {
 				url,
@@ -148,6 +154,7 @@ export const crawlUrl = {
 				title,
 				subtitle,
 				description: description || subtitle,
+				data: responseData,
 			};
 
 			if (!title?.length && !subtitle?.length && !preview?.length) {
@@ -158,16 +165,32 @@ export const crawlUrl = {
 				payload = {
 					...payload,
 					...res.meta,
+					data: res.data,
 				};
 			}
 
 			if (!open || open == "false") return payload;
 
+			console.log("Data: ", payload);
+
 			return openPage({
 				title: "Crawl Url",
 				subtitle: url,
 				fullHeight: false,
-				content: [{ type: "preview", value: payload }],
+				content: [
+					{ type: "preview", value: payload },
+					{
+						type: "custom",
+						value: (
+							<div
+								className="bg-red-500 min-h-40"
+								dangerouslySetInnerHTML={{
+									__html: payload.data,
+								}}
+							></div>
+						),
+					},
+				],
 			});
 		} catch (error) {
 			console.log("Crawl error: ", error);

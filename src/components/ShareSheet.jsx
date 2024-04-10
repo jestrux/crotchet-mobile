@@ -96,8 +96,6 @@ export default function ShareSheet({
 		if (!value) return;
 
 		if (isValidUrl(value)) {
-			if (preview && (title || subtitle)) return;
-
 			crawlUrl(value).then((res) => {
 				const { image, title, description } = res.meta || {};
 				setContent(
@@ -105,9 +103,12 @@ export default function ShareSheet({
 						preview: image || content?.preview,
 						title: title || content?.title,
 						subtitle: description,
+						data: res.data,
 					})
 				);
 			});
+
+			if (preview && (title || subtitle)) return;
 
 			return setContent({
 				url: value,
