@@ -6,8 +6,8 @@ import {
 	useOnInit,
 } from "@/crotchet";
 import BottomNavAction from "./BottomNavAction";
-import clsx from "clsx";
 import { useState } from "react";
+import PreviewCard from "./PreviewCard";
 
 export default function ShareSheet({
 	dismiss,
@@ -135,34 +135,12 @@ export default function ShareSheet({
 		if (!content) return <div>&nbsp;</div>;
 
 		return (
-			<div className="flex-1 flex items-center gap-3">
-				{content.preview?.length > 0 && (
-					<div
-						className="border border-content/10 flex-shrink-0 h-10 w-14 bg-content/5 rounded-md bg-cover bg-center"
-						style={{
-							backgroundImage: `url(${content.preview})`,
-						}}
-					></div>
-				)}
-
-				<div className="flex-1">
-					{content.title?.length > 0 && (
-						<h3 className="text-sm text-content line-clamp-1">
-							{content.title}
-						</h3>
-					)}
-
-					<p
-						className={clsx(
-							"text-content/50",
-							content.title?.length > 0
-								? "text-xs line-clamp-1"
-								: "text-xs/relaxed line-clamp-2"
-						)}
-					>
-						{content.subtitle || content.url}
-					</p>
-				</div>
+			<div className="flex-1">
+				<PreviewCard
+					image={preview}
+					title={title}
+					description={subtitle || url}
+				/>
 			</div>
 		);
 	};

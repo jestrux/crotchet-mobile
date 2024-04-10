@@ -5,6 +5,7 @@ import DataFetcher from "@/providers/data/DataFetcher";
 import { getGradient, openUrl } from "@/utils";
 import { useAppContext } from "@/providers/app";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import PreviewCard from "../PreviewCard";
 
 export default function GenericPage({
 	noPadding = false,
@@ -223,6 +224,12 @@ export default function GenericPage({
 											}}
 										/>
 									);
+							} else if (type == "preview") {
+								content = (
+									<div className="relative p-1 bg-content/5 border border-content/10 rounded-md overflow-hidden">
+										<PreviewCard {...section.value} />
+									</div>
+								);
 							} else if (type == "custom") {
 								content = section.value;
 							} else {
