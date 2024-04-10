@@ -7,6 +7,7 @@ import {
 	showToast,
 	onDesktop,
 	openUrl,
+	utils,
 	registerDataSource,
 	socketEmit,
 } from "@/crotchet";
@@ -50,6 +51,7 @@ const AppContext = createContext({
 	copyImage: (url) => {},
 	// eslint-disable-next-line no-unused-vars
 	openUrl: (path) => {},
+	utils: {},
 	// eslint-disable-next-line no-unused-vars
 	socketEmit: (event, data) => {},
 	socketConnected: () => {},
@@ -246,6 +248,7 @@ export default function AppProvider({ children }) {
 		copyToClipboard,
 		copyImage,
 		openUrl,
+		utils,
 		socket: ({ retry = false, silent = false } = {}) => {
 			if (!socket.current?.connected && retry) {
 				return getSocket()

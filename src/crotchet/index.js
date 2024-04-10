@@ -27,6 +27,8 @@ export { default as Loader } from "@/components/Loader";
 
 export * from "@/utils";
 
+export * as utils from "@/utils";
+
 export const useOnInit = (callback) => {
 	const initialized = useRef(false);
 
