@@ -19,4 +19,8 @@ module.exports = {
 			{ allowConstantExport: true },
 		],
 	},
+	globals: {
+		_: "readonly",
+		__crotchet: "readonly",
+	},
 };
