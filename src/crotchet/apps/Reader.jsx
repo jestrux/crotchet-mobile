@@ -5,6 +5,7 @@ import {
 	registerDataSource,
 	registerAction,
 	getShareUrl,
+	registerActionSheet,
 } from "@/crotchet";
 import { db } from "@/providers/data/firebase";
 import { addDoc, collection, getDocs } from "firebase/firestore";
@@ -28,15 +29,14 @@ registerDataSource("firebase", "reader", {
 			title: item.title || "Untitled",
 			subtitle: item.description,
 			tags: [item.group],
-			share: getShareUrl(
-				{
-					preview: item.image,
-					title: item.name,
-					subtitle: item.description,
-					url: item.url,
-				},
-				"object"
-			),
+			share: getShareUrl({
+				scheme: "reader",
+				state: item,
+				url: item.url,
+				preview: item.image,
+				title: item.name,
+				subtitle: item.description,
+			}),
 		};
 	},
 });
@@ -92,6 +92,14 @@ registerAction("addToReadingList", {
 		}
 	},
 });
+
+registerActionSheet(
+	"reader",
+	[{ label: "Open reader", url: "crotchet://app/youtubeClips" }]
+	// async (payload = {}) => {
+	// 	console.log("Reader sheet: ");
+	// }
+);
 
 registerApp("reader", () => {
 	return {

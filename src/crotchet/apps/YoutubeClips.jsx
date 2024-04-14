@@ -12,6 +12,7 @@ import {
 	showToast,
 	toHms,
 	useAppContext,
+	objectToQueryParams,
 } from "@/crotchet";
 
 const YoutubePlayer = ({ _id, crop, duration, width, height, ...props }) => {
@@ -113,7 +114,7 @@ const getYoutubeId = (url) => {
 };
 
 const getYoutubeClipUrl = (clip) =>
-	`crotchet://app/youtubeClips?${new URLSearchParams(clip).toString()}`;
+	`crotchet://app/youtubeClips?${objectToQueryParams(clip)}`;
 
 registerDataSource("firebase", "youtubeClips", {
 	label: "Youtube Clips",
@@ -127,14 +128,13 @@ registerDataSource("firebase", "youtubeClips", {
 		subtitle: `${[entry.crop?.[0], entry.crop?.[1]]
 			?.map(toHms)
 			.join(", ")} - ${toHms(entry.duration)}`,
-		share: getShareUrl(
-			{
-				preview: `https://i.ytimg.com/vi/${entry._id}/hqdefault.jpg`,
-				title: entry.name,
-				url: getYoutubeClipUrl(entry),
-			},
-			"object"
-		),
+		share: getShareUrl({
+			scheme: "youtubeClips",
+			state: entry,
+			url: entry.url,
+			preview: `https://i.ytimg.com/vi/${entry._id}/hqdefault.jpg`,
+			title: entry.name,
+		}),
 		url: getYoutubeClipUrl(entry),
 	}),
 	searchFields: ["title"],
@@ -150,7 +150,8 @@ registerAction("getRandomYoutubeClip", {
 registerAction("addToYoutubeClips", {
 	context: "share",
 	icon: appIcon,
-	match: ({ url }) => url?.toString().length && getYoutubeId(url),
+	match: ({ scheme, url }) =>
+		scheme != "youtubeClips" && url?.toString().length && getYoutubeId(url),
 	handler: async ({ url }, { showToast }) => {
 		showToast("Added youtube clip: " + url);
 	},
@@ -159,11 +160,10 @@ registerAction("addToYoutubeClips", {
 registerAction("editClip", {
 	context: "share",
 	icon: appIcon,
-	match: ({ url }) =>
-		url?.toString().startsWith("crotchet://app/youtubeClips"),
-	handler: ({ url }) =>
+	match: ({ scheme, state }) => scheme == "youtubeClips" && state._id,
+	handler: ({ state }) =>
 		openUrl(
-			url.replace(
+			getYoutubeClipUrl(state).replace(
 				"crotchet://app/youtubeClips",
 				"crotchet://app/youtubeClips/edit/"
 			)
@@ -174,11 +174,10 @@ registerAction("playOnDesktop", {
 	context: "share",
 	icon: appIcon,
 	mobileOnly: true,
-	match: ({ url }) =>
-		url?.toString().startsWith("crotchet://app/youtubeClips"),
-	handler: ({ url }) =>
+	match: ({ scheme, state }) => scheme == "youtubeClips" && state._id,
+	handler: ({ state }) =>
 		openUrl(
-			url.replace(
+			getYoutubeClipUrl(state).replace(
 				"crotchet://app/youtubeClips",
 				"crotchet://app/youtubeClips/desktop/"
 			)
