@@ -44,6 +44,7 @@
 		"color.js": "^1.2.0",
 		"firebase": "^10.7.2",
 		"framer-motion": "^11.0.5",
+		"lodash": "^4.17.21",
 		"match-sorter": "^6.3.4",
 		"on-change": "^5.0.1",
 		"react": "^18.2.0",
