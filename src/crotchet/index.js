@@ -67,7 +67,7 @@ export const onActionClick = (
 			else if (typeof action == "string")
 				return await Promise.resolve(openUrl(action));
 		} catch (error) {
-			//
+			console.log("Action click error: ", error);
 		}
 
 		return null;
@@ -201,7 +201,7 @@ export const registerAction = (name, action) => {
 		(_label || name).replace("-", " ").replace("_", " ")
 	);
 
-	const handler = (payload) => _handler(payload, window.__crotchet);
+	const handler = (payload) => _handler(payload ?? {}, window.__crotchet);
 
 	window.__crotchet.actions[name] = {
 		_id: randomId(),
@@ -248,5 +248,44 @@ export const registerApp = (scheme, _app) => {
 		name: camelCaseToSentenceCase(name.replace("-", " ").replace("_", " ")),
 		load: (payload = {}) => load(payload, window.__crotchet),
 		...appProps,
+	};
+};
+
+export const registerActionSheet = (name, props) => {
+	const _handler = (...args) => {
+		if (_.isArray(props)) {
+			return {
+				actions: props,
+			};
+		}
+
+		if (_.isFunction(props)) return props(...args);
+
+		return props;
+	};
+
+	const handler = async (payload) => {
+		let changeHander = (props) => {
+			console.log("Sheet data changed: ", props);
+		};
+
+		const props = await Promise.resolve(
+			_handler(payload, window.__crotchet, (data) => changeHander(data))
+		);
+
+		const onChange = (callback) => {
+			if (typeof callback == "function") changeHander = callback;
+		};
+
+		return window.__crotchet.openActionSheet(
+			{ ...(payload || {}), ...(props || {}) },
+			onChange
+		);
+	};
+
+	window.__crotchet.actionSheets[name] = {
+		_id: randomId(),
+		name,
+		handler,
 	};
 };

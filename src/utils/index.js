@@ -215,7 +215,7 @@ export const onDesktop = () => document.body.classList.contains("on-electron");
 export const getShareUrl = (content, type = "text") => {
 	if (!content) return "";
 
-	if (type != "object") {
+	if (type != "object" && !_.isObject(content)) {
 		if (!content?.length) return "";
 
 		if (type == "text") return `crotchet://share-url/${content}`;
@@ -244,6 +244,8 @@ export const crawlUrl = async (url) => {
 };
 
 export const openUrl = async (path) => {
+	console.log("Open url: ", path);
+
 	if (path.startsWith("crotchet://download/")) {
 		console.log("Download:", path.replace("crotchet://download/", ""));
 		showToast("Download:", path.replace("crotchet://download/", ""));
@@ -291,8 +293,23 @@ export const openUrl = async (path) => {
 		return;
 	}
 
+	if (path.startsWith("crotchet://action-sheet/")) {
+		const url = new URL(
+			path.replace("crotchet://action-sheet/", "https://crotchet.app/")
+		);
+		const scheme = url.pathname.substring(1).split("/")?.at(0);
+
+		const sheet = __crotchet.actionSheets[scheme];
+
+		if (!sheet?.handler) return showToast(`Sheet ${scheme} not found!`);
+
+		return sheet.handler(Object.fromEntries(url.searchParams.entries()));
+	}
+
 	if (path.startsWith("crotchet://share")) {
-		const share = window.__crotchet.openShareSheet;
+		const share = (payload) => {
+			return __crotchet.actionSheets.share.handler(payload);
+		};
 
 		if (path.startsWith("crotchet://share-object/")) {
 			share(

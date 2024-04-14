@@ -10,4 +10,5 @@ Object.assign(window.__crotchet, {
 		"home",
 		"reader",
 	],
+	actionSheets: {},
 });

@@ -10,13 +10,14 @@ import {
 	utils,
 	registerDataSource,
 	socketEmit,
+	getShareUrl,
 } from "@/crotchet";
 import GenericPage from "@/components/Pages/GenericPage";
 import SearchPage from "@/components/Pages/SearchPage";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "./firebaseApp";
 import { io } from "socket.io-client";
-import ShareSheet from "@/components/ShareSheet";
+import ActionSheet from "@/components/ActionSheet";
 
 const AppContext = createContext({
 	dataSources: {},
@@ -29,6 +30,8 @@ const AppContext = createContext({
 	openBottomSheet: ({ title, subtitle, content, fullHeight } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
 	openShareSheet: ({ text, image, url } = {}) => {},
+	// eslint-disable-next-line no-unused-vars
+	openActionSheet: ({ actions, ...payload } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
 	openPage: ({ image, title, subtitle, content = [], source } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
@@ -172,19 +175,28 @@ export default function AppProvider({ children }) {
 		image,
 		text,
 		download,
+		...props
 	} = {}) =>
+		openUrl(
+			getShareUrl({
+				preview,
+				title,
+				subtitle,
+				url,
+				image,
+				text,
+				download,
+				...props,
+			})
+		);
+
+	const openActionSheet = ({ actions, ...payload }, onChange) =>
 		openBottomSheet({
 			content: (
-				<ShareSheet
-					{...{
-						preview,
-						title,
-						subtitle,
-						url,
-						image,
-						text,
-						download,
-					}}
+				<ActionSheet
+					actions={actions}
+					payload={payload}
+					onChange={onChange}
 				/>
 			),
 		});
@@ -234,6 +246,7 @@ export default function AppProvider({ children }) {
 		bottomSheets,
 		openBottomSheet,
 		openShareSheet,
+		openActionSheet,
 		openPage,
 		openSearchPage,
 		user: {
