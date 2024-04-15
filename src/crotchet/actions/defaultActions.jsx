@@ -1,7 +1,6 @@
 import { firebaseUploadFile } from "@/providers/data/firebase/useFirebase";
 import {
 	isValidUrl,
-	openUrl,
 	readClipboard,
 	showToast,
 	WidgetWrapper,
@@ -49,17 +48,26 @@ export const remote = {
 export const clipboard = {
 	global: true,
 	mobileOnly: true,
-	handler: async () => {
+	handler: async (_, { openShareSheet }) => {
 		const { type, value } = await readClipboard();
 
 		if (!value?.length) return showToast("Nothing in clipboard");
 
+		let payload = {
+			text: value,
+		};
+
 		if (type.includes("image"))
-			return openUrl(`crotchet://share-image/${value}`);
+			payload = {
+				image: value,
+			};
 
-		if (isValidUrl(value)) return openUrl(`crotchet://share-url/${value}`);
+		if (isValidUrl(value))
+			payload = {
+				url: value,
+			};
 
-		return openUrl(`crotchet://share/${value}`);
+		return openShareSheet(payload);
 	},
 };
 

@@ -8,7 +8,7 @@ export default function ActionSheet({
 	// preview: _preview,
 	// mainActions = [],
 	actions: _actions = [],
-	onChange,
+	onChange = () => {},
 	payload = {},
 }) {
 	const [sheetProps, setSheetProps] = useState({

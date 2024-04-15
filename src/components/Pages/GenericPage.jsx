@@ -43,6 +43,47 @@ export default function GenericPage({
 		>
 			<div
 				className={clsx(
+					"sticky top-0 z-10 flex items-center justify-between gap-2",
+					!noPadding ? "-mt-6 translate-x-2" : ""
+				)}
+			>
+				{headingSet && (
+					<div className="flex-1">
+						{title && (
+							<h3 className="text-lg/none font-bold first-letter:uppercase">
+								{title}
+							</h3>
+						)}
+
+						{subtitle && (
+							<p className="mt-1 text-sm/none text-content/80 line-clamp-3">
+								{subtitle}
+							</p>
+						)}
+					</div>
+				)}
+
+				<button
+					className="bg-content/5 border border-content/5 size-7 flex items-center justify-center rounded-full"
+					onClick={dismiss}
+				>
+					<svg
+						className="w-3.5"
+						fill="none"
+						viewBox="0 0 24 24"
+						strokeWidth="1.5"
+						stroke="currentColor"
+					>
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							d="M6 18 18 6M6 6l12 12"
+						></path>
+					</svg>
+				</button>
+			</div>
+			{/* <div
+				className={clsx(
 					"sticky top-0 z-10 flex items-center justify-end pointer-events-none",
 					!noPadding ? "-translate-y-6 translate-x-2" : ""
 				)}
@@ -135,7 +176,7 @@ export default function GenericPage({
 						)}
 					</div>
 				</div>
-			)}
+			)} */}
 
 			<div
 				className={clsx("flex-1 flex flex-col gap-4", {

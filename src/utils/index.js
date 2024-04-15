@@ -469,8 +469,11 @@ export const readClipboard = async () => {
 	}
 };
 
-export const copyToClipboard = (content, { withToast = true } = {}) => {
-	const message = content.length < 10 ? `${content} copied` : "Copied";
+export const copyToClipboard = (
+	content,
+	{ withToast = true, message } = {}
+) => {
+	message = message || (content.length < 10 ? `${content} copied` : "Copied");
 
 	if (onDesktop()) {
 		socketEmit("copy", content);
@@ -495,7 +498,7 @@ export const copyFromUrl = async (url, { withToast = true } = {}) => {
 	);
 };
 
-const fetchImage = async (url) => {
+export const fetchImage = async (url) => {
 	const blob = await fetch(url).then((response) => response.blob());
 
 	return new Promise((resolve) => {
