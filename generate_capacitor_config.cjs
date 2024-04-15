@@ -41,8 +41,8 @@ const capacitorConfig = {
 };
 
 if (process.env.NODE_ENV == "dev") {
-	capacitorConfig.server.url = getIp() + ":5173";
-	// capacitorConfig.server.cleartext = true;
+	capacitorConfig.server.url = `http://${getIp()}:5173`;
+	capacitorConfig.server.cleartext = true;
 }
 
 const configPath = path.resolve(__dirname, "capacitor.config.json");
