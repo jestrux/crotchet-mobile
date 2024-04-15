@@ -1,6 +1,25 @@
+import { randomId } from "@/utils";
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import {
+	Timestamp,
+	addDoc,
+	collection,
+	doc,
+	getCountFromServer,
+	getDoc,
+	getDocs,
+	getFirestore,
+	orderBy,
+	query,
+	setDoc,
+	where,
+} from "firebase/firestore";
+import {
+	getStorage,
+	ref,
+	getDownloadURL,
+	uploadString,
+} from "firebase/storage";
 
 // Cors for firebase storage
 // https://stackoverflow.com/questions/71193348/firebase-storage-access-to-fetch-at-has-been-blocked-by-cors-policy-no-ac
@@ -20,3 +39,76 @@ export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const storage = getStorage();
 export const getFileUrl = (url) => getDownloadURL(ref(storage, url));
+export const queryDb = async (table, { orderBy: _orderBy, filter } = {}) => {
+	if (filter && _.isObject(filter)) filter = _.first(Object.entries(filter));
+
+	const params = [
+		collection(db, table),
+		...(filter
+			? [where(filter[0], "==", filter[1]), orderBy(filter[0])]
+			: []),
+		...(_orderBy ? [orderBy(..._orderBy.split(","))] : []),
+	];
+
+	const res = await getDocs(query(...params));
+
+	return res.docs.map((doc) => {
+		return {
+			_id: doc.ref.id,
+			...doc.data(),
+		};
+	});
+};
+
+export const dbInsert = async (table, data, rowId) => {
+	if (!_.isObject(data)) {
+		data = {
+			text: data,
+		};
+	}
+
+	data.createdAt = Timestamp.fromDate(new Date());
+	data.updatedAt = Timestamp.fromDate(new Date());
+
+	const tablePath = ["__crotchet", "__db", table];
+	const tableRef = collection(db, ...tablePath);
+	let rowRef;
+
+	if (rowId) {
+		rowRef = doc(db, ...tablePath, rowId);
+		await setDoc(rowRef, data);
+	} else rowRef = await addDoc(tableRef, data);
+
+	const res = await getDoc(rowRef);
+
+	getCountFromServer(tableRef).then((snapshot) => {
+		setDoc(rowRef, { _index: snapshot.data().count }, { merge: true });
+	});
+
+	return res;
+};
+
+export const dbUpdate = async (table, rowId, data, { merge = true } = {}) => {
+	if (!_.isObject(data)) {
+		data = {
+			text: data,
+		};
+	}
+
+	data.updatedAt = Timestamp.fromDate(new Date());
+
+	const rowRef = doc(db, "__crotchet", "__db", table, rowId);
+
+	await setDoc(rowRef, data, { merge });
+
+	return await getDoc(rowRef);
+};
+
+export const uploadDataUrl = async (content) => {
+	const { ref: fileRef } = await uploadString(
+		ref(storage, "crotchet-uploads/file-" + randomId()),
+		content,
+		"data_url"
+	);
+	return await getDownloadURL(fileRef);
+};

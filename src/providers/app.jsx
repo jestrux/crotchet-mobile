@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { uploadDataUrl, dbInsert } from "@/providers/firebaseApp";
 import BottomSheet from "@/components/BottomSheet";
 import {
 	copyToClipboard,
@@ -10,7 +11,6 @@ import {
 	utils,
 	registerDataSource,
 	socketEmit,
-	getShareUrl,
 } from "@/crotchet";
 import GenericPage from "@/components/Pages/GenericPage";
 import SearchPage from "@/components/Pages/SearchPage";
@@ -55,6 +55,10 @@ const AppContext = createContext({
 	// eslint-disable-next-line no-unused-vars
 	openUrl: (path) => {},
 	utils: {},
+	// eslint-disable-next-line no-unused-vars
+	uploadDataUrl: (content) => {},
+	// eslint-disable-next-line no-unused-vars
+	dbInsert: (table, data) => {},
 	// eslint-disable-next-line no-unused-vars
 	socketEmit: (event, data) => {},
 	socketConnected: () => {},
@@ -173,22 +177,22 @@ export default function AppProvider({ children }) {
 		subtitle,
 		url,
 		image,
+		file,
 		text,
 		download,
 		...props
 	} = {}) =>
-		openUrl(
-			getShareUrl({
-				preview,
-				title,
-				subtitle,
-				url,
-				image,
-				text,
-				download,
-				...props,
-			})
-		);
+		__crotchet.actionSheets.share.handler({
+			preview,
+			title,
+			subtitle,
+			url,
+			image,
+			file,
+			text,
+			download,
+			...props,
+		});
 
 	const openActionSheet = ({ actions, ...payload }, onChange) =>
 		openBottomSheet({
@@ -261,6 +265,8 @@ export default function AppProvider({ children }) {
 		copyToClipboard,
 		copyImage,
 		openUrl,
+		uploadDataUrl,
+		dbInsert,
 		utils,
 		socket: ({ retry = false, silent = false } = {}) => {
 			if (!socket.current?.connected && retry) {

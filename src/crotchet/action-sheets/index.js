@@ -21,7 +21,16 @@ registerActionSheet(
 		};
 
 		const getShareActions = () => {
-			const { image, url, text, download, scheme, state = {} } = content;
+			const {
+				image,
+				file,
+				url,
+				text,
+				download,
+				incoming,
+				scheme,
+				state = {},
+			} = content;
 			return Object.entries(actions).reduce((agg, [name, action]) => {
 				if (
 					action.context != "share" ||
@@ -29,13 +38,15 @@ registerActionSheet(
 				)
 					return agg;
 
-				let matches = Object.keys(cleanObject(url, text)).length > 0;
+				let matches =
+					Object.keys(cleanObject(image, url, file, text)).length > 0;
 
 				const match = action.match;
 
 				if (_.isFunction(match)) {
 					matches = match({
 						image,
+						file,
 						url,
 						text,
 						download,
@@ -43,10 +54,11 @@ registerActionSheet(
 						state,
 					});
 				} else if (
-					["image", "url", "text", "download"].includes(match)
+					["image", "file", "url", "text", "download"].includes(match)
 				) {
 					matches = {
 						image,
+						file,
 						url,
 						text,
 						download,
@@ -55,12 +67,15 @@ registerActionSheet(
 
 				if (!matches) return agg;
 
+				const isMain = mainActionNames.includes(name);
+
+				if (isMain && incoming) return agg;
+
 				return [
 					...agg,
 					{
 						...action,
-						main: mainActionNames.includes(name),
-						// handler: () => action.handler(content),
+						main: isMain,
 					},
 				];
 			}, []);
@@ -72,7 +87,9 @@ registerActionSheet(
 			if (image?.length) {
 				return setContent({
 					preview: image,
-					subtitle: subtitle || image,
+					...(!subtitle && !image.startsWith("data:")
+						? { subtitle: image }
+						: {}),
 				});
 			}
 

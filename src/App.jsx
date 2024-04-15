@@ -22,76 +22,68 @@ const AppScreen = ({ scheme }) => {
 };
 
 const App = () => {
-	const { bottomSheets, openPage } = useAppContext();
+	const { bottomSheets, openShareSheet } = useAppContext();
 	const [currentPage, setCurrentPage] = useState("home");
 	const [pinnedApps] = usePrefsState("pinnedApps");
 
 	const listenForShare = async () => {
 		try {
 			const result = await SendIntent.checkSendIntentReceived();
-			if (result?.url) {
-				let resultUrl = decodeURIComponent(result.url);
-				Filesystem.readFile({ path: resultUrl })
-					.then(async (content) => {
-						if (
-							result.type.includes("jpg") ||
-							result.type.includes("png")
-						) {
-							const image = `data:${decodeURIComponent(
-								result.type
-							).replace("application", "image")};base64,${
-								content.data
-							}`;
+			if (!result.url) return;
 
-							openPage({
-								// image: "https://images.unsplash.com/photo-1707343848655-a196bfe88861?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxNjE2NXwxfDF8YWxsfDF8fHx8fHwyfHwxNzA4MjQ3MzYwfA&ixlib=rb-4.0.3&q=80&w=1080",
-								image: "gradient",
-								gradient: "Butterbeer",
-								title: "Yo! Check this thing out 🔥",
-								content: [
-									{
-										type: "text",
-										value: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusantium, animi? Iusto sapiente voluptatibus enim non quis est ipsum impedit quia tempore",
-									},
-									{
-										type: "image",
-										// cropped: false,
-										value: image,
-									},
-									{
-										type: "text",
-										value: "Quas dolorem dolor voluptate eveniet sequi, deserunt voluptates! Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusantium, animi? Iusto sapiente voluptatibus enim non quis est ipsum impedit quia tempore consequatur?",
-									},
-								],
-							});
-						}
-						// console.log(content.data);
-					})
-					.catch((err) => alert(JSON.stringify(err)));
-			} else if (result?.title?.length) {
-				// handleAddEntry({
-				// 	url: decodeURIComponent(result.title),
-				// 	fromShareSheet: true,
-				// });
-				// alert(JSON.stringify(result));
+			let resultUrl = decodeURIComponent(result.url);
+			let [, resultType] = decodeURIComponent(result.type).split("/");
+			let payload = {
+				incoming: true,
+			};
+
+			if (resultType == "plain") payload.url = resultUrl;
+			else if (["jpg", "png"].includes(resultType)) {
+				payload.title = resultUrl.split("/").at(-1).split(".").at(0);
+				payload.subtitle = `image/${resultType}`;
+				payload.image = await Filesystem.readFile({
+					path: resultUrl,
+				}).then(
+					async (content) =>
+						`data:image/${resultType};base64,${content.data}`
+				);
+			} else if (["pdf"].includes(resultType)) {
+				payload.title = resultUrl.split("/").at(-1).split(".").at(0);
+				payload.subtitle = `document/${resultType}`;
+				payload.file = await Filesystem.readFile({
+					path: resultUrl,
+				}).then(
+					async (content) =>
+						`data:application/${resultType};base64,${content.data}`
+				);
 			}
+
+			if (payload.url || payload.image || payload.file)
+				openShareSheet(payload);
 		} catch (error) {
-			// alert("Share process failed: ", error);
+			// alert("Share error: " + error);
 		}
 	};
 
+	// eslint-disable-next-line no-unused-vars
 	const listenForOpen = () => {
 		CapacitorApp.addListener("appUrlOpen", (event) => {
 			const slug = event.url.split("/app").pop();
 			if (slug) {
-				// alert("App: " + slug);
-				alert("App: " + JSON.stringify(new URL(slug)));
+				alert(
+					"App: " +
+						JSON.stringify(
+							Object.fromEntries(
+								new URL(slug).searchParams.entries()
+							)
+						)
+				);
 			}
 		});
 	};
 
 	useEffect(() => {
-		listenForOpen();
+		// listenForOpen();
 
 		listenForShare();
 
@@ -106,6 +98,7 @@ const App = () => {
 
 			CapacitorApp.removeAllListeners();
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	const BottomNavPlaceholder = () => {
