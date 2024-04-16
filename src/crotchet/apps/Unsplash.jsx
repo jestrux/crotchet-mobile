@@ -5,6 +5,12 @@ import {
 	shuffle,
 } from "@/crotchet";
 
+const unsplashIcon = (
+	<svg viewBox="0 0 24 24" fill="currentColor">
+		<path d="M7.5 6.75V0h9v6.75h-9zm9 3.75H24V24H0V10.5h7.5v6.75h9V10.5z" />
+	</svg>
+);
+
 const randomSearchQuery = () =>
 	shuffle(
 		shuffle([
@@ -46,12 +52,14 @@ registerDataSource("unsplash", "unsplash", {
 });
 
 registerAction("searchUnsplash", {
-	global: true,
+	// global: true,
 	url: `crotchet://search/unsplash?q=${randomSearchQuery()}&layout=masonry&columns=sm:2,2xl:3,4xl:4`,
 	tags: ["image", "search"],
 });
 
 registerAction("getRandomPicture", {
+	label: "Random Pic",
+	icon: unsplashIcon,
 	global: true,
 	handler: async (_, { copyImage, dataSources, showToast }) => {
 		try {

@@ -141,6 +141,7 @@ registerDataSource("firebase", "youtubeClips", {
 });
 
 registerAction("getRandomYoutubeClip", {
+	label: "Random Clip",
 	global: true,
 	icon: appIcon,
 	handler: async (_, { dataSources }) =>
