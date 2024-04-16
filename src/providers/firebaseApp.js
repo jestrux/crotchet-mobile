@@ -4,6 +4,7 @@ import {
 	Timestamp,
 	addDoc,
 	collection,
+	collectionGroup,
 	doc,
 	getCountFromServer,
 	getDoc,
@@ -39,11 +40,15 @@ export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const storage = getStorage();
 export const getFileUrl = (url) => getDownloadURL(ref(storage, url));
+export const getDbTables = async () => {
+	const res = await getDocs(collectionGroup(db, "dbModel"));
+	return res.docs.map((doc) => doc.ref.id);
+};
 export const queryDb = async (table, { orderBy: _orderBy, filter } = {}) => {
 	if (filter && _.isObject(filter)) filter = _.first(Object.entries(filter));
 
 	const params = [
-		collection(db, table),
+		collection(db, "__db", table, "data"),
 		...(filter
 			? [where(filter[0], "==", filter[1]), orderBy(filter[0])]
 			: []),
@@ -70,7 +75,15 @@ export const dbInsert = async (table, data, rowId) => {
 	data.createdAt = Timestamp.fromDate(new Date());
 	data.updatedAt = Timestamp.fromDate(new Date());
 
-	const tablePath = ["__crotchet", "__db", table];
+	const tablePath = ["__db", table, "data"];
+	const modelRef = doc(db, "__db", table, "dbModel", table);
+	getDoc(modelRef).then((doc) => {
+		if (!doc.exists()) {
+			setDoc(modelRef, {
+				name: table,
+			});
+		}
+	});
 	const tableRef = collection(db, ...tablePath);
 	let rowRef;
 
