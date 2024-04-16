@@ -47,7 +47,10 @@ export const sourceGet = async (source, props = {}) => {
 	return res;
 };
 
-export function useSourceGet(source, { shuffle, single, ...props } = {}) {
+export function useSourceGet(
+	source,
+	{ delayLoader = true, shuffle, single, ...props } = {}
+) {
 	const loadingRef = useRef();
 	const [res, setRes] = useState({
 		loading: false,
@@ -70,11 +73,14 @@ export function useSourceGet(source, { shuffle, single, ...props } = {}) {
 			// data: null,
 		});
 
-		loadingRef.current = setTimeout(() => {
-			onChange({
-				loading: true,
-			});
-		}, 1500);
+		loadingRef.current = setTimeout(
+			() => {
+				onChange({
+					loading: true,
+				});
+			},
+			delayLoader ? 1500 : 0
+		);
 
 		try {
 			const data = await sourceGet(source, { single, shuffle, ...props });

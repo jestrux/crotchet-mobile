@@ -2,20 +2,46 @@ import { useState } from "react";
 import BottomNavAction from "./BottomNavAction";
 import PreviewCard from "./PreviewCard";
 import { objectExcept, randomId } from "@/utils";
+import { Loader, useSourceGet } from "@/crotchet";
 
 export default function ActionSheet({
 	dismiss,
 	// preview: _preview,
 	// mainActions = [],
-	actions: _actions = [],
+	actions: _actions,
 	onChange = () => {},
 	payload = {},
 }) {
 	const [sheetProps, setSheetProps] = useState({
 		...payload,
-		actions: _actions,
+		actions: [],
 		// preview: _preview,
 	});
+
+	const { loading } = useSourceGet(
+		async () => {
+			if (_.isFunction(_actions)) {
+				return await _actions().then((actions) => {
+					setSheetProps((oldProps) => {
+						return {
+							...oldProps,
+							actions,
+						};
+					});
+				});
+			}
+
+			setSheetProps((oldProps) => {
+				return {
+					...oldProps,
+					actions: _actions,
+				};
+			});
+
+			return _actions;
+		},
+		{ delayLoader: false }
+	);
 
 	onChange((props) => {
 		setSheetProps((oldProps) => {
@@ -85,34 +111,42 @@ export default function ActionSheet({
 				</button>
 			</div>
 
-			<div className="mt-4 space-y-3" onClick={dismiss}>
-				{mainActions?.length > 0 && (
-					<div className="grid grid-cols-3 gap-3">
-						{mainActions.map((action) => (
-							<BottomNavAction
-								key={action.__id}
-								vertical
-								className="bg-card shadow dark:border border-content/5 p-4 rounded-lg"
-								action={action}
-								inShareSheet
-							/>
-						))}
-					</div>
-				)}
+			{loading && (
+				<div className="flex justify-center">
+					<Loader size={40} />
+				</div>
+			)}
 
-				{actions?.length > 0 && (
-					<div className="mb-2 bg-card shadow dark:border border-content/5 rounded-lg overflow-hidden divide-y divide-content/5">
-						{actions.map((action) => (
-							<BottomNavAction
-								className="px-4"
-								key={action.__id}
-								action={action}
-								inShareSheet
-							/>
-						))}
-					</div>
-				)}
-			</div>
+			{!loading && (
+				<div className="mt-4 space-y-3" onClick={dismiss}>
+					{mainActions?.length > 0 && (
+						<div className="grid grid-cols-3 gap-3">
+							{mainActions.map((action) => (
+								<BottomNavAction
+									key={action.__id}
+									vertical
+									className="bg-card shadow dark:border border-content/5 p-4 rounded-lg"
+									action={action}
+									inShareSheet
+								/>
+							))}
+						</div>
+					)}
+
+					{actions?.length > 0 && (
+						<div className="mb-2 bg-card shadow dark:border border-content/5 rounded-lg overflow-hidden divide-y divide-content/5">
+							{actions.map((action) => (
+								<BottomNavAction
+									className="px-4"
+									key={action.__id}
+									action={action}
+									inShareSheet
+								/>
+							))}
+						</div>
+					)}
+				</div>
+			)}
 		</div>
 	);
 }
