@@ -174,7 +174,7 @@ export const objectTake = (obj = {}, excludedFields = []) => {
 
 export const cleanObject = (obj = {}) => {
 	return Object.fromEntries(
-		Object.entries(obj).filter(
+		Object.entries(obj || {}).filter(
 			([, value]) =>
 				(value ?? "").toString().length &&
 				!["undefined", "false", "0", "null"].includes(value)

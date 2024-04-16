@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import useKeyboard from "@/hooks/useKeyboard";
 
 export default function BottomSheet({
+	_id,
 	background,
 	hidden,
 	open,
@@ -89,6 +90,21 @@ export default function BottomSheet({
 		},
 	};
 
+	const dismiss = (payload) => {
+		if (payload?.type == "click") payload = null;
+
+		const resolverRef = `bottomsheet-${_id}`;
+
+		setCollapsed(true);
+
+		const resolve = __crotchet._promiseResolvers[resolverRef];
+
+		if (_.isFunction(resolve)) {
+			resolve(payload);
+			delete __crotchet._promiseResolvers[resolverRef];
+		}
+	};
+
 	useEffect(() => {
 		const parent = document.querySelector("#crotchetAppWrapper");
 		if (parent) {
@@ -120,7 +136,7 @@ export default function BottomSheet({
 						? 0
 						: 1,
 				}}
-				onClick={() => setCollapsed(true)}
+				onClick={dismiss}
 			/>
 
 			<motion.div
@@ -184,8 +200,8 @@ export default function BottomSheet({
 									dragRatio,
 									collapsed,
 									expand: () => setCollapsed(false),
-									collapse: () => setCollapsed(true),
-									dismiss: () => setCollapsed(true),
+									collapse: dismiss,
+									dismiss: dismiss,
 							  })
 							: Children.map(children, (child) => {
 									if (!child?.type) return null;
@@ -197,8 +213,9 @@ export default function BottomSheet({
 										dragRatio,
 										collapsed,
 										expand: () => setCollapsed(false),
-										collapse: () => setCollapsed(true),
-										dismiss: () => setCollapsed(true),
+										collapse: dismiss,
+										dismiss: dismiss,
+										onClose: dismiss,
 									});
 							  })}
 

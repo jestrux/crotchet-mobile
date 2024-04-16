@@ -6,6 +6,7 @@ import { getGradient, openUrl } from "@/utils";
 import { useAppContext } from "@/providers/app";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PreviewCard from "../PreviewCard";
+import { cloneElement } from "react";
 
 export default function GenericPage({
 	noPadding = false,
@@ -43,25 +44,34 @@ export default function GenericPage({
 		>
 			<div
 				className={clsx(
-					"sticky top-0 z-10 flex items-center justify-between gap-2",
-					!noPadding ? "-mt-6 translate-x-2" : ""
+					"sticky top-0 z-10 flex items-center justify-between gap-2 mb-2",
+					!noPadding || fullHeight ? "-mt-6" : ""
 				)}
+				style={
+					fullHeight
+						? {
+								paddingTop: "env(safe-area-inset-top)",
+						  }
+						: {}
+				}
 			>
-				{headingSet && (
-					<div className="flex-1">
-						{title && (
-							<h3 className="text-lg/none font-bold first-letter:uppercase">
-								{title}
-							</h3>
-						)}
+				<div className="flex-1">
+					{headingSet && (
+						<>
+							{title && (
+								<h3 className="text-lg/none font-bold first-letter:uppercase">
+									{title}
+								</h3>
+							)}
 
-						{subtitle && (
-							<p className="mt-1 text-sm/none text-content/80 line-clamp-3">
-								{subtitle}
-							</p>
-						)}
-					</div>
-				)}
+							{subtitle && (
+								<p className="mt-1 text-sm/none text-content/80 line-clamp-3">
+									{subtitle}
+								</p>
+							)}
+						</>
+					)}
+				</div>
 
 				<button
 					className="bg-content/5 border border-content/5 size-7 flex items-center justify-center rounded-full"
@@ -252,7 +262,7 @@ export default function GenericPage({
 								);
 							} else if (type == "data") {
 								content =
-									section.wrapped ?? true ? (
+									section.wrapped ?? false ? (
 										<WidgetWrapper>
 											<DataWidget large {...section} />
 										</WidgetWrapper>
@@ -272,7 +282,10 @@ export default function GenericPage({
 									</div>
 								);
 							} else if (type == "custom") {
-								content = section.value;
+								content = cloneElement(section.value, {
+									dismiss,
+									onClose: dismiss,
+								});
 							} else {
 								content = (
 									<div className="text-base/loose">

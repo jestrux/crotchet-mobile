@@ -1,5 +1,10 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { uploadDataUrl, dbInsert } from "@/providers/firebaseApp";
+import {
+	uploadDataUrl,
+	dbInsert,
+	queryDb,
+	getDbTables,
+} from "@/providers/firebaseApp";
 import BottomSheet from "@/components/BottomSheet";
 import {
 	copyToClipboard,
@@ -11,6 +16,8 @@ import {
 	utils,
 	registerDataSource,
 	socketEmit,
+	objectFieldChoices,
+	readClipboard,
 } from "@/crotchet";
 import GenericPage from "@/components/Pages/GenericPage";
 import SearchPage from "@/components/Pages/SearchPage";
@@ -18,6 +25,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "./firebaseApp";
 import { io } from "socket.io-client";
 import ActionSheet from "@/components/ActionSheet";
+import Form from "@/components/Form";
 
 const AppContext = createContext({
 	dataSources: {},
@@ -33,9 +41,13 @@ const AppContext = createContext({
 	// eslint-disable-next-line no-unused-vars
 	openActionSheet: ({ actions, ...payload } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
+	openChoicePicker: ({ actions, ...payload } = {}) => {},
+	// eslint-disable-next-line no-unused-vars
 	openPage: ({ image, title, subtitle, content = [], source } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
 	openSearchPage: ({ title, source, placeholder } = {}) => {},
+	// eslint-disable-next-line no-unused-vars
+	openForm: ({ title, subtitle, fields, onSubmit } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
 	registerDataSource: (name, source, version) => {},
 	user: {
@@ -51,12 +63,18 @@ const AppContext = createContext({
 	// eslint-disable-next-line no-unused-vars
 	copyToClipboard: (content) => {},
 	// eslint-disable-next-line no-unused-vars
+	readClipboard: () => {},
+	// eslint-disable-next-line no-unused-vars
 	copyImage: (url) => {},
 	// eslint-disable-next-line no-unused-vars
 	openUrl: (path) => {},
 	utils: {},
 	// eslint-disable-next-line no-unused-vars
 	uploadDataUrl: (content) => {},
+	// eslint-disable-next-line no-unused-vars
+	getDbTables: () => {},
+	// eslint-disable-next-line no-unused-vars
+	queryDb: (table, { orderBy, rowId } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
 	dbInsert: (table, data) => {},
 	// eslint-disable-next-line no-unused-vars
@@ -165,10 +183,16 @@ export default function AppProvider({ children }) {
 	}, []);
 
 	const openBottomSheet = ({ minHeight = 250, content, ...sheet }) => {
-		setBottomSheets((sheets) => [
-			...sheets,
-			{ ...sheet, content, minHeight, _id: randomId() },
-		]);
+		return new Promise((resolve) => {
+			const _id = randomId();
+
+			setBottomSheets((sheets) => [
+				...sheets,
+				{ ...sheet, content, minHeight, _id },
+			]);
+
+			window.__crotchet._promiseResolvers["bottomsheet-" + _id] = resolve;
+		});
 	};
 
 	const openShareSheet = ({
@@ -216,34 +240,48 @@ export default function AppProvider({ children }) {
 		type = "custom",
 		...props
 	}) => {
-		openBottomSheet({
+		if (type == "form")
+			content = [{ type: "custom", value: <Form {...props} /> }];
+
+		let page = (
+			<GenericPage
+				image={image}
+				title={title}
+				content={content}
+				source={source}
+				{...props}
+			/>
+		);
+
+		if (type == "search")
+			page = (
+				<SearchPage
+					inBottomSheet
+					title={title}
+					source={source}
+					{...props}
+				/>
+			);
+
+		return openBottomSheet({
 			...props,
 			background,
 			image,
 			fullHeight,
 			noScroll,
 			dismissible: !fullHeight || noScroll,
-			content:
-				type == "search" ? (
-					<SearchPage
-						inBottomSheet
-						title={title}
-						source={source}
-						{...props}
-					/>
-				) : (
-					<GenericPage
-						image={image}
-						title={title}
-						content={content}
-						source={source}
-						{...props}
-					/>
-				),
+			content: page,
 		});
 	};
 
 	const openSearchPage = (props) => openPage({ ...props, type: "search" });
+
+	const openForm = ({ fullHeight, ...props }) =>
+		openPage({
+			...props,
+			type: "form",
+			fullHeight: fullHeight || !props.field,
+		});
 
 	const appContextValue = {
 		registerDataSource,
@@ -251,8 +289,30 @@ export default function AppProvider({ children }) {
 		openBottomSheet,
 		openShareSheet,
 		openActionSheet,
+		openChoicePicker: ({ title, choices: _choices }) => {
+			return new Promise((resolve) => {
+				const actions = async () => {
+					const choices = _.isFunction(_choices)
+						? await _choices()
+						: _choices;
+
+					return objectFieldChoices(choices).map((choice) => {
+						const label = utils.camelCaseToSentenceCase(
+							choice.label
+						);
+						return { label, handler: () => resolve(choice.value) };
+					});
+				};
+
+				openActionSheet({
+					preview: { title },
+					actions,
+				}).then(() => resolve());
+			});
+		},
 		openPage,
 		openSearchPage,
+		openForm,
 		user: {
 			name: "Walter Kimaro",
 			email: "wakyj07@gmail.com",
@@ -263,9 +323,12 @@ export default function AppProvider({ children }) {
 		},
 		showToast,
 		copyToClipboard,
+		readClipboard,
 		copyImage,
 		openUrl,
 		uploadDataUrl,
+		getDbTables,
+		queryDb,
 		dbInsert,
 		utils,
 		socket: ({ retry = false, silent = false } = {}) => {

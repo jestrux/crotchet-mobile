@@ -223,6 +223,45 @@ export const registerAction = (name, action) => {
 	});
 };
 
+export const registerAutomationAction = (name, action) => {
+	let _label = name,
+		_handler = action,
+		tags = [],
+		icon,
+		match,
+		mobileOnly = false;
+
+	if (typeof action != "function") {
+		icon = action.icon;
+		match = action.match;
+		mobileOnly = action.mobileOnly;
+		_label = action.label;
+		_handler = action.handler
+			? action.handler
+			: action.url
+			? () => openUrl(action.url)
+			: null;
+		tags = action.tags || [];
+	}
+
+	const label = camelCaseToSentenceCase(
+		(_label || name).replace("-", " ").replace("_", " ")
+	);
+
+	const handler = (payload) => _handler(payload ?? {}, window.__crotchet);
+
+	window.__crotchet.automationActions[name] = {
+		_id: randomId(),
+		icon,
+		name,
+		label,
+		tags,
+		match,
+		mobileOnly,
+		handler,
+	};
+};
+
 export const registerApp = (scheme, _app) => {
 	const app = _app();
 	let appProps = {};

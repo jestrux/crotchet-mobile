@@ -33,6 +33,7 @@ export const BottomNavButton = ({ page, selected, onClick }) => {
 };
 
 export function BottomNav({ hidden, pinnedApps, currentPage, setCurrentPage }) {
+	const [autoFocus, setAutoFocus] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const wrapperRef = useRef(null);
 	const navHeight = 56;
@@ -62,6 +63,8 @@ export function BottomNav({ hidden, pinnedApps, currentPage, setCurrentPage }) {
 				dismissible={!searchQuery?.length}
 			>
 				{({ collapse, collapsed, expand, dragRatio }) => {
+					if(collapsed && autoFocus) setAutoFocus(false);
+
 					return (
 						<div style={{ minHeight: navHeight + "px" }}>
 							<motion.div
@@ -110,8 +113,10 @@ export function BottomNav({ hidden, pinnedApps, currentPage, setCurrentPage }) {
 												onClick={() => {
 													if (currentPage != page)
 														setCurrentPage(page);
-													else if (page == "home")
+													else if (page == "home") {
+														setAutoFocus(true);
 														expand();
+													}
 												}}
 											/>
 										)
@@ -138,7 +143,7 @@ export function BottomNav({ hidden, pinnedApps, currentPage, setCurrentPage }) {
 								}
 							>
 								<div
-									className="px-4 pb-4 sticky top-0 z-10 bg-stone-100/95 dark:bg-card/95 backdrop-blur"
+									className="px-4 pb-4 sticky top-0 z-10"
 									style={{
 										paddingTop:
 											!collapsed && !dragRatio
@@ -191,7 +196,7 @@ export function BottomNav({ hidden, pinnedApps, currentPage, setCurrentPage }) {
 												<>
 													<Input
 														id="searchbar"
-														autoFocus
+														autoFocus={autoFocus}
 														type="text"
 														className="w-full h-full bg-transparent text-xl/none placeholder:text-content/30 focus:outline-none"
 														placeholder="Type to search..."

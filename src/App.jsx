@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { Filesystem } from "@capacitor/filesystem";
 import { App as CapacitorApp } from "@capacitor/app";
 import { onDesktop, useAppContext, usePrefsState } from "@/crotchet";
+import GlobalSearch from "./components/GlobalSearch";
 
 const AppScreen = ({ scheme }) => {
 	const { apps } = useAppContext();
@@ -17,6 +18,17 @@ const AppScreen = ({ scheme }) => {
 			</div>
 		);
 	}
+
+	// return (
+	// 	<div
+	// 		style={{
+	// 			paddingTop: "env(safe-area-inset-top)",
+	// 			paddingBottom: "env(safe-area-inset-bottom)",
+	// 		}}
+	// 	>
+	// 		<GlobalSearch />
+	// 	</div>
+	// );
 
 	return <App />;
 };

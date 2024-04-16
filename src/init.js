@@ -2,6 +2,7 @@ if (!window.__crotchet) window.__crotchet = {};
 
 Object.assign(window.__crotchet, {
 	apps: {},
+	automationActions: {},
 	actions: {},
 	dataSources: {},
 	pinnedApps: [
@@ -11,4 +12,5 @@ Object.assign(window.__crotchet, {
 		"reader",
 	],
 	actionSheets: {},
+	_promiseResolvers: {},
 });
