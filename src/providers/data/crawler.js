@@ -60,6 +60,7 @@ export default class CrotchetCrawler {
 					const childNode = node.querySelector(matcher);
 					row[key.trim()] =
 						childNode[attribute] ||
+						childNode.getAttribute(attribute) ||
 						getComputedStyle(childNode)[attribute];
 				});
 
