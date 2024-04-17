@@ -3,6 +3,7 @@ import BottomNavAction from "./BottomNavAction";
 import PreviewCard from "./PreviewCard";
 import { objectExcept, randomId } from "@/utils";
 import { Loader, useSourceGet } from "@/crotchet";
+import clsx from "clsx";
 
 export default function ActionSheet({
 	dismiss,
@@ -12,6 +13,7 @@ export default function ActionSheet({
 	onChange = () => {},
 	payload = {},
 }) {
+	const [groupFilter, setGroupFilter] = useState();
 	const [sheetProps, setSheetProps] = useState({
 		...payload,
 		actions: [],
@@ -52,20 +54,48 @@ export default function ActionSheet({
 		});
 	});
 
-	const contentPreview = (preview) => {
-		// console.log("Preview: ", preview);
-
-		if (!preview) return <div>&nbsp;</div>;
+	const groupFilters = (groups) => {
+		if (!groups.length) return null;
 
 		return (
-			<div className="flex-1">
-				<PreviewCard
-					image={preview.image}
-					title={preview.title}
-					description={preview.description}
-				/>
+			<div className="flex items-center">
+				{groups.map((group, index) => (
+					<button
+						key={index}
+						className={clsx(
+							"h-8 px-3 rounded-full border text-sm",
+							groupFilter == group
+								? "bg-content/[0.03] border-content/5"
+								: "border-transparent opacity-50"
+						)}
+						onClick={(e) => {
+							e.stopPropagation();
+							setGroupFilter(group);
+						}}
+					>
+						{group}
+					</button>
+				))}
 			</div>
 		);
+	};
+
+	const contentPreview = (preview, title, groups) => {
+		if (!preview) {
+			if (groups.length) return groupFilters(groups);
+
+			if (title) {
+				return (
+					<h3 className="text-lg/none font-bold first-letter:uppercase">
+						{title}
+					</h3>
+				);
+			}
+
+			return;
+		}
+
+		return <PreviewCard {...preview} />;
 	};
 
 	const actions = sheetProps.actions.map((action) => {
@@ -83,16 +113,22 @@ export default function ActionSheet({
 		return action;
 	});
 	const mainActions = _.filter(actions, { main: true });
+	const otherActions = actions.filter(({ main }) => !main);
+	const groups = _.compact(_.keys(_.groupBy(otherActions, "group")));
 
-	// console.log(preview);
+	if (groups.length && !groupFilter) setGroupFilter(groups[0]);
 
 	return (
 		<div className="pt-5 pb-3 px-5">
-			<div className="flex items-start justify-between gap-2">
-				{contentPreview(sheetProps.preview)}
+			<div className="flex items-center justify-between gap-2">
+				{contentPreview(
+					sheetProps.preview,
+					sheetProps.title,
+					loading ? null : groups
+				)}
 
 				<button
-					className="bg-content/5 border border-content/5 size-7 flex items-center justify-center rounded-full"
+					className="ml-auto bg-content/5 border border-content/5 size-7 flex items-center justify-center rounded-full"
 					onClick={dismiss}
 				>
 					<svg
@@ -133,16 +169,25 @@ export default function ActionSheet({
 						</div>
 					)}
 
-					{actions?.length > 0 && (
+					{sheetProps.preview && groups.length && (
+						<div className="-mb-0.5">{groupFilters(groups)}</div>
+					)}
+
+					{otherActions.length > 0 && (
 						<div className="mb-2 bg-card shadow dark:border border-content/5 rounded-lg overflow-hidden divide-y divide-content/5">
-							{actions.map((action) => (
-								<BottomNavAction
-									className="px-4"
-									key={action.__id}
-									action={action}
-									inShareSheet
-								/>
-							))}
+							{otherActions.map((action) => {
+								if (groupFilter && action.group != groupFilter)
+									return null;
+
+								return (
+									<BottomNavAction
+										className="px-4"
+										key={action.__id}
+										action={action}
+										inShareSheet
+									/>
+								);
+							})}
 						</div>
 					)}
 				</div>
