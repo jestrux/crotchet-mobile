@@ -176,6 +176,7 @@ export const registerAction = (name, action) => {
 	let _label = name,
 		_handler = action,
 		tags = [],
+		type,
 		icon,
 		global = false,
 		context,
@@ -184,6 +185,7 @@ export const registerAction = (name, action) => {
 
 	if (typeof action != "function") {
 		icon = action.icon;
+		type = action.type;
 		global = action.global;
 		context = action.context;
 		match = action.match;
@@ -205,6 +207,7 @@ export const registerAction = (name, action) => {
 
 	window.__crotchet.actions[name] = {
 		_id: randomId(),
+		type,
 		icon,
 		name,
 		label,
@@ -228,11 +231,13 @@ export const registerAutomationAction = (name, action) => {
 		_handler = action,
 		tags = [],
 		icon,
+		color,
 		match,
 		mobileOnly = false;
 
 	if (typeof action != "function") {
 		icon = action.icon;
+		color = action.color;
 		match = action.match;
 		mobileOnly = action.mobileOnly;
 		_label = action.label;
@@ -253,6 +258,7 @@ export const registerAutomationAction = (name, action) => {
 	window.__crotchet.automationActions[name] = {
 		_id: randomId(),
 		icon,
+		color,
 		name,
 		label,
 		tags,
@@ -317,7 +323,11 @@ export const registerActionSheet = (name, props) => {
 		};
 
 		return window.__crotchet.openActionSheet(
-			{ ...(payload || {}), ...(props || {}) },
+			{
+				title: camelCaseToSentenceCase(name),
+				...(payload || {}),
+				...(props || {}),
+			},
 			onChange
 		);
 	};
