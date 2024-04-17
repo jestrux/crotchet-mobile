@@ -116,7 +116,8 @@ export default function ActionSheet({
 	const otherActions = actions.filter(({ main }) => !main);
 	const groups = _.compact(_.keys(_.groupBy(otherActions, "group")));
 
-	if (groups.length && !groupFilter) setGroupFilter(groups[0]);
+	if (![undefined, "undefined"].includes(groups?.[0]) && !groupFilter)
+		setGroupFilter(groups[0]);
 
 	return (
 		<div className="pt-5 pb-3 px-5">
@@ -128,7 +129,7 @@ export default function ActionSheet({
 				)}
 
 				<button
-					className="ml-auto bg-content/5 border border-content/5 size-7 flex items-center justify-center rounded-full"
+					className="flex-shrink-0 ml-auto bg-content/5 border border-content/5 size-7 flex items-center justify-center rounded-full"
 					onClick={dismiss}
 				>
 					<svg
