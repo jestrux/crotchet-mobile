@@ -7,9 +7,6 @@ import GridListItem from "./ListItem/GridListItem";
 import DragDropList from "./DragDropList";
 
 function DataWidgetContent({
-	layout,
-	columns,
-	iconOnly,
 	searchQuery,
 	source,
 	data,
@@ -18,9 +15,16 @@ function DataWidgetContent({
 	widgetProps,
 	children,
 	onReorder = () => {},
+	...props
 }) {
-	layout = layout || source?.layout;
-	columns = columns || source?.columns || 2;
+	const {
+		layout,
+		columns = 2,
+		iconOnly,
+	} = {
+		...(source?.layoutProps || {}),
+		...props,
+	};
 
 	const card = layout == "card";
 	const grid = layout == "grid";
@@ -76,6 +80,8 @@ function DataWidgetContent({
 					progress: entry.progress,
 					status: entry.status,
 					url: entry.url,
+					onHold: entry.onHold,
+					onDoubleClick: entry.onDoubleClick,
 				};
 
 				if (grid || masonry) {
@@ -156,22 +162,8 @@ function DataWidgetContent({
 	);
 }
 
-export default function DataWidget({
-	source,
-	searchQuery,
-	filters,
-	layout,
-	columns,
-	...props
-}) {
-	const content = (
-		<DataWidgetContent
-			source={source}
-			layout={layout}
-			columns={columns}
-			{...props}
-		/>
-	);
+export default function DataWidget({ source, searchQuery, filters, ...props }) {
+	const content = <DataWidgetContent source={source} {...props} />;
 
 	if (source) {
 		return (

@@ -19,6 +19,10 @@ registerDataSource("crawler", "simpleIcons", {
 			url: `crotchet://copy-url/${image}`,
 		};
 	},
+	layoutProps: {
+		layout: "grid",
+		columns: "xs:3,md:5",
+	},
 	// fieldMap: {
 	// 	// subtitle: "name|cleanString",
 	// 	action: "copy://image",

@@ -13,6 +13,7 @@ import {
 	toHms,
 	useAppContext,
 	objectToQueryParams,
+	onDesktop,
 } from "@/crotchet";
 
 const YoutubePlayer = ({ _id, crop, duration, width, height, ...props }) => {
@@ -120,7 +121,6 @@ registerDataSource("firebase", "youtubeClips", {
 	label: "Youtube Clips",
 	collection: "videos",
 	orderBy: "updatedAt,desc",
-	layout: "grid",
 	mapEntry: (entry) => ({
 		...entry,
 		video: `https://i.ytimg.com/vi/${entry._id}/hqdefault.jpg`,
@@ -138,6 +138,10 @@ registerDataSource("firebase", "youtubeClips", {
 		url: getYoutubeClipUrl(entry),
 	}),
 	searchFields: ["title"],
+	layoutProps: {
+		layout: "grid",
+		columns: "sm:2,2xl:3,4xl:4",
+	},
 });
 
 registerAction("getRandomYoutubeClip", {
@@ -146,6 +150,12 @@ registerAction("getRandomYoutubeClip", {
 	icon: appIcon,
 	handler: async (_, { dataSources }) =>
 		openUrl(getYoutubeClipUrl(await dataSources.youtubeClips.random())),
+});
+
+registerAction("searchYoutubeClips", {
+	type: "search",
+	url: `crotchet://search/youtubeClips`,
+	tags: ["video", "search"],
 });
 
 registerAction("addToYoutubeClips", {
@@ -199,10 +209,7 @@ registerApp("youtubeClips", () => {
 			);
 		},
 		async load(path, { socket, openPage }) {
-			if (path.startsWith("/youtubeClips/desktop/")) {
-				const _socket = await socket({ retry: true });
-				if (!_socket) return showToast("Desktop not connected");
-
+			const openOnDesktop = () => {
 				window.__crotchet.socketEmit("app", {
 					scheme: "youtubeClips",
 					url: path.replace(
@@ -212,13 +219,17 @@ registerApp("youtubeClips", () => {
 					window: {
 						width: 1280,
 						height: 800,
-						backgroundColor: "#000000",
-						titleBarStyle: "hiddenInset",
-						darkTheme: true,
 					},
 				});
+			};
 
-				return;
+			if (onDesktop()) return openOnDesktop();
+
+			if (path.startsWith("/youtubeClips/desktop/")) {
+				const _socket = await socket({ retry: true });
+				if (!_socket) return showToast("Desktop not connected");
+
+				return openOnDesktop();
 			}
 
 			if (path.startsWith("/youtubeClips/edit/")) {

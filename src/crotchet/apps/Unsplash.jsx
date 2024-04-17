@@ -49,11 +49,18 @@ registerDataSource("unsplash", "unsplash", {
 		url: `crotchet://copy-image/${entry.urls.regular}`,
 	}),
 	searchable: true,
+	layoutProps: {
+		layout: "masonry",
+		columns: "sm:2,2xl:3,4xl:4",
+	},
+	searchProps: {
+		debounce: 500,
+	},
 });
 
 registerAction("searchUnsplash", {
-	// global: true,
-	url: `crotchet://search/unsplash?q=${randomSearchQuery()}&layout=masonry&columns=sm:2,2xl:3,4xl:4`,
+	type: "search",
+	url: `crotchet://search/unsplash?q=${randomSearchQuery()}`,
 	tags: ["image", "search"],
 });
 

@@ -14,7 +14,6 @@ registerDataSource("firebase", "reader", {
 	collection: "reader",
 	orderBy: "index,desc",
 	filter: "group",
-	layout: "card",
 	mapEntry(item) {
 		const isVideo =
 			item.url?.toLowerCase().indexOf("videos") != -1 ||
@@ -38,6 +37,9 @@ registerDataSource("firebase", "reader", {
 				subtitle: item.description,
 			}),
 		};
+	},
+	layoutProps: {
+		layout: "card",
 	},
 });
 

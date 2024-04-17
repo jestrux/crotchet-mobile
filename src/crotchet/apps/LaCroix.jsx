@@ -31,6 +31,9 @@ registerDataSource("crotchet://pier", "renters", {
 	}),
 	filter: "status",
 	searchFields: ["name"],
+	layoutProps: {
+		layout: "grid",
+	},
 });
 
 registerDataSource("crotchet://pier", "apartments", {
@@ -40,7 +43,6 @@ registerDataSource("crotchet://pier", "apartments", {
 		LEFT JOIN complex as c
 		ON a.complex = c._id;
 	`,
-	layout: "grid",
 	mapEntry: (entry) => ({
 		image: entry.image,
 		title: entry.name,
@@ -48,6 +50,9 @@ registerDataSource("crotchet://pier", "apartments", {
 	}),
 	filter: "type",
 	searchFields: ["name"],
+	layoutProps: {
+		layout: "grid",
+	},
 });
 
 registerAction("rentersByStatus", (_, { openPage, dataSources }) => {

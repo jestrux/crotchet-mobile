@@ -7,6 +7,7 @@ export default function RentersWidget() {
 	return (
 		<DataWidget
 			source={dataSources.renters}
+			layout="list"
 			widgetProps={{
 				icon: "user",
 				title: "Renters",

@@ -26,7 +26,7 @@ export default function YtClipsWidget() {
 					: []),
 				{
 					icon: "search",
-					url: "crotchet://search/youtubeClips?layout=grid&columns=sm:2,2xl:3,4xl:4",
+					url: "crotchet://action/searchYoutubeClips",
 				},
 			]}
 			content={({ data = {} }) => ({

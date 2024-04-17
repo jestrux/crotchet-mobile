@@ -18,9 +18,7 @@ export default function SearchPage({
 	query: _query,
 	source = {},
 	collapse,
-	layout,
-	columns,
-	liveSearch,
+	debounce = false,
 	global = false,
 }) {
 	placeholder =
@@ -32,7 +30,6 @@ export default function SearchPage({
 		}...`;
 
 	const { KeyboardPlaceholder } = useKeyboard();
-	liveSearch = liveSearch ?? source.searchable != true;
 	const [searchQuery, setSearchQuery] = useState(_query ?? "");
 	const [filters, setFilters] = useState(null);
 	const searchbar = useRef(null);
@@ -179,7 +176,7 @@ export default function SearchPage({
 								value={searchQuery}
 								onChange={setSearchQuery}
 								onEnter={handleSubmit}
-								{...(!liveSearch ? { debounce: 500 } : {})}
+								{...(debounce ? { debounce } : {})}
 							/>
 
 							{searchQuery && (
@@ -244,16 +241,11 @@ export default function SearchPage({
 					<DataWidget
 						source={source}
 						searchQuery={searchQuery}
-						// limit: 100,
 						{...(!source?.filter
 							? {}
 							: {
 									filters: { [source.filter]: filter },
 							  })}
-						layout={layout || source?.layout}
-						columns={columns || source?.columns}
-						// data={data}
-						// isLoading={isLoading}
 						widgetProps={{ noPadding: true }}
 					/>
 				)}

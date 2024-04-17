@@ -18,7 +18,7 @@ export default function ReaderWidget() {
 					: []),
 				{
 					icon: "search",
-					url: "crotchet://search/reader?layout=card",
+					url: "crotchet://search/reader",
 				},
 			]}
 			content={({ data }) => ({
