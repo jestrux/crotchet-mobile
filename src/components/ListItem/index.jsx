@@ -1,4 +1,6 @@
 import { openUrl, Loader } from "@/crotchet";
+import { useLongPress } from "@/hooks/useLongPress";
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import clsx from "clsx";
 import { useState } from "react";
 
@@ -182,7 +184,15 @@ export default function RegularListItem({
 	checked,
 	onRemove = () => {},
 	onClick,
+	onHold,
+	onDoubleClick,
 }) {
+	const gestures = useLongPress(() => {
+		if (_.isFunction(onHold)) {
+			Haptics.impact({ style: ImpactStyle.Medium });
+			onHold();
+		}
+	});
 	const [actionLoading, setActionLoading] = useState(false);
 	const [removed, setRemoved] = useState(false);
 
@@ -317,7 +327,9 @@ export default function RegularListItem({
 
 	return (
 		<a
+			{...gestures}
 			onClick={handleClick}
+			onDoubleClick={onDoubleClick}
 			className="py-2 lg:group w-full text-left flex items-center relative"
 		>
 			{content()}

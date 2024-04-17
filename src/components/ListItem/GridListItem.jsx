@@ -1,6 +1,8 @@
 import clsx from "clsx";
 import { useState } from "react";
 import { openUrl, Loader } from "@/crotchet";
+import { useLongPress } from "@/hooks/useLongPress";
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
 
 export default function GridListItem({
 	grid,
@@ -16,7 +18,16 @@ export default function GridListItem({
 	width,
 	height,
 	onClick,
+	onHold,
+	onDoubleClick,
 }) {
+	const gestures = useLongPress(() => {
+		if (_.isFunction(onHold)) {
+			Haptics.impact({ style: ImpactStyle.Medium });
+			onHold();
+		}
+	});
+
 	const [actionLoading, setActionLoading] = useState(false);
 	const handleClick = async () => {
 		const clickHandlerSet = typeof onClick == "function";
@@ -155,7 +166,9 @@ export default function GridListItem({
 
 	return (
 		<a
+			{...gestures}
 			onClick={handleClick}
+			onDoubleClick={onDoubleClick}
 			className={clsx(
 				"lg:group w-full text-left flex items-center relative",
 				!grid && "py-2"

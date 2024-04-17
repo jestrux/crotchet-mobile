@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { openUrl, Loader } from "@/crotchet";
+import { useLongPress } from "@/hooks/useLongPress";
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
 
 export default function CardListItem({
 	icon,
@@ -10,7 +12,16 @@ export default function CardListItem({
 	subtitle,
 	trailing,
 	onClick,
+	onHold,
+	onDoubleClick,
 }) {
+	const gestures = useLongPress(() => {
+		if (_.isFunction(onHold)) {
+			Haptics.impact({ style: ImpactStyle.Medium });
+			onHold();
+		}
+	});
+
 	const [actionLoading, setActionLoading] = useState(false);
 	const handleClick = async () => {
 		const clickHandlerSet = typeof onClick == "function";
@@ -107,7 +118,9 @@ export default function CardListItem({
 
 	return (
 		<a
+			{...gestures}
 			onClick={handleClick}
+			onDoubleClick={onDoubleClick}
 			className="lg:group relative w-full text-left bg-card rounded-md p-2 lg:p-4 border border-stroke shadow-sm flex items-center gap-3 lg:gap-6 focus:outline-none"
 		>
 			{content()}
