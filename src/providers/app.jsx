@@ -146,14 +146,16 @@ export default function AppProvider({ children }) {
 		}
 	};
 
-	const globalActions = ({ share = false } = {}) => {
+	const globalActions = ({ share = false, desktopShortcuts } = {}) => {
 		return Object.entries(window.__crotchet.actions ?? {})
 			.filter(([, action]) => {
-				const { global, mobileOnly, context } = action;
+				const { global, type, mobileOnly, context } = action;
 
 				if (share) return context == "share";
 
-				if (!global) return false;
+				if (!global && !(desktopShortcuts && type == "search")) {
+					return false;
+				}
 
 				if (mobileOnly && onDesktop()) return false;
 
@@ -168,9 +170,11 @@ export default function AppProvider({ children }) {
 			socketEmit(
 				"add-menu-items",
 				Object.fromEntries(
-					globalActions().map(({ name, label }) => {
-						return [name, { label }];
-					})
+					globalActions({ desktopShortcuts: true }).map(
+						({ name, label }) => {
+							return [name, { label }];
+						}
+					)
 				)
 			);
 		}
