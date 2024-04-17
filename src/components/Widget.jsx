@@ -300,7 +300,7 @@ const Widget = ({
 			{...(typeof onClick == "function" ? { onClick } : {})}
 		>
 			{(icon || title?.length > 0) && (
-				<div className="rounded-t-2xl relative z-30 flex-shrink-0 h-10 flex items-center gap-1.5 px-3.5 bg-content/5">
+				<div className="rounded-t-2xl relative z-10 flex-shrink-0 h-10 flex items-center gap-1.5 px-3.5 bg-content/5">
 					{icon && (
 						<span className="-ml-1.5 w-6 h-6 bg-content/10 rounded-full flex items-center justify-center">
 							{typeof icon == "string" ? WidgetIcons[icon] : icon}
@@ -341,7 +341,7 @@ const Widget = ({
 			</div>
 
 			{actions?.length > 0 && (
-				<div className="absolute right-2 top-2 z-30 flex items-center gap-2">
+				<div className="absolute right-2 top-2 z-10 flex items-center gap-2">
 					<div
 						className="flex items-center gap-2"
 						style={{ color: color?.length ? color : "" }}

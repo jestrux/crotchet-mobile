@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-canvas overflow-hidden">
+<html lang="en" class="overflow-hidden">
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" href="favicon.ico" sizes="any" />
@@ -63,9 +63,6 @@
 			* {
 				border-color: rgb(var(--stroke-color));
 				user-select: none;
-			}
-
-			.flex > * {
 				min-width: 0;
 			}
 
@@ -135,6 +132,14 @@
 				background: currentColor;
 				opacity: 0.08;
 			}
+
+			.window-drag-handle {
+				-webkit-app-region: drag;
+			}
+
+			.window-no-drag {
+				-webkit-app-region: none; 
+			}
 		</style>
 
 		<script src="tailwindcss.js"></script>
@@ -179,8 +184,24 @@
 			}
 		</script>
 	</head>
-	<body class="bg-canvas text-content">
+	<body>
 		<div id="root"></div>
+
+		<script>
+			console.log(
+				"window.__onDesktop: ",
+				window.__onDesktop,
+				document.body.classList
+			);
+
+			// if (localStorage.__onDesktop) {
+			// 	document.documentElement.classList.add("pointer-events-none");
+			// 	document.body.classList.add("pointer-events-none");
+			// } else {
+				document.documentElement.classList.add("bg-canvas");
+				document.body.classList.add("bg-canvas", "text-content");
+			// }
+		</script>
 		<script type="module" src="/src/main.jsx"></script>
 	</body>
 </html>

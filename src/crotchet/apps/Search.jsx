@@ -1,81 +1,75 @@
 import { useAppContext } from "@/providers/app";
-import { SearchPage, registerApp } from "..";
+import {
+	SearchPage,
+	camelCaseToSentenceCase,
+	dispatch,
+	registerApp,
+} from "@/crotchet";
 
 registerApp("search", () => {
 	return {
 		load(path, { showToast, onDesktop, openSearchPage, dataSources }) {
 			const url = new URL("https://" + path);
-			const source = url.pathname.split("/").filter((v) => v?.length);
+			const source = url.pathname
+				.split("/")
+				.filter((v) => v?.length)
+				.pop();
 
-			const {
-				q,
-				query,
-				columns,
-				layout,
-				live,
-				width = 780,
-				height = 800,
-				// width = 360,
-				// height = 540,
-				...params
-			} = Object.fromEntries(url.searchParams.entries());
+			const searchProps =
+				source && dataSources[source]?.searchProps
+					? dataSources[source]?.searchProps
+					: {};
+
+			const { q, query, debounce, ...params } = {
+				...searchProps,
+				...Object.fromEntries(url.searchParams.entries()),
+			};
 
 			if (source && !dataSources[source])
 				return showToast(`Invalid data source ${source}`);
 
-			Object.entries({ q, query, columns, layout, ...params }).forEach(
-				([key, value]) => {
-					if (value != undefined) url.searchParams.set(key, value);
-				}
-			);
-
-			if (onDesktop()) {
-				url.searchParams.set("source", source);
-
-				return window.__crotchet.socketEmit("app", {
-					scheme: "search",
-					url: url.href.replace("https://", ""),
-					window: {
-						width,
-						height,
-						backgroundColor: "#000000",
-						titleBarStyle: "hiddenInset",
-						darkTheme: true,
-					},
-				});
-			}
+			Object.entries({
+				q,
+				query,
+				debounce,
+				...params,
+			}).forEach(([key, value]) => {
+				if (value != undefined) url.searchParams.set(key, value);
+			});
 
 			const actualSource = dataSources[source];
-			openSearchPage({
+			const allParams = {
 				...params,
 				query: q ?? query,
 				source: actualSource,
-				layout: layout || actualSource?.layout,
-				columns: columns || actualSource?.columns,
-				liveSearch: live,
+				debounce,
 				global: !source,
-			});
+			};
+
+			if (onDesktop()) {
+				dispatch("toggle-app", true);
+
+				return window.__crotchet.desktop.openPage({
+					type: "search",
+					placeholder: source
+						? `Search ${camelCaseToSentenceCase(source)}...`
+						: "",
+					searchQuery: q ?? query,
+					...allParams,
+				});
+			}
+
+			openSearchPage(allParams);
 		},
-		open: function Open({
-			source,
-			q,
-			query,
-			columns,
-			layout,
-			live,
-			...params
-		}) {
+		open: function Open({ source, q, query, debounce, ...params }) {
 			const { dataSources } = useAppContext();
-			const actualSource = dataSources[source];
 
 			return (
 				<SearchPage
 					{...params}
 					query={q ?? query}
-					layout={layout || actualSource?.layout}
-					columns={columns || actualSource?.columns}
 					source={dataSources[source]}
-					liveSearch={live}
+					debounce={debounce}
 					global={!source}
 				/>
 			);

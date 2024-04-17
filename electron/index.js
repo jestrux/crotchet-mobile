@@ -26,11 +26,13 @@ server.listen(3127, () => {
 
 const createMainWindow = () => {
 	mainWindow = new BrowserWindow({
-		backgroundColor: "#FFF",
-		width: 900,
-		height: 800,
+		// backgroundColor: "#FFF",
+		// titleBarStyle: "hidden",
+		width: 750,
+		height: 480,
 		show: isDev,
-		frame: true,
+		frame: false,
+		transparent: true,
 		fullscreenable: false,
 		resizable: isDev,
 		minimizable: false,

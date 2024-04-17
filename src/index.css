@@ -38,9 +38,6 @@
 
 * {
 	border-color: rgb(var(--stroke-color));
-}
-
-.flex > * {
 	min-width: 0;
 }
 
@@ -109,4 +106,12 @@
 	height: 100%;
 	background: currentColor;
 	opacity: 0.08;
+}
+
+.window-drag-handle {
+	-webkit-app-region: drag;
+}
+
+.window-no-drag {
+	-webkit-app-region: none;
 }

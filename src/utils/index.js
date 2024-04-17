@@ -3,6 +3,8 @@ import { Clipboard } from "@capacitor/clipboard";
 import { Toast } from "@capacitor/toast";
 import { Share } from "@capacitor/share";
 
+export { default as tinyColor } from "./tinycolor";
+
 export const KeyMap = {
 	Escape: 0,
 	F1: 1,
@@ -180,6 +182,10 @@ export const cleanObject = (obj = {}) => {
 				!["undefined", "false", "0", "null"].includes(value)
 		)
 	);
+};
+
+export const objectIsEmpty = (obj = {}) => {
+	return !Object.keys(cleanObject(obj ?? {})).length;
 };
 
 export const isValidUrl = (urlString) => {
@@ -446,7 +452,7 @@ export const formatDate = (
 export const showToast = (text, { image, position = "bottom" } = {}) => {
 	console.log(text);
 
-	if (onDesktop()) return socketEmit("show-toast", { text, image });
+	if (onDesktop()) return window.__crotchet.desktop.showToast(text, image);
 
 	Toast.show({
 		text,

@@ -129,6 +129,14 @@ module.exports = function socketServer(server) {
 		events[event](payload);
 	});
 
+	ipcMain.on("toggle-app-window", (_, show = false) =>
+		crotchetApp.toggleWindow(show)
+	);
+
+	ipcMain.on("restore-size", () => {
+		crotchetApp.resize();
+	});
+
 	ipcMain.on("open-url", (event, url) => {
 		shell.openExternal(url);
 	});

@@ -1,4 +1,4 @@
-const { Tray, Menu, app } = require("electron");
+const { Tray, Menu, app, globalShortcut } = require("electron");
 
 module.exports = function Crotchet() {
 	this.tray = null;
@@ -10,10 +10,38 @@ module.exports = function Crotchet() {
 
 	this.setMainWindow = (window) => {
 		this.mainWindow = window;
+
+		globalShortcut.register("Alt+/", () => {
+			this.toggleWindow();
+		});
 	};
 
 	this.windowEmit = (event, payload) => {
 		this.mainWindow.webContents.send(event, payload);
+	};
+
+	this.resize = (size) => {
+		const { width, height } = size ?? { width: 750, height: 480 };
+		this.mainWindow.setSize(width, height);
+		this.mainWindow.center();
+	};
+
+	this.toggleWindow = (show) => {
+		if (show == undefined) show = !this.showWindow;
+		else if (show == this.showWindow) return;
+
+		if (show) {
+			this.mainWindow.show();
+			app.dock.show();
+		} else {
+			this.mainWindow.hide();
+
+			if (!Object.keys(this.windows).length) app.dock.hide();
+		}
+
+		this.showWindow = show;
+
+		return show;
 	};
 
 	this.hide = () => {
@@ -45,7 +73,10 @@ module.exports = function Crotchet() {
 					label: "Show app",
 					type: "checkbox",
 					checked: this.showWindow,
+					// accelerator: "Alt+/",
 					click: (event) => {
+						console.log("Click: ", event);
+
 						if (!event.checked) {
 							this.mainWindow.hide();
 

@@ -2,7 +2,7 @@ import useDebounce from "@/hooks/useDebounce";
 import { forwardRef, useEffect, useRef, useState } from "react";
 
 const Input = forwardRef(function Input(
-	{ value, onEnter, onChange, onFocus, onBlur, debounce, ...props },
+	{ value, onEnter, onEscape, onChange, onFocus, onBlur, debounce, ...props },
 	ref
 ) {
 	const focusRef = useRef();
@@ -14,7 +14,9 @@ const Input = forwardRef(function Input(
 	};
 
 	useEffect(() => {
-		if (value != _value) _setValue(value);
+		if (value == _value) return;
+
+		_setValue(value);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [value]);
 
@@ -23,7 +25,8 @@ const Input = forwardRef(function Input(
 	}, [debouncedValue, debounce, value, onChange]);
 
 	const handleKeyDown = (e) => {
-		if (e.keyCode == 13 && typeof onEnter == "function") onEnter(e);
+		if (e.key == "Enter" && typeof onEnter == "function") onEnter(e);
+		if (e.key == "Escape" && typeof onEscape == "function") onEscape(e);
 	};
 
 	const handleChange = (e) => {

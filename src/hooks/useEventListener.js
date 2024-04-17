@@ -1,23 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-export default function useEventListener(event) {
-	const [state, setState] = useState({
-		data: null,
-		last: Date.now(),
-	});
+export default function useEventListener(event, callback) {
+	var [_event, modifier] = event.split(":");
 
 	const handler = function (e) {
-		setState({
-			data: e.detail,
-			last: Date.now(),
-		});
+		if (!_.isFunction(callback)) return;
+
+		if (["keydown", "keyup"].includes(_event) && e.key != modifier) return;
+
+		callback(e);
 	};
 
 	useEffect(() => {
-		window.addEventListener(event, handler, false);
+		window.addEventListener(_event, handler, false);
 
-		return () => window.removeEventListener(event, handler, false);
+		return () => window.removeEventListener(_event, handler, false);
 	});
-
-	return state;
 }

@@ -13,4 +13,5 @@ Object.assign(window.__crotchet, {
 	],
 	actionSheets: {},
 	_promiseResolvers: {},
+	desktop: {},
 });

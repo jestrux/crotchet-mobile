@@ -26,11 +26,16 @@ import { db } from "./firebaseApp";
 import { io } from "socket.io-client";
 import ActionSheet from "@/components/ActionSheet";
 import Form from "@/components/Form";
+import DesktopApp from "@/DesktopApp";
 
 const AppContext = createContext({
 	dataSources: {},
 	apps: {},
+	app: {},
 	actions: {},
+	// eslint-disable-next-line no-unused-vars
+	openApp: (url) => {},
+	closeApp: () => {},
 	// eslint-disable-next-line no-unused-vars
 	globalActions: (filters = { share: false }) => {},
 	bottomSheets: [],
@@ -371,25 +376,9 @@ export default function AppProvider({ children }) {
 		...appContextValue,
 	});
 
-	if (window.__crotchet?.app?.scheme) {
-		const App =
-			window.__crotchet.apps?.[window.__crotchet.app.scheme]?.open;
+	let App;
 
-		if (App) {
-			return (
-				<AppContext.Provider
-					value={{
-						...appContextValue,
-						apps: window.__crotchet.apps,
-						actions: window.__crotchet.actions,
-						dataSources: window.__crotchet.dataSources,
-					}}
-				>
-					<App {...(window.__crotchet.app.props || {})} />
-				</AppContext.Provider>
-			);
-		}
-	}
+	if (onDesktop()) App = DesktopApp;
 
 	return (
 		<AppContext.Provider
@@ -400,23 +389,27 @@ export default function AppProvider({ children }) {
 				dataSources: window.__crotchet.dataSources,
 			}}
 		>
-			{children}
+			{App ? (
+				<App {...(window.__crotchet.app?.props || {})} />
+			) : (
+				<>
+					{children}
 
-			{bottomSheets.map((sheet) => (
-				<BottomSheet
-					key={sheet._id}
-					open
-					{...sheet}
-					onClose={() =>
-						setTimeout(() => {
-							setBottomSheets((sheets) =>
-								sheets.filter((s) => s._id != sheet._id)
-							);
-						}, 50)
-					}
-				>
-					{sheet.content}
-					{/* {({ maxHeight, collapse, ...props }) => (
+					{bottomSheets.map((sheet) => (
+						<BottomSheet
+							key={sheet._id}
+							open
+							{...sheet}
+							onClose={() =>
+								setTimeout(() => {
+									setBottomSheets((sheets) =>
+										sheets.filter((s) => s._id != sheet._id)
+									);
+								}, 50)
+							}
+						>
+							{sheet.content}
+							{/* {({ maxHeight, collapse, ...props }) => (
 						<div
 							style={{
 								minHeight: sheet.fullHeight
@@ -436,8 +429,10 @@ export default function AppProvider({ children }) {
 							})}
 						</div>
 					)} */}
-				</BottomSheet>
-			))}
+						</BottomSheet>
+					))}
+				</>
+			)}
 		</AppContext.Provider>
 	);
 }
