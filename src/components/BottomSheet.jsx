@@ -52,7 +52,7 @@ export default function BottomSheet({
 	const dragDetails = {
 		// dragControls,
 		// onDragStart,
-		// dragListener: false,
+		dragListener: dismissible == "auto" ? collapsed : dismissible,
 		drag: "y",
 		dragConstraints: wrapper,
 		dragElastic: {
@@ -178,7 +178,7 @@ export default function BottomSheet({
 								? "hidden"
 								: "auto",
 					}}
-					{...(dismissible
+					{...((dismissible == "auto" ? collapsed : dismissible)
 						? dragDetails
 						: {
 								initial: {

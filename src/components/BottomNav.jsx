@@ -5,6 +5,7 @@ import { useAppContext } from "@/providers/app";
 import { useRef, useState } from "react";
 import { Input } from "@/crotchet";
 import GlobalSearch from "./GlobalSearch";
+import useStickyObserver from "@/hooks/useStickyObserver";
 
 export const BottomNavButton = ({ page, selected, onClick }) => {
 	const { apps } = useAppContext();
@@ -33,6 +34,8 @@ export const BottomNavButton = ({ page, selected, onClick }) => {
 };
 
 export function BottomNav({ hidden, pinnedApps, currentPage, setCurrentPage }) {
+	const navRef = useRef(null);
+	const stuck = useStickyObserver(navRef.current);
 	const [autoFocus, setAutoFocus] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const wrapperRef = useRef(null);
@@ -60,10 +63,11 @@ export function BottomNav({ hidden, pinnedApps, currentPage, setCurrentPage }) {
 				hidden={hidden}
 				peekSize={pinnedApps?.length ? navHeight : 0}
 				fullHeight
-				dismissible={!searchQuery?.length}
+				dismissible="auto"
+				// dismissible={!searchQuery?.length}
 			>
 				{({ collapse, collapsed, expand, dragRatio }) => {
-					if(collapsed && autoFocus) setAutoFocus(false);
+					if (collapsed && autoFocus) setAutoFocus(false);
 
 					return (
 						<div style={{ minHeight: navHeight + "px" }}>
@@ -114,7 +118,7 @@ export function BottomNav({ hidden, pinnedApps, currentPage, setCurrentPage }) {
 													if (currentPage != page)
 														setCurrentPage(page);
 													else if (page == "home") {
-														setAutoFocus(true);
+														// setAutoFocus(true);
 														expand();
 													}
 												}}
@@ -143,7 +147,14 @@ export function BottomNav({ hidden, pinnedApps, currentPage, setCurrentPage }) {
 								}
 							>
 								<div
-									className="px-4 pb-4 sticky top-0 z-10"
+									ref={navRef}
+									className={clsx(
+										"px-4 pb-4 sticky top-0 z-10",
+										{
+											"bg-stone-100/90 dark:bg-card/90 backdrop-blur":
+												stuck && !collapsed,
+										}
+									)}
 									style={{
 										paddingTop:
 											!collapsed && !dragRatio
