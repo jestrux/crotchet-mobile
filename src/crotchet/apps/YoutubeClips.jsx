@@ -225,16 +225,12 @@ registerApp("youtubeClips", () => {
 
 			if (onDesktop()) return openOnDesktop();
 
-			if (path.startsWith("/youtubeClips/desktop/")) {
-				const _socket = await socket({ retry: true });
-				if (!_socket) return showToast("Desktop not connected");
-
-				return openOnDesktop();
-			}
-
 			if (path.startsWith("/youtubeClips/edit/")) {
 				return showToast("Edit youtube clip");
 			}
+
+			const _socket = await socket({ retry: true });
+			if (_socket) return openOnDesktop();
 
 			const url = new URL("https://" + path);
 			const props = Object.fromEntries(url.searchParams.entries());
@@ -244,7 +240,6 @@ registerApp("youtubeClips", () => {
 				noPadding: true,
 				noScroll: true,
 				centerContent: true,
-				// title: props.name,
 				content: [
 					{
 						type: "custom",
@@ -252,16 +247,6 @@ registerApp("youtubeClips", () => {
 					},
 				],
 			});
-
-			// const url = new URL("https://" + path);
-			// const params = url.searchParams;
-			// const id = params.get("id") || params.get("_id");
-			// const [start] = params.get("crop").split(",");
-
-			// window.open(
-			// 	`https://www.youtube.com/watch?v=${id}&t=${start}s`,
-			// 	"_blank"
-			// );
 		},
 		open: function Open(props) {
 			return (
