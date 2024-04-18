@@ -45,7 +45,7 @@ registerDataSource("firebase", "reader", {
 
 registerAction("addToReadingList", {
 	context: "share",
-	shareType: "url",
+	match: "url",
 	icon: (
 		<svg
 			fill="none"
