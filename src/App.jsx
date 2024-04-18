@@ -4,8 +4,14 @@ import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { Filesystem } from "@capacitor/filesystem";
 import { App as CapacitorApp } from "@capacitor/app";
-import { onDesktop, useAppContext, usePrefsState } from "@/crotchet";
-import GlobalSearch from "./components/GlobalSearch";
+import {
+	isValidUrl,
+	objectIsEmpty,
+	objectTake,
+	onDesktop,
+	useAppContext,
+	usePrefsState,
+} from "@/crotchet";
 
 const AppScreen = ({ scheme }) => {
 	const { apps } = useAppContext();
@@ -41,16 +47,20 @@ const App = () => {
 	const listenForShare = async () => {
 		try {
 			const result = await SendIntent.checkSendIntentReceived();
-			if (!result.url) return;
 
-			let resultUrl = decodeURIComponent(result.url);
+			if (!result.url && !result.title) return;
+
+			let resultUrl = decodeURIComponent(result.url || result.title);
 			let [, resultType] = decodeURIComponent(result.type).split("/");
 			let payload = {
 				incoming: true,
 			};
 
-			if (resultType == "plain") payload.url = resultUrl;
-			else if (["jpg", "png"].includes(resultType)) {
+			if (resultType == "plain") {
+				if (result.url || isValidUrl(resultUrl))
+					payload.url = resultUrl;
+				else payload.text = resultUrl;
+			} else if (["jpg", "png"].includes(resultType)) {
 				payload.title = resultUrl.split("/").at(-1).split(".").at(0);
 				payload.subtitle = `image/${resultType}`;
 				payload.image = await Filesystem.readFile({
@@ -70,8 +80,14 @@ const App = () => {
 				);
 			}
 
-			if (payload.url || payload.image || payload.file)
-				openShareSheet(payload);
+			if (
+				objectIsEmpty(
+					objectTake(payload, ["text", "image", "url", "file"])
+				)
+			)
+				return;
+
+			openShareSheet(payload);
 		} catch (error) {
 			// alert("Share error: " + error);
 		}
