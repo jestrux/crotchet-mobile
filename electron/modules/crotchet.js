@@ -32,7 +32,6 @@ module.exports = function Crotchet() {
 
 		if (show) {
 			this.mainWindow.show();
-			app.dock.show();
 		} else {
 			this.mainWindow.hide();
 
@@ -42,14 +41,6 @@ module.exports = function Crotchet() {
 		this.showWindow = show;
 
 		return show;
-	};
-
-	this.hide = () => {
-		Object.values(this.windows).forEach((w) => w.close());
-		this.mainWindow.hide();
-		this.showWindow = false;
-		this.setMenuItems();
-		app.dock.hide();
 	};
 
 	this.setMenuItems = (items = [], { replace = false } = {}) => {
@@ -73,22 +64,7 @@ module.exports = function Crotchet() {
 					label: "Show app",
 					type: "checkbox",
 					checked: this.showWindow,
-					// accelerator: "Alt+/",
-					click: (event) => {
-						console.log("Click: ", event);
-
-						if (!event.checked) {
-							this.mainWindow.hide();
-
-							if (!Object.keys(this.windows).length)
-								app.dock.hide();
-						} else {
-							this.mainWindow.show();
-							app.dock.show();
-						}
-
-						this.showWindow = event.checked;
-					},
+					click: (event) => this.toggleWindow(event.checked),
 				},
 				...Object.values(this.menuItems).map((item) => {
 					return {

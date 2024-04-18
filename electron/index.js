@@ -61,11 +61,6 @@ const createMainWindow = () => {
 		});
 	}
 
-	mainWindow.on("close", function (evt) {
-		// evt.preventDefault();
-		// crotchetApp.hide();
-	});
-
 	crotchetApp.setMainWindow(mainWindow);
 };
 
@@ -76,7 +71,7 @@ app.whenReady().then(() => {
 
 app.on("window-all-closed", () => {});
 
-if (!isDev) app.dock.hide();
+app.dock.hide();
 
 // global.crotchetApp = menubar({
 // 	icon: appDir("icon.png"),
