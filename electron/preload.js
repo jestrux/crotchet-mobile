@@ -10,7 +10,7 @@ window.addEventListener("socket-emit", (e) => {
 	ipcRenderer.send("socket-emit", { event, payload });
 });
 
-window.addEventListener("restore-size", () => ipcRenderer.send("restore-size"));
+window.addEventListener("restore", () => ipcRenderer.send("restore"));
 
 window.addEventListener("toggle-app", (e) => {
 	ipcRenderer.send("toggle-app-window", e.detail);

@@ -236,7 +236,7 @@ export default function DesktopApp() {
 
 	const closeApp = () => {
 		setApp(null);
-		dispatch("restore-size");
+		dispatch("restore");
 	};
 
 	const handleMouseMove = () => {
@@ -247,7 +247,7 @@ export default function DesktopApp() {
 		if (window.hideAppTimeout) clearTimeout(window.hideAppTimeout);
 
 		// setTimeout(() => {
-		// 	if (!app) dispatch("restore-size");
+		// 	if (!app) dispatch("restore");
 		// }, 500);
 	});
 

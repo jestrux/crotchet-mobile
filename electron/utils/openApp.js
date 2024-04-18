@@ -2,7 +2,7 @@ module.exports = async function openApp({ scheme, url, window = {} }) {
 	const { width, height } = window || {};
 
 	crotchetApp.toggleWindow(true);
-
+	crotchetApp.toggleDock(true);
 	crotchetApp.resize(width && height ? { width, height } : undefined);
 
 	crotchetApp.mainWindow.webContents.executeJavaScript(

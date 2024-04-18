@@ -1,6 +1,7 @@
 const { Tray, Menu, app, globalShortcut } = require("electron");
 
 module.exports = function Crotchet() {
+	this.defaultSize = { width: 750, height: 480 };
 	this.tray = null;
 	this.showWindow = isDev;
 
@@ -20,10 +21,28 @@ module.exports = function Crotchet() {
 		this.mainWindow.webContents.send(event, payload);
 	};
 
+	this.restore = () => {
+		this.resize();
+		this.toggleDock(false);
+	};
+
 	this.resize = (size) => {
-		const { width, height } = size ?? { width: 750, height: 480 };
+		const { width, height } = size ?? this.defaultSize;
 		this.mainWindow.setSize(width, height);
 		this.mainWindow.center();
+	};
+
+	this.toggleDock = (show) => {
+		const visible = app.dock.isVisible();
+
+		if (show == undefined) show = !visible;
+		else if (show == visible) return;
+
+		if (show) app.dock.show();
+		else {
+			app.dock.hide();
+			this.mainWindow.show();
+		}
 	};
 
 	this.toggleWindow = (show) => {
