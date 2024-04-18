@@ -8,7 +8,7 @@ export default function useEventListener(event, callback) {
 
 		if (["keydown", "keyup"].includes(_event) && e.key != modifier) return;
 
-		callback(e);
+		callback(e, e.detail);
 	};
 
 	useEffect(() => {
