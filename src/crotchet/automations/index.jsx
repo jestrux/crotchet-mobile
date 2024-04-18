@@ -69,7 +69,7 @@ async function readTable(table, { queryDb, openForm, openPage, utils }) {
 	});
 }
 
-registerAutomationAction("netWorkRequest", {
+registerAutomationAction("networkRequest", {
 	icon: (
 		<svg
 			fill="none"
