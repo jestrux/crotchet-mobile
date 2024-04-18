@@ -114,10 +114,11 @@ export default function ActionSheet({
 	});
 	const mainActions = _.filter(actions, { main: true });
 	const otherActions = actions.filter(({ main }) => !main);
-	const groups = _.compact(_.keys(_.groupBy(otherActions, "group")));
+	const groups = _.keys(_.groupBy(otherActions, "group")).filter(
+		(group) => group && group != "undefined"
+	);
 
-	if (![undefined, "undefined"].includes(groups?.[0]) && !groupFilter)
-		setGroupFilter(groups[0]);
+	if (groups.length && !groupFilter) setGroupFilter(groups[0]);
 
 	return (
 		<div className="pt-5 pb-3 px-5">
@@ -170,7 +171,7 @@ export default function ActionSheet({
 						</div>
 					)}
 
-					{sheetProps.preview && groups.length && (
+					{sheetProps.preview && groups.length > 0 && (
 						<div className="-mb-0.5">{groupFilters(groups)}</div>
 					)}
 
