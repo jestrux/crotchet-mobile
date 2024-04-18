@@ -43,6 +43,8 @@ const createMainWindow = () => {
 		},
 	});
 
+	mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+
 	if (isDev) {
 		// mainWindow.webContents.openDevTools({ mode: "detach" });
 
