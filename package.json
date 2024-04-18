@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"postinstall": "cp ./node_modules/sql.js/dist/sql-wasm.wasm ./src/assets/sql-wasm.wasm",
-		"dev": "vite",
+		"dev": "vite --host",
 		"config": "node ./generate_capacitor_config.cjs",
 		"build": "npm run config && npx cap copy && vite build",
 		"lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
