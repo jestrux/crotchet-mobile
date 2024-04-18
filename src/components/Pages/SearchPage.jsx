@@ -8,6 +8,7 @@ import {
 	Input,
 	camelCaseToSentenceCase,
 } from "@/crotchet";
+import useStickyObserver from "@/hooks/useStickyObserver";
 
 export default function SearchPage({
 	background,
@@ -29,6 +30,8 @@ export default function SearchPage({
 				: ""
 		}...`;
 
+	const navRef = useRef(null);
+	const stuck = useStickyObserver(navRef.current);
 	const { KeyboardPlaceholder } = useKeyboard();
 	const [searchQuery, setSearchQuery] = useState(_query ?? "");
 	const [filters, setFilters] = useState(null);
@@ -112,7 +115,13 @@ export default function SearchPage({
 
 	return (
 		<>
-			<div className="sticky top-0 z-10 bg-stone-100/95 dark:!bg-card/95 dark:text-white backdrop-blur w-full flex flex-col">
+			<div
+				ref={navRef}
+				className={clsx("sticky top-0 z-10 w-full flex flex-col", {
+					"bg-stone-100/95 dark:!bg-card/95 dark:text-white backdrop-blur":
+						stuck,
+				})}
+			>
 				<div
 					className="absolute inset-0 dark:hidden"
 					style={{ background }}
