@@ -86,6 +86,11 @@ module.exports = function socketServer(server) {
 			shell.openExternal(url);
 		},
 
+		emit({ event, payload } = {}) {
+			crotchetApp.toggleWindow(true);
+			crotchetApp.windowEmit("socket", { event, payload });
+		},
+
 		async type({ text, replace } = { replace: false }) {
 			if (replace) {
 				await pressKeys(Key.LeftSuper, Key.A);

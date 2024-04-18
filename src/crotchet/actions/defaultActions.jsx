@@ -5,7 +5,7 @@ import {
 	showToast,
 	WidgetWrapper,
 } from "@/crotchet";
-import DesktopWidget from "../apps/Widgets/DesktopWidget";
+import RemoteWidget from "../apps/Widgets/RemoteWidget";
 
 // export const uploadFile = async (_, { showToast }) => {
 // 	await firebaseUploadFile();
@@ -49,7 +49,7 @@ export const remote = {
 			return openBottomSheet({
 				content: (
 					<div className="pb-8 px-3 pt-4">
-						<WidgetWrapper widget={DesktopWidget} />
+						<WidgetWrapper widget={RemoteWidget} />
 					</div>
 				),
 			});

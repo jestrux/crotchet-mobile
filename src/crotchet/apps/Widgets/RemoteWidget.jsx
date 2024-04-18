@@ -1,18 +1,37 @@
 import { useAppContext } from "@/providers/app";
 import Widget from "@/components/Widget";
 import { useRef, useState } from "react";
-import { KeyMap, showToast } from "@/utils";
+import { KeyMap } from "@/utils";
 import clsx from "clsx";
 import { SpeechRecognition } from "@capacitor-community/speech-recognition";
+import MutliGestureButton from "@/components/MutliGestureButton";
 
-export default function DesktopWidget() {
+export default function RemoteWidget() {
+	const dictatedMessageTimeout = useRef(null);
 	const trackpad = useRef(null);
-	const { socketEmit } = useAppContext();
+	const { socketEmit, actions: appActions } = useAppContext();
 	const [dictating, setDictating] = useState(false);
 	const [modifiers, setModifiers] = useState({});
+	const [dictatedMessage, _setDictatedMessage] = useState("");
 	const [value, setValue] = useState("");
 
+	const setDictatedMessage = (message, timeout) => {
+		if (dictatedMessageTimeout.current) {
+			clearTimeout(dictatedMessageTimeout.current);
+			dictatedMessageTimeout.current = null;
+		}
+
+		_setDictatedMessage(message);
+
+		if (timeout) {
+			dictatedMessageTimeout.current = setTimeout(() => {
+				setDictatedMessage("");
+			}, timeout);
+		}
+	};
+
 	const listen = async () => {
+		setDictatedMessage("");
 		setValue("");
 
 		const available = SpeechRecognition.available();
@@ -26,7 +45,7 @@ export default function DesktopWidget() {
 
 		try {
 			SpeechRecognition.addListener("partialResults", (data) => {
-				showToast(data.matches[0]);
+				setDictatedMessage(data.matches[0]);
 				setValue(data.matches[0]);
 			});
 
@@ -42,6 +61,26 @@ export default function DesktopWidget() {
 		}
 	};
 
+	const checkCommandForAction = (command) => {
+		command = command.toLowerCase().trim();
+		const action = Object.values(appActions).find(({ label }) => {
+			return label.toLowerCase() == command;
+		});
+
+		if (action && action.context != "share") {
+			setDictatedMessage(`running: ${command}...`, 1000);
+
+			socketEmit("emit", {
+				event: "runAction",
+				payload: action.name,
+			});
+
+			return true;
+		}
+
+		return false;
+	};
+
 	const triggerSpeech = () => {
 		if (dictating) {
 			SpeechRecognition.removeAllListeners();
@@ -52,6 +91,22 @@ export default function DesktopWidget() {
 			const paste = value.toLowerCase() == "paste";
 			// const replace = value.toLowerCase() == "replace";
 			// const selectAll = value.toLowerCase() == "select all";
+
+			setDictatedMessage("");
+
+			if (value.toLowerCase().includes("run")) {
+				const actionName = value.toLowerCase().replace("run", "");
+				if (
+					!checkCommandForAction(
+						value.toLowerCase().replace("run", "")
+					)
+				)
+					setDictatedMessage(`action: ${actionName} not found`, 1000);
+
+				return;
+			}
+
+			if (checkCommandForAction(value)) return;
 
 			if (paste) return socketEmit("paste");
 
@@ -123,13 +178,16 @@ export default function DesktopWidget() {
 		},
 		{
 			label: "Raycast",
-			key: "Space",
+			key: "Slash",
 			option: true,
 			icon: (
 				<svg className="size-5" fill="#FF6362" viewBox="0 0 24 24">
 					<path d="M6.004 15.492v2.504L0 11.992l1.258-1.249Zm2.504 2.504H6.004L12.008 24l1.253-1.253zm14.24-4.747L24 11.997 12.003 0 10.75 1.251 15.491 6h-2.865L9.317 2.692 8.065 3.944l2.06 2.06H8.691v9.31H18v-1.432l2.06 2.06 1.252-1.252-3.312-3.32V8.506ZM6.63 5.372 5.38 6.625l1.342 1.343 1.251-1.253Zm10.655 10.655-1.247 1.251 1.342 1.343 1.253-1.251zM3.944 8.059 2.692 9.31l3.312 3.314v-2.506zm9.936 9.937h-2.504l3.314 3.312 1.25-1.252z" />
 				</svg>
 			),
+			hold: {
+				key: "Space",
+			},
 		},
 		{ key: "Left", label: "👈" },
 		{ key: "Right", label: "👉" },
@@ -158,10 +216,29 @@ export default function DesktopWidget() {
 
 	// return null;
 
+	const doClick = ({ modifier, key, ...props }) => {
+		if (modifier) {
+			setModifiers((m) => ({
+				...m,
+				[key]: !m[key],
+			}));
+		} else {
+			socketEmit("keypress", {
+				key: KeyMap[key],
+				shift: modifiers.shift,
+				cmd: modifiers.cmd,
+				alt: modifiers.alt,
+				option: modifiers.option,
+				...props,
+			});
+		}
+	};
+
 	return (
 		<Widget noPadding title="Desktop" actions={actions}>
 			<div id="timerWidgetContent" className="h-full overflow-y-auto">
 				<div
+					className="flex items-center justify-center text-center"
 					ref={trackpad}
 					style={{ height: "100px" }}
 					onDoubleClick={() => socketEmit("doubleClick")}
@@ -169,7 +246,9 @@ export default function DesktopWidget() {
 					// onPanEnd={(e, i) => {
 					// 	socketEmit("mousemove", i.delta);
 					// }}
-				/>
+				>
+					<span>{dictatedMessage}</span>
+				</div>
 				{/* <motion.div
 						className="size-6 rounded-full bg-content/20"
 						drag
@@ -189,10 +268,22 @@ export default function DesktopWidget() {
 
 				<div className="mb-3 px-3 border-t border-content/20 mt-3 pt-4 grid grid-cols-12 gap-2">
 					{keys.map(
-						({ key, label, icon, modifier, span, ...props }) => {
+						(
+							{
+								key,
+								label,
+								icon,
+								modifier,
+								span,
+								doubleClick,
+								hold,
+								...props
+							},
+							index
+						) => {
 							return (
-								<button
-									key={label || key}
+								<MutliGestureButton
+									key={`${label || key} ${index}`}
 									className={clsx(
 										"border border-content/20 h-10 font-bold rounded-full flex items-center justify-center",
 										span ? "col-span-4" : "col-span-2",
@@ -200,28 +291,34 @@ export default function DesktopWidget() {
 											modifiers[key] &&
 											"bg-content/80 text-canvas"
 									)}
-									onClick={() => {
-										if (modifier) {
-											setModifiers((m) => ({
-												...m,
-												[key]: !m[key],
-											}));
-										} else {
-											socketEmit("keypress", {
-												key: KeyMap[key],
-												shift: modifiers.shift,
-												cmd: modifiers.cmd,
-												alt: modifiers.alt,
-												option: modifiers.option,
-												...props,
-											});
-										}
-									}}
+									{...(doubleClick
+										? {
+												onDoubleClick: () => {
+													doClick({
+														...props,
+														...doubleClick,
+													});
+												},
+										  }
+										: {})}
+									{...(hold
+										? {
+												onHold: () => {
+													doClick({
+														...props,
+														...hold,
+													});
+												},
+										  }
+										: {})}
+									onClick={() =>
+										doClick({ modifier, key, ...props })
+									}
 								>
 									<span className="font-bold">
 										{icon || label || key}
 									</span>
-								</button>
+								</MutliGestureButton>
 							);
 						}
 					)}

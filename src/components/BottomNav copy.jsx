@@ -5,7 +5,7 @@ import { useAppContext } from "@/providers/app";
 import { useRef, useState } from "react";
 import Loader from "./Loader";
 import WidgetWrapper from "./WidgetWrapper";
-import DesktopWidget from "@/crotchet/apps/Widgets/DesktopWidget";
+import DesktopWidget from "@/crotchet/apps/Widgets/RemoteWidget";
 import { matchSorter } from "match-sorter";
 import GlobalSearch from "./GlobalSearch";
 import { openUrl } from "@/utils";

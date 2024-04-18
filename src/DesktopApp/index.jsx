@@ -6,6 +6,7 @@ import {
 	dispatch,
 	objectIsEmpty,
 	randomId,
+	showToast,
 	useAppContext,
 } from "@/crotchet";
 import useEventListener from "../hooks/useEventListener";
@@ -170,11 +171,12 @@ export default function DesktopApp() {
 		searchQuery: "",
 	};
 
+	const toastTimerRef = useRef();
 	const [toast, setToast] = useState(null);
 	const [pages, setPages] = useState([rootPage]);
 	const page = pages.at(-1);
 	const [app, _setApp] = useState(null);
-	const { apps } = useAppContext();
+	const { apps, actions } = useAppContext();
 
 	const setApp = (app) => {
 		window.__crotchet.desktop.app;
@@ -183,11 +185,13 @@ export default function DesktopApp() {
 	};
 
 	window.__crotchet.desktop.showToast = (message) => {
+		if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+
 		setToast(message);
 
-		setTimeout(() => {
+		toastTimerRef.current = setTimeout(() => {
 			setToast(null);
-		}, 1500);
+		}, 2000);
 	};
 
 	window.__crotchet.desktop.openApp = ({ scheme, url }) => {
@@ -242,7 +246,9 @@ export default function DesktopApp() {
 	useEventListener("focus", () => {
 		if (window.hideAppTimeout) clearTimeout(window.hideAppTimeout);
 
-		if (!app) dispatch("restore-size");
+		// setTimeout(() => {
+		// 	if (!app) dispatch("restore-size");
+		// }, 500);
 	});
 
 	useEventListener("blur", () => {
@@ -251,10 +257,37 @@ export default function DesktopApp() {
 		if (!app) window.hideAppTimeout = setTimeout(hideAppWindow, 10);
 	});
 
+	useEventListener("socket", (_, { event, payload } = {}) => {
+		showToast(`Socket: ${event}, ${payload}`);
+
+		if (event == "runAction") {
+			try {
+				const action = actions[payload];
+
+				if (
+					typeof action?.handler == "function" ||
+					action?.handler instanceof Promise
+				) {
+					showToast(`Running ${action.name}...`);
+
+					actions[payload].handler();
+
+					return;
+				}
+
+				showToast(`Action ${action.name} not found!`);
+			} catch (error) {
+				showToast(`Error: ${error}`);
+			}
+
+			return;
+		}
+	});
+
 	useEventListener("keydown:Escape", (e) => {
-		if (e.shiftKey) {
-			if (app) closeApp();
-			else if (!page.root) popToRoot();
+		if (app) closeApp();
+		else if (e.shiftKey) {
+			if (!page.root) popToRoot();
 		}
 	});
 
@@ -279,7 +312,11 @@ export default function DesktopApp() {
 			className="h-screen w-screen bg-canvas text-content pointer-events-auto"
 			onMouseMove={handleMouseMove}
 		>
-			<div className="relative h-full">
+			<div
+				className={clsx("relative h-full", {
+					"opacity-0": app?.scheme,
+				})}
+			>
 				{pages.map((page) => {
 					const focused = page._id == pages.at(-1)._id;
 
@@ -305,6 +342,7 @@ export default function DesktopApp() {
 					<div className="fixed top-0 inset-x-0 z-10 h-14 window-drag-handle flex items-center">
 						<button
 							className="window-no-drag opacity-0 group-hover:opacity-100 transition-opacity ml-auto mr-3 bg-white text-black shadow border border-content/5 size-7 flex items-center justify-center rounded-full"
+							style={{ display: "none" }}
 							onClick={closeApp}
 						>
 							<svg

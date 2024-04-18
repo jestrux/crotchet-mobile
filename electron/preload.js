@@ -24,3 +24,7 @@ window.addEventListener("DOMContentLoaded", () => {
 ipcRenderer.on("menu-item-click", function (_, itemId) {
 	window.dispatchEvent(new CustomEvent(`menu-item-click:${itemId}`));
 });
+
+ipcRenderer.on("socket", function (_, props) {
+	window.dispatchEvent(new CustomEvent("socket", { detail: props }));
+});
