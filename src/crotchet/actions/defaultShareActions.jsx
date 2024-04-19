@@ -104,8 +104,10 @@ export const copy = {
 		</svg>
 	),
 	context: "share",
-	match: ({ url, image, text } = {}) =>
-		Object.keys(cleanObject({ url, text })).length > 0 && !image,
+	match: ({ url, image, text, fromClipboard } = {}) =>
+		Object.keys(cleanObject({ url, text })).length > 0 &&
+		!image &&
+		!fromClipboard,
 	handler: ({ url, text } = {}, { openUrl }) =>
 		openUrl(`crotchet://copy-${shareSheetSlug({ url, text })}`),
 };
@@ -117,7 +119,7 @@ export const copyImage = {
 		</svg>
 	),
 	context: "share",
-	match: "image",
+	match: ({ image, fromClipboard } = {}) => image && !fromClipboard,
 	handler: ({ image } = {}, { openUrl }) =>
 		openUrl(`crotchet://copy-image/${image}`),
 };
