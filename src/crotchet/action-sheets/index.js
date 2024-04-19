@@ -28,6 +28,7 @@ registerActionSheet(
 				text,
 				download,
 				incoming,
+				fromClipboard,
 				scheme,
 				state = {},
 			} = content;
@@ -52,6 +53,7 @@ registerActionSheet(
 						download,
 						scheme,
 						state,
+						fromClipboard,
 					});
 				} else if (
 					["image", "file", "url", "text", "download"].includes(match)

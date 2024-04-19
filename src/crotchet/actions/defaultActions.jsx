@@ -47,11 +47,7 @@ export const remote = {
 
 		if (_socket) {
 			return openBottomSheet({
-				content: (
-					<div className="pb-8 px-3 pt-4">
-						<WidgetWrapper widget={RemoteWidget} />
-					</div>
-				),
+				content: <RemoteWidget />,
 			});
 		}
 
@@ -82,6 +78,7 @@ export const clipboard = {
 		if (!value?.length) return showToast("Nothing in clipboard");
 
 		let payload = {
+			fromClipboard: true,
 			text: value,
 		};
 
