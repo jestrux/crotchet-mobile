@@ -2,7 +2,9 @@ import {
 	ActionGrid,
 	DataWidget,
 	objectIsEmpty,
+	objectToQueryParams,
 	randomId,
+	showToast,
 	useAppContext,
 	useSourceGet,
 } from "@/crotchet";
@@ -49,7 +51,6 @@ const AutomationRunner = ({
 	const { loading, error } = useSourceGet(
 		async () => {
 			if (actionRef.current.data) {
-				console.log("Already fetched!");
 				onSuccess(actionRef.current.data);
 				return actionRef.current.data;
 			}
@@ -92,23 +93,45 @@ const AutomationRunner = ({
 	);
 };
 
-const AutomationFlow = ({ flow: _flow, onSuccess = () => {} }) => {
+const AutomationFlow = ({
+	flow: _flow,
+	onSelect = () => {},
+	onSuccess = () => {},
+}) => {
 	const { automationActions } = useAppContext();
 	const [{ actions, data, selectedAction: _selectedAction }] =
 		useState(_flow);
 	const [savedData, setSavedData] = useState({});
-	const [selectedAction, setSelectedAction] = useState(
+	const [selectedAction, _setSelectedAction] = useState(
 		_selectedAction ? automationActions[_selectedAction] : null
 	);
+
+	const setSelectedAction = (action) => {
+		if (action) {
+			onSelect({
+				action: action?.name,
+				values: null,
+			});
+		}
+
+		_setSelectedAction(action);
+	};
 
 	const handleSuccess = (res = {}) => {
 		setSelectedAction(null);
 
-		setSavedData((actionData) => {
-			const { data, meta } = res;
+		if (res.state?.form) {
+			onSelect({
+				action: selectedAction?.name,
+				values: res.state.form,
+			});
+		}
+
+		setSavedData((savedData) => {
+			const { state } = res;
 			return {
-				...actionData,
-				[selectedAction?.name]: { data, meta },
+				...savedData,
+				[selectedAction?.name]: state || {},
 			};
 		});
 
@@ -120,10 +143,7 @@ const AutomationFlow = ({ flow: _flow, onSuccess = () => {} }) => {
 			.map((action) => {
 				const actualAction = automationActions[action];
 
-				if (!actualAction) {
-					console.log("Action not found: ", action);
-					return null;
-				}
+				if (!actualAction) return null;
 
 				return {
 					_id: randomId(),
@@ -160,15 +180,39 @@ const AutomationFlow = ({ flow: _flow, onSuccess = () => {} }) => {
 };
 
 export default function Automate({ dismiss, maxHeight, action }) {
-	const { automationActions } = useAppContext();
+	const { automationActions, openChoicePicker, dbInsert, queryDb, openForm } =
+		useAppContext();
 	const stuck = false;
 	const [flow, setFlow] = useState([
 		{
 			__id: randomId(),
 			selectedAction: action ? action : null,
 			actions: action ? [action] : [],
+			runUrl: action ? `crotchet://automation-action/${action}` : null,
 		},
 	]);
+
+	const handleSelect = (index, { action, values } = {}) => {
+		setFlow((flow) => {
+			let newFlow = [...flow];
+
+			let params = "";
+
+			if (values) {
+				params = `?${objectToQueryParams(values)}`;
+			}
+
+			newFlow[index] = {
+				...newFlow[index],
+				runUrl: `crotchet://automation-action/${action}${params}`,
+			};
+
+			if (newFlow.length > index + 1)
+				newFlow = newFlow.slice(0, index + 1);
+
+			return newFlow;
+		});
+	};
 
 	const updateFlow = (
 		index,
@@ -191,7 +235,91 @@ export default function Automate({ dismiss, maxHeight, action }) {
 		});
 	};
 
+	const saveAutomation = async (flow) => {
+		const automations = await queryDb("automations");
+		let rowId;
+
+		if (automations?.length) {
+			let choices = automations.map(({ _id, name }) => ({
+				label: name,
+				value: _id,
+			}));
+
+			rowId = await openChoicePicker({
+				title: "Save to",
+				choices: [
+					...choices,
+					{
+						label: "New automation",
+						value: null,
+						icon: (
+							<svg
+								viewBox="0 0 24 24"
+								strokeWidth={1.5}
+								stroke="currentColor"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									d="M12 4.5v15m7.5-7.5h-15"
+								/>
+							</svg>
+						),
+					},
+				],
+			});
+		}
+
+		const actions = _.compact(_.map(flow, "runUrl"));
+		try {
+			if (rowId) {
+				console.log(
+					"Rowd id: ",
+					"automations",
+					{
+						actions,
+					},
+					{ rowId }
+				);
+
+				await dbInsert(
+					"automations",
+					{
+						actions,
+					},
+					{ rowId }
+				);
+			} else {
+				const name =
+					(await openForm({
+						title: "Save automation ",
+						field: {
+							label: "Automation name",
+							type: "text",
+						},
+					})) || "Untitled Automation";
+
+				await dbInsert("automations", {
+					name,
+					actions,
+				});
+
+				console.log("Save: ", "automations", {
+					name,
+					actions,
+				});
+			}
+		} catch (error) {
+			console.log("Save error: ", error);
+		}
+
+		showToast("Automation saved!");
+		dismiss();
+	};
+
 	if (!automationActions) return <h3>Loading...</h3>;
+
+	console.log("Actions: ", _.compact(_.map(flow, "runUrl")));
 
 	return (
 		<div style={{ height: maxHeight + "px" }}>
@@ -232,18 +360,36 @@ export default function Automate({ dismiss, maxHeight, action }) {
 				</div>
 			</div>
 			<div className="px-6 py-4 flex flex-col items-center gap-8">
-				{flow.map(({ __id, ...flow }, index) => {
-					if (objectIsEmpty(flow))
-						return <div key={__id}>End of flow...</div>;
+				{flow.map(({ __id, ...entry }, index) => {
+					if (objectIsEmpty(entry) || !entry.actions) return null;
 
 					return (
 						<AutomationFlow
 							key={__id}
-							flow={flow}
+							flow={entry}
+							onSelect={(payload) => handleSelect(index, payload)}
 							onSuccess={(payload) => updateFlow(index, payload)}
 						/>
 					);
 				})}
+
+				<div className="mb-12">
+					{flow.length > 1 && (
+						<ActionGrid
+							key={_.compact(_.map(flow, "runUrl"))}
+							type="wrap"
+							color="#84cc16"
+							colorDark="#bef264"
+							fallbackIcon="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"
+							data={[
+								{
+									label: "Save automation",
+									handler: () => saveAutomation(flow),
+								},
+							]}
+						/>
+					)}
+				</div>
 			</div>
 		</div>
 	);

@@ -82,7 +82,7 @@ const AppContext = createContext({
 	// eslint-disable-next-line no-unused-vars
 	queryDb: (table, { orderBy, rowId } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
-	dbInsert: (table, data) => {},
+	dbInsert: (table, data, { rowId, merge = true }) => {},
 	// eslint-disable-next-line no-unused-vars
 	socketEmit: (event, data) => {},
 	socketConnected: () => {},

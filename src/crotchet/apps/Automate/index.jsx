@@ -1,10 +1,10 @@
 import "./automations";
 
-import { objectToQueryParams, registerAction, registerApp } from "@/crotchet";
+import { registerAction, registerApp, showToast } from "@/crotchet";
 
 import Automate from "./Automate";
 
-registerAction("automate", {
+registerAction("runAutomation", {
 	icon: (
 		<svg viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
 			<path
@@ -14,10 +14,41 @@ registerAction("automate", {
 			/>
 		</svg>
 	),
-	handler: (payload, { openUrl }) => {
-		return openUrl(
-			`crotchet://app/automate?${objectToQueryParams(payload)}`
-		);
+	handler: async ({ name, actions: steps }, { openUrl, utils }) => {
+		const actions = steps.map((step) => {
+			var actionName = new URL(
+				step.replace(
+					"crotchet://automation-action/",
+					"https://crotchet.app/"
+				)
+			).pathname
+				.substring(1)
+				.split("/")
+				?.at(0);
+
+			return {
+				handler: (data) =>
+					openUrl(
+						`crotchet://automation-action/${actionName}?${utils.objectToQueryParams(
+							{
+								...(data || {}),
+								runData: utils.urlQueryParamsAsObject(step),
+							}
+						)}`
+					),
+			};
+		});
+
+		try {
+			let lastData;
+			for (const action of actions) {
+				lastData = await action.handler(lastData);
+			}
+		} catch (error) {
+			return showToast(`Automation ${name} failed`);
+		}
+
+		return showToast(`Automation ${name} completed`);
 	},
 });
 

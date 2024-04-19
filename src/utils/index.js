@@ -370,6 +370,21 @@ export const openUrl = async (path) => {
 		return showToast(`Action ${scheme} not found`);
 	}
 
+	if (path.startsWith("crotchet://automation-action/")) {
+		path = path.replace(
+			"crotchet://automation-action/",
+			"https://crotchet.app/"
+		);
+		const url = new URL(path);
+		const scheme = url.pathname.substring(1).split("/")?.at(0);
+		const params = urlQueryParamsAsObject(path);
+
+		const action = window.__crotchet.automationActions[scheme];
+		if (action?.handler) return await action.handler(params);
+
+		return showToast(`Automation action ${scheme} not found`);
+	}
+
 	if (path.startsWith("crotchet://app/")) {
 		const scheme = new URL(
 			path.replace("crotchet://app/", "https://crotchet.app/")
@@ -591,8 +606,48 @@ export const objectAsLabelValue = (object) => {
 
 export const objectToQueryParams = (obj = {}) => {
 	const url = new URL("https://crotchet.app/");
-	Object.keys(obj).forEach((key) => url.searchParams.set(key, obj[key]));
+
+	Object.keys(obj).forEach((key) => {
+		let value = obj[key];
+
+		if (_.isObject(value)) {
+			value = JSON.stringify(value);
+		}
+
+		value = encodeURIComponent(value);
+
+		url.searchParams.set(key, value);
+	});
+
 	return url.searchParams.toString();
+};
+
+export const urlQueryParamsAsObject = (path) => {
+	const url = new URL(path);
+
+	const params = Array.from(url.searchParams.entries()).map(
+		([key, value]) => {
+			if (isNaN(value)) {
+				try {
+					value = decodeURIComponent(value);
+				} catch (error) {
+					//
+				}
+
+				try {
+					value = JSON.parse(value);
+				} catch (error) {
+					//
+				}
+			} else {
+				value = Number(value);
+			}
+
+			return [key, value];
+		}
+	);
+
+	return Object.fromEntries(params);
 };
 
 export const shuffle = (array) => {

@@ -15,11 +15,13 @@ registerAutomationAction("jsonToView", {
 			/>
 		</svg>
 	),
-	handler: async ({ data, meta = {}, savedData }, { openForm, utils }) => {
+	handler: async (
+		{ data, meta = {}, savedData, runData },
+		{ openForm, utils }
+	) => {
 		if (!data || !meta?.fields) throw "No valid data provided";
 
-		const fieldDefaultValues = savedData?.meta?.layoutProps
-			?.fieldMappings || {
+		const fieldDefaultValues = savedData?.form?.fieldMappings || {
 			title: "",
 		};
 
@@ -30,53 +32,50 @@ registerAutomationAction("jsonToView", {
 			fieldDefaultValues[""] = "";
 		}
 
-		let layoutProps = await openForm({
-			fullHeight: false,
-			title: "Select layout",
-			data: savedData?.meta?.layoutProps || {
-				layout: "list",
-				columns: "2",
-				fieldMappings: fieldDefaultValues,
-			},
-			fields: {
-				fieldMappings: {
-					group: "Data Field Mapping",
-					label: "Map fields",
-					type: "keyvalue",
-					key: (data) => data?.table,
-					meta: {
-						// editable: false,
-						schema: {
-							image: "image",
-							title: "text",
-							subtitle: "text",
-							progress: "number",
-							status: "status",
-							action: "url",
-						},
-						choices: _.map(
-							utils.objectFieldChoices(meta.fields),
-							"value"
-						),
+		let layoutProps = runData?.fieldMappings
+			? runData
+			: await openForm({
+					fullHeight: false,
+					title: "Select layout",
+					data: savedData?.form || {
+						layout: "list",
+						columns: "2",
+						fieldMappings: fieldDefaultValues,
 					},
-					// group: "Widget Content",
-				},
-				layout: {
-					type: "radio",
-					choices: ["list", "grid"],
-					group: "Layout Properties",
-				},
-				columns: {
-					type: "radio",
-					choices: [
-						{ label: "Two", value: "2" },
-						{ label: "Three", value: "3" },
-					],
-					show: (state) => state.layout == "grid",
-					group: "Layout Properties",
-				},
-			},
-		});
+					fields: {
+						fieldMappings: {
+							group: "Data Field Mapping",
+							label: "Map fields",
+							type: "keyvalue",
+							key: (data) => data?.table,
+							meta: {
+								schema: {
+									image: "image",
+									title: "text",
+									subtitle: "text",
+									progress: "number",
+									status: "status",
+									action: "url",
+								},
+								choices: _.map(
+									utils.objectFieldChoices(meta.fields),
+									"value"
+								),
+							},
+						},
+						layout: {
+							type: "radio",
+							choices: ["list", "grid"],
+							group: "Layout Properties",
+						},
+						columns: {
+							type: "radio",
+							choices: ["2", "3"],
+							show: (state) => state.layout == "grid",
+							group: "Layout Properties",
+						},
+					},
+			  });
 
 		const fieldMappings = Object.entries(
 			utils.cleanObject(layoutProps?.fieldMappings)
@@ -98,7 +97,9 @@ registerAutomationAction("jsonToView", {
 			data: viewData,
 			meta: {
 				layoutProps,
-				// fieldMappings: Object.fromEntries(fieldMappings),
+			},
+			state: {
+				form: layoutProps,
 			},
 			actions: ["previewData"],
 		};
@@ -123,7 +124,7 @@ registerAutomationAction("previewData", {
 	handler: async ({ data, meta } = {}, { openSearchPage, showToast }) => {
 		if (!data) return showToast("No data");
 
-		return openSearchPage({
+		openSearchPage({
 			type: "data",
 			title: "Data preview",
 			source: {
@@ -133,6 +134,10 @@ registerAutomationAction("previewData", {
 				},
 			},
 		});
+
+		return {
+			type: "exit",
+		};
 	},
 });
 
@@ -174,12 +179,21 @@ registerAutomationAction("readDbTable", {
 			/>
 		</svg>
 	),
-	handler: async (_, appContext) => {
+	handler: async ({ runData, savedData }, appContext) => {
 		const { utils, getDbTables, queryDb, openChoicePicker } = appContext;
-		const table = await openChoicePicker({
-			title: "Select table",
-			choices: getDbTables,
-		});
+		let tables;
+		const table =
+			runData?.table ||
+			(await openChoicePicker({
+				title: "Select table",
+				choices: savedData?.tables
+					? savedData.tables
+					: () =>
+							getDbTables().then((res) => {
+								tables = res;
+								return res;
+							}),
+			}));
 
 		if (!table) return null;
 
@@ -200,6 +214,10 @@ registerAutomationAction("readDbTable", {
 			type: "jsonArray",
 			actions: ["jsonToView"],
 			data,
+			state: {
+				tables,
+				form: { table },
+			},
 			meta: {
 				fields,
 			},

@@ -65,7 +65,7 @@ export const queryDb = async (table, { orderBy: _orderBy, filter } = {}) => {
 	});
 };
 
-export const dbInsert = async (table, data, rowId) => {
+export const dbInsert = async (table, data, { rowId, merge = true } = {}) => {
 	if (!_.isObject(data)) {
 		data = {
 			text: data,
@@ -89,7 +89,7 @@ export const dbInsert = async (table, data, rowId) => {
 
 	if (rowId) {
 		rowRef = doc(db, ...tablePath, rowId);
-		await setDoc(rowRef, data);
+		await setDoc(rowRef, data, { merge });
 	} else rowRef = await addDoc(tableRef, data);
 
 	const res = await getDoc(rowRef);

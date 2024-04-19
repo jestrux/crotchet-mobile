@@ -620,7 +620,7 @@ const Field = ({ field, value, onChange, __data }) => {
 			return (
 				<input
 					autoFocus
-					className="placeholder:text-content/20"
+					className="block bg-transparent placeholder:text-content/20"
 					id={field.label}
 					placeholder={field.placeholder}
 					type={fieldType}
