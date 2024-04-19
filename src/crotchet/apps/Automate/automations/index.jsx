@@ -16,47 +16,71 @@ registerAutomationAction("jsonToView", {
 		</svg>
 	),
 	handler: async ({ data, meta = {}, savedData }, { openForm, utils }) => {
-		console.log(savedData?.meta);
-
 		if (!data || !meta?.fields) throw "No valid data provided";
 
-		let defaultValue = savedData?.meta?.fieldMappings || {
+		const fieldDefaultValues = savedData?.meta?.layoutProps
+			?.fieldMappings || {
 			title: "",
 		};
 
 		if (
-			Object.keys(meta.fields).length != Object.keys(defaultValue).length
+			Object.keys(meta.fields).length !=
+			Object.keys(fieldDefaultValues).length
 		) {
-			defaultValue[""] = "";
+			fieldDefaultValues[""] = "";
 		}
 
-		let res = await openForm({
-			title: "Map json to view",
-			field: {
-				label: "Field mappings",
-				type: "keyvalue",
-				defaultValue,
-				key: (data) => data?.table,
-				meta: {
-					// editable: false,
-					schema: {
-						image: "image",
-						title: "text",
-						subtitle: "text",
-						progress: "number",
-						status: "status",
-						action: "url",
+		let layoutProps = await openForm({
+			fullHeight: false,
+			title: "Select layout",
+			data: savedData?.meta?.layoutProps || {
+				layout: "list",
+				columns: "2",
+				fieldMappings: fieldDefaultValues,
+			},
+			fields: {
+				fieldMappings: {
+					group: "Data Field Mapping",
+					label: "Map fields",
+					type: "keyvalue",
+					key: (data) => data?.table,
+					meta: {
+						// editable: false,
+						schema: {
+							image: "image",
+							title: "text",
+							subtitle: "text",
+							progress: "number",
+							status: "status",
+							action: "url",
+						},
+						choices: _.map(
+							utils.objectFieldChoices(meta.fields),
+							"value"
+						),
 					},
-					choices: _.map(
-						utils.objectFieldChoices(meta.fields),
-						"value"
-					),
+					// group: "Widget Content",
 				},
-				// group: "Widget Content",
+				layout: {
+					type: "radio",
+					choices: ["list", "grid"],
+					group: "Layout Properties",
+				},
+				columns: {
+					type: "radio",
+					choices: [
+						{ label: "Two", value: "2" },
+						{ label: "Three", value: "3" },
+					],
+					show: (state) => state.layout == "grid",
+					group: "Layout Properties",
+				},
 			},
 		});
 
-		const fieldMappings = Object.entries(utils.cleanObject(res));
+		const fieldMappings = Object.entries(
+			utils.cleanObject(layoutProps?.fieldMappings)
+		);
 
 		if (!fieldMappings.length) return null;
 
@@ -69,34 +93,12 @@ registerAutomationAction("jsonToView", {
 			)
 		);
 
-		let layoutProps = await openForm({
-			fullHeight: false,
-			title: "Select layout",
-			data: savedData?.meta?.layoutProps || {
-				layout: "list",
-			},
-			fields: {
-				layout: {
-					type: "radio",
-					choices: ["list", "grid"],
-				},
-				columns: {
-					type: "radio",
-					choices: [
-						{ label: "Two", value: "2" },
-						{ label: "Three", value: "3" },
-					],
-					show: (state) => state.layout == "grid",
-				},
-			},
-		});
-
 		return {
 			type: "viewData",
 			data: viewData,
 			meta: {
 				layoutProps,
-				fieldMappings: Object.fromEntries(fieldMappings),
+				// fieldMappings: Object.fromEntries(fieldMappings),
 			},
 			actions: ["previewData"],
 		};
