@@ -89,9 +89,10 @@ export function useSourceGet(
 				data,
 			});
 		} catch (error) {
+			// console.log("Fetch error: ", error);
 			onChange({
 				loading: false,
-				error,
+				error: error.toString(),
 			});
 		} finally {
 			if (loadingRef.current) clearInterval(loadingRef.current);

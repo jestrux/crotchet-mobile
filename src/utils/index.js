@@ -567,8 +567,12 @@ export const simulateClick = (cb) => {
 
 export const objectFieldChoices = (choices) =>
 	choices.map((choice) => {
-		const label = objectField(choice, "label");
-		const value = objectField(choice, "value");
+		let label = objectField(choice, "label");
+		let value = objectField(choice, "value");
+
+		if (!value && label) value = label;
+		else if (!label && value) label = value;
+
 		return {
 			tempId: label,
 			label,

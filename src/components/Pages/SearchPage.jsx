@@ -25,8 +25,8 @@ export default function SearchPage({
 	placeholder =
 		placeholder ||
 		`Type to search${
-			source.name.length
-				? " " + camelCaseToSentenceCase(source.name).toLowerCase()
+			source?.name?.length
+				? " " + camelCaseToSentenceCase(source?.name).toLowerCase()
 				: ""
 		}...`;
 
