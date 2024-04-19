@@ -1,3 +1,4 @@
+import { useSourceGet } from "@/crotchet";
 import ActionButton from "./ActionButton";
 import clsx from "clsx";
 
@@ -17,6 +18,12 @@ export default function ActionGrid({
 	colorDark: _colorDark,
 	onClose = () => {},
 }) {
+	const { loading, data: actions } = useSourceGet(() => {
+		if (_.isFunction(data)) return data();
+
+		return data;
+	});
+
 	const typeInline = type == "inline";
 	const typeWrap = type == "wrap";
 
@@ -130,7 +137,9 @@ export default function ActionGrid({
 		);
 	};
 
-	if (!data?.length) return null;
+	if (loading) return null;
+
+	if (!actions?.length) return null;
 
 	return (
 		<div className="space-y-1.5" onClick={onClose}>
@@ -145,7 +154,7 @@ export default function ActionGrid({
 						: "grid grid-cols-3 gap-2"
 				}
 			>
-				{data.map((action) => (
+				{actions.map((action) => (
 					<ActionItem key={action._id} action={action} />
 				))}
 			</div>
