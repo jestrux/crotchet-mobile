@@ -24,6 +24,9 @@ export { default as DataFetcher } from "@/providers/data/DataFetcher";
 export { default as DataWidget } from "@/components/DataWidget";
 export { default as ListItem } from "@/components/ListItem";
 export { default as Loader } from "@/components/Loader";
+export { default as ActionList } from "@/components/ActionList";
+export { default as ColorPicker } from "@/components/ColorPicker";
+export { default as SliderInput } from "@/components/SliderInput";
 
 export * from "@/utils";
 
@@ -321,6 +324,13 @@ export const registerActionSheet = (name, props) => {
 		const onChange = (callback) => {
 			if (typeof callback == "function") changeHander = callback;
 		};
+
+		if (_.isArray(props.actions) && props.actions.length == 1) {
+			return props.actions[0].handler({
+				...(payload || {}),
+				...(props || {}),
+			});
+		}
 
 		return window.__crotchet.openActionSheet(
 			{
