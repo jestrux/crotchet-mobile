@@ -1,5 +1,6 @@
 import { registerApp } from "@/crotchet";
 import Widgets from "./Widgets";
+// import Automate from "./Automate/Automate";
 
 registerApp("home", () => {
 	return {
@@ -28,6 +29,11 @@ registerApp("home", () => {
 					}}
 				>
 					<Widgets />
+					{/* <Automate
+						action="readDbTable"
+						dismiss={() => {}}
+						maxHeight={window.innerHeight}
+					/> */}
 				</div>
 			);
 		},
