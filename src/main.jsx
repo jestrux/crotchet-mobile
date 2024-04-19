@@ -15,8 +15,6 @@ import "./crotchet/actions";
 
 import "./crotchet/apps";
 
-import "./crotchet/automations";
-
 import AppProvider from "./providers/app";
 import App from "./App";
 

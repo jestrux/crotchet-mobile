@@ -1,3 +1,5 @@
+import "./Automate";
+
 import "./Reader";
 import "./LaCroix";
 import "./YoutubeClips";

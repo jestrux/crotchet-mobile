@@ -33,6 +33,7 @@ const AppContext = createContext({
 	apps: {},
 	app: {},
 	actions: {},
+	automationActions: {},
 	// eslint-disable-next-line no-unused-vars
 	openApp: (url) => {},
 	closeApp: () => {},
@@ -290,7 +291,7 @@ export default function AppProvider({ children }) {
 		openPage({
 			...props,
 			type: "form",
-			fullHeight: fullHeight || !props.field,
+			fullHeight: fullHeight ?? !props.field,
 		});
 
 	const appContextValue = {
@@ -391,6 +392,7 @@ export default function AppProvider({ children }) {
 				...appContextValue,
 				apps: window.__crotchet.apps,
 				actions: window.__crotchet.actions,
+				automationActions: window.__crotchet.automationActions,
 				dataSources: window.__crotchet.dataSources,
 			}}
 		>

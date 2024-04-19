@@ -1,75 +1,6 @@
 import { registerAutomationAction } from "@/crotchet";
 
-async function readTable(table, { queryDb, openForm, openPage, utils }) {
-	let rows;
-	const fieldChoices = () =>
-		queryDb(table).then((res) => {
-			rows = res;
-			return Object.keys(rows[0]).filter(
-				(item) =>
-					!["_id", "_index", "createdAt", "updatedAt"].includes(item)
-			);
-		});
-
-	let res = await openForm({
-		title: "Map db fields",
-		field: {
-			label: "Field mappings",
-			type: "keyvalue",
-			defaultValue: {
-				title: "",
-				"": "",
-			},
-			key: (data) => data?.table,
-			meta: {
-				// editable: false,
-				schema: {
-					image: "image",
-					title: "text",
-					subtitle: "text",
-					progress: "number",
-					status: "status",
-					action: "url",
-				},
-				choices: fieldChoices,
-			},
-			// group: "Widget Content",
-		},
-	});
-
-	const fieldMappings = Object.entries(utils.cleanObject(res));
-
-	if (!fieldMappings.length) return;
-
-	const data = rows.map((row) =>
-		Object.fromEntries(
-			fieldMappings.map(([field, dbField]) => [
-				field,
-				row[dbField] ?? "--",
-			])
-		)
-	);
-
-	return openPage({
-		content: [
-			{
-				type: "data",
-				title: table,
-				subtitle: `Found ${rows.length} rows`,
-				data,
-				// value: (
-				// 	<div className="divide-y">
-				// 		{rows.map((row) => (
-				// 			<div key={row._id}>{row[res] ?? "--"}</div>
-				// 		))}
-				// 	</div>
-				// ),
-			},
-		],
-	});
-}
-
-registerAutomationAction("networkRequest", {
+registerAutomationAction("jsonToView", {
 	icon: (
 		<svg
 			fill="none"
@@ -84,20 +15,149 @@ registerAutomationAction("networkRequest", {
 			/>
 		</svg>
 	),
-	handler: async (_, appContext) => {
-		const { getDbTables, openChoicePicker } = appContext;
-		const table = await openChoicePicker({
-			title: "Select table",
-			choices: getDbTables,
+	handler: async ({ data, meta = {}, savedData }, { openForm, utils }) => {
+		console.log(savedData?.meta);
+
+		if (!data || !meta?.fields) throw "No valid data provided";
+
+		let defaultValue = savedData?.meta?.fieldMappings || {
+			title: "",
+		};
+
+		if (
+			Object.keys(meta.fields).length != Object.keys(defaultValue).length
+		) {
+			defaultValue[""] = "";
+		}
+
+		let res = await openForm({
+			title: "Map json to view",
+			field: {
+				label: "Field mappings",
+				type: "keyvalue",
+				defaultValue,
+				key: (data) => data?.table,
+				meta: {
+					// editable: false,
+					schema: {
+						image: "image",
+						title: "text",
+						subtitle: "text",
+						progress: "number",
+						status: "status",
+						action: "url",
+					},
+					choices: _.map(
+						utils.objectFieldChoices(meta.fields),
+						"value"
+					),
+				},
+				// group: "Widget Content",
+			},
 		});
 
-		if (table) return await readTable(table, appContext);
+		const fieldMappings = Object.entries(utils.cleanObject(res));
 
-		return;
+		if (!fieldMappings.length) return null;
+
+		const viewData = data.map((row) =>
+			Object.fromEntries(
+				fieldMappings.map(([field, dbField]) => [
+					field,
+					row[dbField] ?? "--",
+				])
+			)
+		);
+
+		let layoutProps = await openForm({
+			fullHeight: false,
+			title: "Select layout",
+			data: savedData?.meta?.layoutProps || {
+				layout: "list",
+			},
+			fields: {
+				layout: {
+					type: "radio",
+					choices: ["list", "grid"],
+				},
+				columns: {
+					type: "radio",
+					choices: [
+						{ label: "Two", value: "2" },
+						{ label: "Three", value: "3" },
+					],
+					show: (state) => state.layout == "grid",
+				},
+			},
+		});
+
+		return {
+			type: "viewData",
+			data: viewData,
+			meta: {
+				layoutProps,
+				fieldMappings: Object.fromEntries(fieldMappings),
+			},
+			actions: ["previewData"],
+		};
+	},
+});
+
+registerAutomationAction("previewData", {
+	icon: (
+		<svg
+			fill="none"
+			viewBox="0 0 24 24"
+			strokeWidth={1.5}
+			stroke="currentColor"
+		>
+			<path
+				strokeLinecap="round"
+				strokeLinejoin="round"
+				d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5"
+			/>
+		</svg>
+	),
+	handler: async ({ data, meta } = {}, { openSearchPage, showToast }) => {
+		if (!data) return showToast("No data");
+
+		return openSearchPage({
+			type: "data",
+			title: "Data preview",
+			source: {
+				...(meta || {}),
+				handler: () => {
+					return data;
+				},
+			},
+		});
+	},
+});
+
+/* Global Actions */
+registerAutomationAction("networkRequest", {
+	global: true,
+	icon: (
+		<svg
+			fill="none"
+			viewBox="0 0 24 24"
+			strokeWidth={1.5}
+			stroke="currentColor"
+		>
+			<path
+				strokeLinecap="round"
+				strokeLinejoin="round"
+				d="M3 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061A1.125 1.125 0 0 1 3 16.811V8.69ZM12.75 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061a1.125 1.125 0 0 1-1.683-.977V8.69Z"
+			/>
+		</svg>
+	),
+	handler: async (_, showToast) => {
+		return showToast("Make network request");
 	},
 });
 
 registerAutomationAction("readDbTable", {
+	global: true,
 	icon: (
 		<svg
 			fill="none"
@@ -113,19 +173,40 @@ registerAutomationAction("readDbTable", {
 		</svg>
 	),
 	handler: async (_, appContext) => {
-		const { getDbTables, openChoicePicker } = appContext;
+		const { utils, getDbTables, queryDb, openChoicePicker } = appContext;
 		const table = await openChoicePicker({
 			title: "Select table",
 			choices: getDbTables,
 		});
 
-		if (table) return await readTable(table, appContext);
+		if (!table) return null;
 
-		return;
+		const data = await queryDb(table);
+		const fields = Object.keys(
+			utils.objectExcept(data[0], [
+				"_id",
+				"_index",
+				"createdAt",
+				"updatedAt",
+			])
+		).map((label) => ({
+			label,
+			type: "String",
+		}));
+
+		return {
+			type: "jsonArray",
+			actions: ["jsonToView"],
+			data,
+			meta: {
+				fields,
+			},
+		};
 	},
 });
 
 registerAutomationAction("readClipboard", {
+	global: true,
 	icon: (
 		<svg
 			fill="none"
@@ -164,6 +245,7 @@ registerAutomationAction("readClipboard", {
 });
 
 registerAutomationAction("scanQrCode", {
+	global: true,
 	label: "Scan QR",
 	icon: (
 		<svg
@@ -191,6 +273,7 @@ registerAutomationAction("scanQrCode", {
 });
 
 registerAutomationAction("takePicture", {
+	global: true,
 	icon: (
 		<svg
 			fill="none"
@@ -217,6 +300,7 @@ registerAutomationAction("takePicture", {
 });
 
 registerAutomationAction("connectSpotify", {
+	global: true,
 	color: "#1CD05D",
 	icon: (
 		<svg className="w-4" fill="currentColor" viewBox="0 0 24 24">
@@ -230,6 +314,7 @@ registerAutomationAction("connectSpotify", {
 });
 
 registerAutomationAction("crawlWebsite", {
+	global: true,
 	icon: (
 		<svg
 			fill="none"

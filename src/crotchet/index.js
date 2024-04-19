@@ -27,6 +27,7 @@ export { default as Loader } from "@/components/Loader";
 export { default as ActionList } from "@/components/ActionList";
 export { default as ColorPicker } from "@/components/ColorPicker";
 export { default as SliderInput } from "@/components/SliderInput";
+export { default as ActionGrid } from "@/components/ActionGrid";
 
 export * from "@/utils";
 
@@ -236,12 +237,14 @@ export const registerAutomationAction = (name, action) => {
 		icon,
 		color,
 		match,
+		global,
 		mobileOnly = false;
 
 	if (typeof action != "function") {
 		icon = action.icon;
 		color = action.color;
 		match = action.match;
+		global = action.global;
 		mobileOnly = action.mobileOnly;
 		_label = action.label;
 		_handler = action.handler
@@ -266,6 +269,7 @@ export const registerAutomationAction = (name, action) => {
 		label,
 		tags,
 		match,
+		global,
 		mobileOnly,
 		handler,
 	};
