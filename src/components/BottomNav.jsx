@@ -3,11 +3,12 @@ import { clsx } from "clsx";
 import BottomSheet from "./BottomSheet";
 import { useAppContext } from "@/providers/app";
 import { useRef, useState } from "react";
-import { Input } from "@/crotchet";
+import { Input, openUrl } from "@/crotchet";
 import GlobalSearch from "./GlobalSearch";
 import useStickyObserver from "@/hooks/useStickyObserver";
+import MutliGestureButton from "./MutliGestureButton";
 
-export const BottomNavButton = ({ page, selected, onClick }) => {
+export const BottomNavButton = ({ page, selected, onClick, onHold }) => {
 	const { apps } = useAppContext();
 	const icon = apps?.[page]?.icon;
 	const activeIcon = apps?.[page]?.activeIcon || icon;
@@ -19,17 +20,27 @@ export const BottomNavButton = ({ page, selected, onClick }) => {
 	};
 
 	return (
-		<button
+		<MutliGestureButton
 			className={clsx(
 				"flex-shrink-0 focus:outline-none rounded-full border inline-flex items-center justify-center h-9 w-16 px-2.5 text-center text-xs uppercase font-bold",
 				selected ? activeClass : inActiveClass
 			)}
+			style={
+				page == "home" && selected
+					? {
+							background:
+								"linear-gradient(45deg, #d3ffff, #f2ddb0)",
+							color: "#3E3215",
+					  }
+					: {}
+			}
+			onHold={onHold}
 			onClick={handleClick}
 		>
 			<span className={clsx("size-5", !selected && "opacity-70")}>
 				{selected ? activeIcon : icon}
 			</span>
-		</button>
+		</MutliGestureButton>
 	);
 };
 
@@ -114,6 +125,15 @@ export function BottomNav({ hidden, pinnedApps, currentPage, setCurrentPage }) {
 												key={page + index}
 												page={page}
 												selected={currentPage == page}
+												onHold={
+													page == "home" &&
+													currentPage == page
+														? () =>
+																openUrl(
+																	"crotchet://action/remote"
+																)
+														: null
+												}
 												onClick={() => {
 													if (currentPage != page)
 														setCurrentPage(page);

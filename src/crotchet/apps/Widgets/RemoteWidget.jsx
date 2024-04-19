@@ -1,5 +1,4 @@
 import { useAppContext } from "@/providers/app";
-import Widget from "@/components/Widget";
 import { useRef, useState } from "react";
 import { KeyMap } from "@/utils";
 import clsx from "clsx";
@@ -62,13 +61,13 @@ export default function RemoteWidget() {
 	};
 
 	const checkCommandForAction = (command) => {
-		command = command.toLowerCase().trim();
+		command = command.toLowerCase().replaceAll(" ", "").trim();
 		const action = Object.values(appActions).find(({ label }) => {
-			return label.toLowerCase() == command;
+			return label.toLowerCase().replaceAll(" ", "").trim() == command;
 		});
 
 		if (action && action.context != "share") {
-			setDictatedMessage(`running: ${command}...`, 1000);
+			setDictatedMessage(`running: ${action.label}...`, 2000);
 
 			socketEmit("emit", {
 				event: "runAction",
@@ -101,7 +100,7 @@ export default function RemoteWidget() {
 						value.toLowerCase().replace("run", "")
 					)
 				)
-					setDictatedMessage(`action: ${actionName} not found`, 1000);
+					setDictatedMessage(`action: ${actionName} not found`, 2000);
 
 				return;
 			}
@@ -181,8 +180,14 @@ export default function RemoteWidget() {
 			key: "Slash",
 			option: true,
 			icon: (
-				<svg className="size-5" fill="#FF6362" viewBox="0 0 24 24">
-					<path d="M6.004 15.492v2.504L0 11.992l1.258-1.249Zm2.504 2.504H6.004L12.008 24l1.253-1.253zm14.24-4.747L24 11.997 12.003 0 10.75 1.251 15.491 6h-2.865L9.317 2.692 8.065 3.944l2.06 2.06H8.691v9.31H18v-1.432l2.06 2.06 1.252-1.252-3.312-3.32V8.506ZM6.63 5.372 5.38 6.625l1.342 1.343 1.251-1.253Zm10.655 10.655-1.247 1.251 1.342 1.343 1.253-1.251zM3.944 8.059 2.692 9.31l3.312 3.314v-2.506zm9.936 9.937h-2.504l3.314 3.312 1.25-1.252z" />
+				<svg width="18" viewBox="0 0 24 24">
+					<path
+						d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth={2}
+						strokeLinecap="round"
+					/>
 				</svg>
 			),
 			hold: {
@@ -192,29 +197,6 @@ export default function RemoteWidget() {
 		{ key: "Left", label: "👈" },
 		{ key: "Right", label: "👉" },
 	];
-	const actions = [
-		{
-			icon: (
-				<div
-					className={clsx(
-						"size-6 rounded-full flex items-center justify-center",
-						{ "bg-content/80 text-canvas": dictating }
-					)}
-				>
-					<svg
-						className="size-5"
-						viewBox="0 0 24 24"
-						fill="currentColor"
-					>
-						<path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" />
-					</svg>
-				</div>
-			),
-			onClick: triggerSpeech,
-		},
-	];
-
-	// return null;
 
 	const doClick = ({ modifier, key, ...props }) => {
 		if (modifier) {
@@ -235,21 +217,51 @@ export default function RemoteWidget() {
 	};
 
 	return (
-		<Widget noPadding title="Desktop" actions={actions}>
-			<div id="timerWidgetContent" className="h-full overflow-y-auto">
-				<div
-					className="flex items-center justify-center text-center"
-					ref={trackpad}
-					style={{ height: "100px" }}
-					onDoubleClick={() => socketEmit("doubleClick")}
-					onClick={() => socketEmit("click")}
-					// onPanEnd={(e, i) => {
-					// 	socketEmit("mousemove", i.delta);
-					// }}
+		<div>
+			<div className="rounded-t-2xl relative z-10 flex-shrink-0 h-10 flex items-center gap-1.5 bg-content/5">
+				<span className="ml-5 flex-1 uppercases tracking-tight text-sm font-semibold opacity-80">
+					Control Desktop
+				</span>
+
+				<button
+					className="relative h-10 w-14 flex items-center justify-center"
+					onClick={triggerSpeech}
 				>
-					<span>{dictatedMessage}</span>
-				</div>
-				{/* <motion.div
+					<div
+						className={clsx(
+							"rounded-l-full origin-right absolute inset-0 bg-content/5 transition duration-150",
+							{ "opacity-0 scale-90 translate-x-1/3": !dictating }
+						)}
+					></div>
+
+					<svg
+						className={clsx(
+							"relative size-5 transition-transform duration-300",
+							dictating
+								? "scale-125 text-rose-500 dark:text-rose-400"
+								: "opacity-80"
+						)}
+						viewBox="0 0 24 24"
+						fill="currentColor"
+					>
+						<path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" />
+					</svg>
+				</button>
+			</div>
+
+			<div
+				className="flex items-center justify-center text-center"
+				ref={trackpad}
+				style={{ height: "100px" }}
+				onDoubleClick={() => socketEmit("doubleClick")}
+				onClick={() => socketEmit("click")}
+				// onPanEnd={(e, i) => {
+				// 	socketEmit("mousemove", i.delta);
+				// }}
+			>
+				<span>{dictatedMessage}</span>
+			</div>
+			{/* <motion.div
 						className="size-6 rounded-full bg-content/20"
 						drag
 						dragConstraints={trackpad}
@@ -264,66 +276,75 @@ export default function RemoteWidget() {
 							);
 						}}
 					></motion.div> */}
-				{/* </div> */}
+			{/* </div> */}
 
-				<div className="mb-3 px-3 border-t border-content/20 mt-3 pt-4 grid grid-cols-12 gap-2">
-					{keys.map(
-						(
-							{
-								key,
-								label,
-								icon,
-								modifier,
-								span,
-								doubleClick,
-								hold,
-								...props
-							},
-							index
-						) => {
-							return (
-								<MutliGestureButton
-									key={`${label || key} ${index}`}
-									className={clsx(
-										"border border-content/20 h-10 font-bold rounded-full flex items-center justify-center",
-										span ? "col-span-4" : "col-span-2",
-										modifier &&
-											modifiers[key] &&
-											"bg-content/80 text-canvas"
-									)}
-									{...(doubleClick
+			<div className="px-3 border-t border-content/20 mt-3 pt-4 grid grid-cols-12 gap-2">
+				{keys.map(
+					(
+						{
+							key,
+							label,
+							icon,
+							modifier,
+							span,
+							doubleClick,
+							hold,
+							...props
+						},
+						index
+					) => {
+						return (
+							<MutliGestureButton
+								key={`${label || key} ${index}`}
+								className={clsx(
+									"border border-content/20 h-10 font-bold rounded-full flex items-center justify-center",
+									span ? "col-span-4" : "col-span-2",
+									modifier &&
+										modifiers[key] &&
+										"bg-content/80 text-canvas"
+								)}
+								style={
+									hold
 										? {
-												onDoubleClick: () => {
-													doClick({
-														...props,
-														...doubleClick,
-													});
-												},
+												background:
+													"linear-gradient(45deg, #d3ffff, #f2ddb0)",
+												color: "#3E3215",
+												borderColor: "transparent",
 										  }
-										: {})}
-									{...(hold
-										? {
-												onHold: () => {
-													doClick({
-														...props,
-														...hold,
-													});
-												},
-										  }
-										: {})}
-									onClick={() =>
-										doClick({ modifier, key, ...props })
-									}
-								>
-									<span className="font-bold">
-										{icon || label || key}
-									</span>
-								</MutliGestureButton>
-							);
-						}
-					)}
-				</div>
+										: {}
+								}
+								{...(doubleClick
+									? {
+											onDoubleClick: () => {
+												doClick({
+													...props,
+													...doubleClick,
+												});
+											},
+									  }
+									: {})}
+								{...(hold
+									? {
+											onHold: () => {
+												doClick({
+													...props,
+													...hold,
+												});
+											},
+									  }
+									: {})}
+								onClick={() =>
+									doClick({ modifier, key, ...props })
+								}
+							>
+								<span className="font-bold">
+									{icon || label || key}
+								</span>
+							</MutliGestureButton>
+						);
+					}
+				)}
 			</div>
-		</Widget>
+		</div>
 	);
 }
