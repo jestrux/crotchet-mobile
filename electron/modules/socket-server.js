@@ -13,7 +13,6 @@ const {
 
 const { Server } = require("socket.io");
 const runScript = require("../utils/runScript");
-const openApp = require("../utils/openApp");
 const showToast = require("../utils/show-toast");
 
 module.exports = function socketServer(server) {
@@ -79,7 +78,7 @@ module.exports = function socketServer(server) {
 		},
 
 		app(props) {
-			openApp(props);
+			crotchetApp.openApp(props);
 		},
 
 		open(url) {
