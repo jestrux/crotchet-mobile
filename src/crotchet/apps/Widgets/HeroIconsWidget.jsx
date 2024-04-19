@@ -312,20 +312,18 @@ registerDataSource("crawler", "heroIcons", {
 			icon,
 			subtitle: entry.name?.replaceAll("-", " ").replaceAll("_", " "),
 			tags: heroiconTags[entry.name],
-			...(onDesktop()
+			url: `crotchet://copy/${reactIcon}`,
+			onDoubleClick: () => openUrl(`crotchet://copy/${icon}`),
+			...(!onDesktop()
 				? {
-						url: `crotchet://copy/${reactIcon}`,
-						onDoubleClick: () => openUrl(`crotchet://copy/${icon}`),
-				  }
-				: {
-						url: `crotchet://copy/${icon}`,
 						onHold: () =>
 							openUrl(
 								`crotchet://action-sheet/copyHeroIcon/?${objectToQueryParams(
 									objectTake(entry, ["name", "path"])
 								)}`
 							),
-				  }),
+				  }
+				: {}),
 		};
 	},
 	layoutProps: {
