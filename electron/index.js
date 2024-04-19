@@ -44,6 +44,13 @@ const createMainWindow = () => {
 	});
 
 	mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+	// mainWindow.setHiddenInMissionControl(true);
+	mainWindow.webContents.executeJavaScript(
+		/*js*/ `
+			localStorage.__onDesktop = true;
+		`,
+		true
+	);
 
 	if (isDev) {
 		// mainWindow.webContents.openDevTools({ mode: "detach" });

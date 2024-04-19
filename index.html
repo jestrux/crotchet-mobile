@@ -138,7 +138,7 @@
 			}
 
 			.window-no-drag {
-				-webkit-app-region: none; 
+				-webkit-app-region: none;
 			}
 		</style>
 
@@ -194,13 +194,13 @@
 				document.body.classList
 			);
 
-			// if (localStorage.__onDesktop) {
-			// 	document.documentElement.classList.add("pointer-events-none");
-			// 	document.body.classList.add("pointer-events-none");
-			// } else {
+			if (localStorage.__onDesktop) {
+				document.documentElement.classList.add("pointer-events-none");
+				document.body.classList.add("pointer-events-none");
+			} else {
 				document.documentElement.classList.add("bg-canvas");
 				document.body.classList.add("bg-canvas", "text-content");
-			// }
+			}
 		</script>
 		<script type="module" src="/src/main.jsx"></script>
 	</body>
