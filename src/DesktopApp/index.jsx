@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import {
 	DataWidget,
 	Input,
+	camelCaseToSentenceCase,
 	cleanObject,
 	dispatch,
 	objectIsEmpty,
@@ -59,7 +60,7 @@ const AppPage = ({ page: _page, focused, onClose }) => {
 
 	return (
 		<div
-			className="relative border border-transparent dark:border-content/40 rounded-xl bg-canvas/[0.99] size-full overflow-hidden flex flex-col"
+			className="relative border border-transparent dark:border-content/30 rounded-xl bg-canvas/[0.985] size-full overflow-hidden flex flex-col"
 			onMouseMove={handleMouseMove}
 		>
 			<div className="pointer-events-none fixed inset-0 bg-purple-500 opacity-[0.03]"></div>
@@ -176,7 +177,7 @@ export default function DesktopApp() {
 	const [pages, setPages] = useState([rootPage]);
 	const page = pages.at(-1);
 	const [app, _setApp] = useState(null);
-	const { apps, actions } = useAppContext();
+	const { apps, actions, dataSources } = useAppContext();
 
 	const setApp = (app) => {
 		window.__crotchet.desktop.app;
@@ -258,8 +259,6 @@ export default function DesktopApp() {
 	});
 
 	useEventListener("socket", (_, { event, payload } = {}) => {
-		showToast(`Socket: ${event}, ${payload}`);
-
 		if (event == "runAction") {
 			try {
 				const action = actions[payload];
@@ -268,17 +267,40 @@ export default function DesktopApp() {
 					typeof action?.handler == "function" ||
 					action?.handler instanceof Promise
 				) {
-					showToast(`Running ${action.name}...`);
-
 					actions[payload].handler();
 
 					return;
 				}
-
-				showToast(`Action ${action.name} not found!`);
 			} catch (error) {
-				showToast(`Error: ${error}`);
+				//
 			}
+
+			return;
+		}
+
+		if (event == "search") {
+			const { q, query, source } = payload || {};
+			const actualSource = dataSources[source];
+
+			if (!actualSource) {
+				console.log(payload, dataSources);
+				return showToast(`Invalid data source ${source}`);
+			}
+
+			const searchProps = actualSource.searchProps
+				? actualSource.searchProps
+				: {};
+
+			window.__crotchet.desktop.openPage({
+				type: "search",
+				...searchProps,
+				placeholder: source
+					? `Search ${camelCaseToSentenceCase(source)}...`
+					: "",
+				searchQuery: q ?? query,
+				...payload,
+				source: actualSource,
+			});
 
 			return;
 		}
@@ -309,7 +331,7 @@ export default function DesktopApp() {
 
 	return (
 		<div
-			className="h-screen w-screen bg-canvas text-content pointer-events-auto"
+			className="h-screen w-screen text-content pointer-events-auto"
 			onMouseMove={handleMouseMove}
 		>
 			<div

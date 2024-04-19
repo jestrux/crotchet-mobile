@@ -9,12 +9,53 @@ module.exports = function Crotchet() {
 
 	this.menuItems = {};
 
+	this.openPage = (page, props) => {
+		this.toggleWindow(true);
+
+		this.socketEmit(page, props);
+
+		return;
+	};
+
+	this.openApp = ({ scheme, url, window = {} }) => {
+		const { width, height } = window || {};
+
+		this.toggleWindow(true);
+		this.toggleDock(true);
+		this.resize(width && height ? { width, height } : undefined);
+
+		this.mainWindow.webContents.executeJavaScript(
+			/*js*/ `
+				window.__crotchet.desktop.openApp({
+					scheme: "${scheme}",
+					url: "${url}",
+				});
+			`,
+			true
+		);
+
+		return;
+	};
+
 	this.setMainWindow = (window) => {
 		this.mainWindow = window;
+		this.registerShortcuts();
+	};
 
+	this.registerShortcuts = () => {
 		globalShortcut.register("Alt+/", () => {
 			this.toggleWindow();
 		});
+
+		globalShortcut.register("Shift+Alt+H", () => {
+			this.openPage("search", {
+				source: "heroIcons",
+			});
+		});
+	};
+
+	this.socketEmit = (event, payload) => {
+		this.mainWindow.webContents.send("socket", { event, payload });
 	};
 
 	this.windowEmit = (event, payload) => {
