@@ -14,7 +14,7 @@ registerApp("home", () => {
 				<path
 					strokeLinecap="round"
 					strokeLinejoin="round"
-					d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+					d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5"
 				/>
 			</svg>
 		),
