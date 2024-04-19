@@ -4,6 +4,7 @@ import { Toast } from "@capacitor/toast";
 import { Share } from "@capacitor/share";
 
 export { default as tinyColor } from "./tinycolor";
+export { default as getColorName } from "./get-color-name";
 
 export const KeyMap = {
 	Escape: 0,
@@ -250,11 +251,11 @@ export const crawlUrl = async (url) => {
 };
 
 export const openUrl = async (path) => {
-	console.log("Open url: ", path);
+	// showToast("Open url: " + path);
 
 	if (path.startsWith("crotchet://download/")) {
 		console.log("Download:", path.replace("crotchet://download/", ""));
-		showToast("Download:", path.replace("crotchet://download/", ""));
+		// showToast("Download:", path.replace("crotchet://download/", ""));
 		return clickToDownload(path.replace("crotchet://download/", ""));
 	}
 
