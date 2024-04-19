@@ -2,6 +2,7 @@ import { clsx } from "clsx";
 import { Children, cloneElement, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import useKeyboard from "@/hooks/useKeyboard";
+import ErrorBoundary from "./ErrorBoundary";
 
 export default function BottomSheet({
 	_id,
@@ -192,21 +193,9 @@ export default function BottomSheet({
 							minHeight: fullHeight ? `${maxHeight}px` : "",
 						}}
 					>
-						{typeof children == "function"
-							? children({
-									fullHeight,
-									minHeight,
-									maxHeight: maxHeight,
-									dragRatio,
-									collapsed,
-									expand: () => setCollapsed(false),
-									collapse: dismiss,
-									dismiss: dismiss,
-							  })
-							: Children.map(children, (child) => {
-									if (!child?.type) return null;
-
-									return cloneElement(child, {
+						<ErrorBoundary onReset={dismiss}>
+							{typeof children == "function"
+								? children({
 										fullHeight,
 										minHeight,
 										maxHeight: maxHeight,
@@ -215,9 +204,23 @@ export default function BottomSheet({
 										expand: () => setCollapsed(false),
 										collapse: dismiss,
 										dismiss: dismiss,
-										onClose: dismiss,
-									});
-							  })}
+								  })
+								: Children.map(children, (child) => {
+										if (!child?.type) return null;
+
+										return cloneElement(child, {
+											fullHeight,
+											minHeight,
+											maxHeight: maxHeight,
+											dragRatio,
+											collapsed,
+											expand: () => setCollapsed(false),
+											collapse: dismiss,
+											dismiss: dismiss,
+											onClose: dismiss,
+										});
+								  })}
+						</ErrorBoundary>
 
 						<KeyboardPlaceholder />
 					</div>
