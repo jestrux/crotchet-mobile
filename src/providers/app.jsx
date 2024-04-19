@@ -244,6 +244,7 @@ export default function AppProvider({ children }) {
 		title,
 		content,
 		source,
+		dismissible,
 		fullHeight = true,
 		noScroll = false,
 		type = "custom",
@@ -278,7 +279,7 @@ export default function AppProvider({ children }) {
 			image,
 			fullHeight,
 			noScroll,
-			dismissible: !fullHeight || noScroll,
+			dismissible: dismissible ?? (!fullHeight || noScroll),
 			content: page,
 		});
 	};
