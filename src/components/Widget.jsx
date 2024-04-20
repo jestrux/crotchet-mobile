@@ -18,6 +18,7 @@ import {
 import clsx from "clsx";
 import { useLongPress } from "@/hooks/useLongPress";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
+import { useEffect, useState } from "react";
 
 const WidgetIcons = {
 	share: <ShareIcon className="w-3" />,
@@ -83,6 +84,12 @@ const WidgetContent = ({ inset, content, loading, actionTypeMap }) => {
 		url,
 		onClick,
 	} = content || {};
+
+	const [hideImage, setHideImage] = useState(false);
+
+	useEffect(() => {
+		if (image) setHideImage(true);
+	}, [image]);
 
 	const gestures = useLongPress(() => {
 		if (share?.length) {
@@ -158,8 +165,12 @@ const WidgetContent = ({ inset, content, loading, actionTypeMap }) => {
 								>
 									{(image || video) != "placeholder" && (
 										<img
-											className="flex-1 absolute inset-0 w-full h-full object-cover"
+											className={clsx(
+												"flex-1 absolute inset-0 w-full h-full object-cover transition-opacity",
+												{ "opacity-0": hideImage }
+											)}
 											src={image || video}
+											onLoad={() => setHideImage(false)}
 											alt=""
 										/>
 									)}
@@ -201,9 +212,10 @@ const WidgetContent = ({ inset, content, loading, actionTypeMap }) => {
 											"text-sm/tight font-semibold drop-shadow-sm",
 											lineClamp("title")
 										)}
-									>
-										{title}
-									</div>
+										dangerouslySetInnerHTML={{
+											__html: title,
+										}}
+									/>
 								)}
 
 								{subtitle?.length > 0 && (
@@ -213,9 +225,10 @@ const WidgetContent = ({ inset, content, loading, actionTypeMap }) => {
 											lineClamp("subtitle"),
 											{ "mt-1": title?.length }
 										)}
-									>
-										{subtitle}
-									</div>
+										dangerouslySetInnerHTML={{
+											__html: subtitle,
+										}}
+									/>
 								)}
 							</div>
 
@@ -243,7 +256,12 @@ const WidgetContent = ({ inset, content, loading, actionTypeMap }) => {
 												size={20}
 											/>
 										)}
-										{button.label}
+
+										<div
+											dangerouslySetInnerHTML={{
+												__html: button.label,
+											}}
+										></div>
 									</div>
 								</button>
 							)}
@@ -258,6 +276,7 @@ const WidgetContent = ({ inset, content, loading, actionTypeMap }) => {
 };
 
 const Widget = ({
+	loading: _loading,
 	noScroll = false,
 	noPadding,
 	title,
@@ -314,7 +333,7 @@ const Widget = ({
 			)}
 
 			<div
-				className="flex-1 overflow-hidden bg-cover bg-center"
+				className="flex-1 overflow-hidden bg-cover bg-center flex flex-col"
 				style={{
 					backgroundImage: !backgroundImage?.length
 						? ""
@@ -327,17 +346,19 @@ const Widget = ({
 					overflowY: !noScroll ? "auto" : "",
 				}}
 			>
-				{content ? (
-					<WidgetContent
-						inset={!noPadding}
-						data={data}
-						loading={loading}
-						actionTypeMap={actionTypeMap}
-						content={content}
-					/>
-				) : (
-					children
-				)}
+				<div className="flex-1">
+					{content && (
+						<WidgetContent
+							inset={!noPadding}
+							data={data}
+							loading={loading || _loading}
+							actionTypeMap={actionTypeMap}
+							content={content}
+						/>
+					)}
+				</div>
+
+				{children}
 			</div>
 
 			{actions?.length > 0 && (
@@ -357,7 +378,8 @@ const Widget = ({
 										{
 											"bg-content/[0.08] dark:bg-content/15 border border-content/10":
 												!color?.length,
-										}
+										},
+										action.className || ""
 									)}
 									onClick={onActionClick(action, {
 										actionTypeMap,
