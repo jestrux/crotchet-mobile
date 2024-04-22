@@ -85,6 +85,9 @@ module.exports = function socketServer(server) {
 			shell.openExternal(url);
 		},
 
+		"background-action": ({ action, ...payload } = {}) =>
+			crotchetApp.backgroundAction(action, payload),
+
 		emit({ event, payload } = {}) {
 			crotchetApp.toggleWindow(true);
 			crotchetApp.windowEmit("socket", { event, payload });
@@ -135,6 +138,10 @@ module.exports = function socketServer(server) {
 
 	ipcMain.on("toggle-app-window", (_, show = false) =>
 		crotchetApp.toggleWindow(show)
+	);
+
+	ipcMain.on("toggle-background-window", (_, show = false) =>
+		crotchetApp.toggleBackgroundWindow(show)
 	);
 
 	ipcMain.on("restore", () => crotchetApp.restore());

@@ -4,15 +4,31 @@ module.exports = function Crotchet() {
 	this.defaultSize = { width: 750, height: 480 };
 	this.tray = null;
 	this.showWindow = isDev;
+	this.showBackgroundWindow = false;
 
 	this.windows = {};
 
 	this.menuItems = {};
 
+	this.backgroundAction = (action, props = {}) => {
+		this.toggleBackgroundWindow(true);
+
+		this.socketEmit(
+			"background-action",
+			{
+				action,
+				...props,
+			},
+			true
+		);
+
+		return;
+	};
+
 	this.openPage = (page, props) => {
 		this.toggleWindow(true);
 
-		this.socketEmit(page, props);
+		this.socketEmit("open-page", { page, ...(props || {}) });
 
 		return;
 	};
@@ -42,6 +58,20 @@ module.exports = function Crotchet() {
 		this.registerShortcuts();
 	};
 
+	this.setBackgroundWindow = (window) => {
+		this.backgroundWindow = window;
+
+		this.backgroundWindow.hide();
+
+		globalShortcut.register("Shift+Alt+C", () => {
+			this.backgroundAction("confetti", {
+				effect: "Left Flowers Then Right Flowers",
+			});
+		});
+
+		this.windowEmit("background-window", null, true);
+	};
+
 	this.registerShortcuts = () => {
 		globalShortcut.register("Alt+/", () => {
 			this.toggleWindow();
@@ -54,12 +84,17 @@ module.exports = function Crotchet() {
 		});
 	};
 
-	this.socketEmit = (event, payload) => {
-		this.mainWindow.webContents.send("socket", { event, payload });
+	this.socketEmit = (event, payload, background) => {
+		this.windowEmit("socket", { event, payload }, background);
 	};
 
-	this.windowEmit = (event, payload) => {
-		this.mainWindow.webContents.send(event, payload);
+	this.windowEmit = (event, payload, background) => {
+		if (background) {
+			this.backgroundWindow.webContents.send(event, payload);
+			return;
+		}
+
+		this.mainWindow.webContents.send(event, payload, background);
 	};
 
 	this.restore = () => {
@@ -86,9 +121,19 @@ module.exports = function Crotchet() {
 		}
 	};
 
+	this.toggleBackgroundWindow = (show) => {
+		if (show == undefined) show = !this.showBackgroundWindow;
+
+		if (show) this.backgroundWindow.show();
+		else this.backgroundWindow.hide();
+
+		this.showBackgroundWindow = show;
+
+		return show;
+	};
+
 	this.toggleWindow = (show) => {
 		if (show == undefined) show = !this.showWindow;
-		else if (show == this.showWindow) return;
 
 		if (show) {
 			this.mainWindow.show();
@@ -142,7 +187,7 @@ module.exports = function Crotchet() {
 			Object.entries(items).map(([key, item]) => ({
 				...item,
 				click: async () => {
-					this.windowEmit("menu-item-click", key);
+					this.windowEmit("menu-item-click", key, true);
 				},
 			})),
 			{ replace }

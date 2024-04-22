@@ -16,9 +16,19 @@ window.addEventListener("toggle-app", (e) => {
 	ipcRenderer.send("toggle-app-window", e.detail);
 });
 
+window.addEventListener("toggle-background-app", (e) => {
+	ipcRenderer.send("toggle-background-window", e.detail);
+});
+
 window.addEventListener("DOMContentLoaded", () => {
 	document.body.classList.add("on-electron");
 	document.body.setAttribute("data-socket-url", `http://${getIp()}:3127`);
+});
+
+ipcRenderer.on("background-window", function () {
+	window.addEventListener("load", () => {
+		document.body.classList.add("is-background-window");
+	});
 });
 
 ipcRenderer.on("menu-item-click", function (_, itemId) {

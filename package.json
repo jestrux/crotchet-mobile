@@ -42,6 +42,7 @@
 		"@tailwindcss/container-queries": "^0.1.1",
 		"@tanstack/react-query": "^5.20.5",
 		"airtable": "^0.12.2",
+		"canvas-confetti": "^1.9.2",
 		"clsx": "^2.1.0",
 		"color.js": "^1.2.0",
 		"firebase": "^10.7.2",

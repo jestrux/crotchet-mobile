@@ -218,10 +218,22 @@ export default function RemoteWidget() {
 
 	return (
 		<div>
-			<div className="rounded-t-2xl relative z-10 flex-shrink-0 h-10 flex items-center gap-1.5 bg-content/5">
+			<div className="rounded-t-2xl relative z-10 flex-shrink-0 h-10 flex items-center bg-content/5">
 				<span className="ml-5 flex-1 uppercases tracking-tight text-sm font-semibold opacity-80">
 					Control Desktop
 				</span>
+
+				<button
+					className="relative h-10 w-10 flex items-center justify-center text-center"
+					onClick={() =>
+						socketEmit("background-action", {
+							action: "confetti",
+							effect: "Left Flowers Then Right Flowers",
+						})
+					}
+				>
+					<span className="text-xl/none">🎉</span>
+				</button>
 
 				<button
 					className="relative h-10 w-14 flex items-center justify-center"

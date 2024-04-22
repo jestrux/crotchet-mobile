@@ -278,31 +278,35 @@ export default function DesktopApp() {
 			return;
 		}
 
-		if (event == "search") {
-			const { q, query, source } = payload || {};
-			const actualSource = dataSources[source];
+		if (event == "open-page") {
+			const { page, ...pageProps } = payload || {};
 
-			if (!actualSource) {
-				console.log(payload, dataSources);
-				return showToast(`Invalid data source ${source}`);
+			if (page == "search") {
+				const { q, query, source } = pageProps;
+				const actualSource = dataSources[source];
+
+				if (!actualSource) {
+					console.log(payload, dataSources);
+					return showToast(`Invalid data source ${source}`);
+				}
+
+				const searchProps = actualSource.searchProps
+					? actualSource.searchProps
+					: {};
+
+				window.__crotchet.desktop.openPage({
+					type: "search",
+					...searchProps,
+					placeholder: source
+						? `Search ${camelCaseToSentenceCase(source)}...`
+						: "",
+					searchQuery: q ?? query,
+					...payload,
+					source: actualSource,
+				});
+
+				return;
 			}
-
-			const searchProps = actualSource.searchProps
-				? actualSource.searchProps
-				: {};
-
-			window.__crotchet.desktop.openPage({
-				type: "search",
-				...searchProps,
-				placeholder: source
-					? `Search ${camelCaseToSentenceCase(source)}...`
-					: "",
-				searchQuery: q ?? query,
-				...payload,
-				source: actualSource,
-			});
-
-			return;
 		}
 	});
 

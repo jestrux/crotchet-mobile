@@ -27,6 +27,7 @@ import { io } from "socket.io-client";
 import ActionSheet from "@/components/ActionSheet";
 import Form from "@/components/Form";
 import DesktopApp from "@/DesktopApp";
+import BackgroundApp from "@/DesktopApp/BackgroundApp";
 
 const AppContext = createContext({
 	dataSources: {},
@@ -384,7 +385,11 @@ export default function AppProvider({ children }) {
 
 	let App;
 
-	if (onDesktop()) App = DesktopApp;
+	if (onDesktop()) {
+		App = document.body.classList.contains("is-background-window")
+			? BackgroundApp
+			: DesktopApp;
+	}
 
 	return (
 		<AppContext.Provider

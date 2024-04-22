@@ -143,6 +143,20 @@ export const KeyMap = {
 	AudioRandom: 133,
 };
 
+export const appendScript = (filepath) => {
+	return new Promise((resolve) => {
+		if (document.querySelector('head script[src="' + filepath + '"]'))
+			return resolve();
+
+		const script = document.createElement("script");
+		script.setAttribute("type", "text/javascript");
+		script.setAttribute("src", filepath);
+		document.querySelector("head").appendChild(script);
+
+		script.onload = resolve();
+	});
+};
+
 export const clickToDownload = async function (url, fileName = "download") {
 	let newUrl;
 

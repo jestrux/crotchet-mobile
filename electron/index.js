@@ -5,7 +5,8 @@ const Crotchet = require("./modules/crotchet");
 const { app, BrowserWindow } = require("electron");
 
 global.isDev = process.env.NODE_ENV == "dev";
-let mainWindow = null;
+let mainWindow = null,
+	backgroundWindow = null;
 const crotchetApp = new Crotchet();
 
 console.log("Env: ", process.env.NODE_ENV);
@@ -37,7 +38,7 @@ const createMainWindow = () => {
 		resizable: isDev,
 		minimizable: false,
 		webPreferences: {
-			devTools: isDev,
+			devTools: true,
 			nodeIntegration: true,
 			preload: appDir("preload.js"),
 		},
@@ -73,30 +74,55 @@ const createMainWindow = () => {
 	crotchetApp.setMainWindow(mainWindow);
 };
 
+const createBackgroundWindow = () => {
+	backgroundWindow = new BrowserWindow({
+		alwaysOnTop: true,
+		show: false,
+		frame: false,
+		transparent: true,
+		webPreferences: {
+			devTools: true,
+			nodeIntegration: true,
+			preload: appDir("preload.js"),
+		},
+	});
+
+	backgroundWindow.setVisibleOnAllWorkspaces(true, {
+		visibleOnFullScreen: true,
+	});
+	backgroundWindow.maximize();
+	backgroundWindow.setIgnoreMouseEvents(true);
+	backgroundWindow.webContents.executeJavaScript(
+		/*js*/ `
+			localStorage.__onDesktop = true;
+		`,
+		true
+	);
+
+	if (isDev) {
+		backgroundWindow.loadURL("http://localhost:5173/");
+
+		try {
+			require("electron-reloader")(module);
+		} catch {
+			//
+		}
+	} else {
+		backgroundWindow.loadFile(buildDir("index.html"));
+	}
+
+	crotchetApp.setBackgroundWindow(backgroundWindow);
+};
+
 app.whenReady().then(() => {
 	crotchetApp.setMenuItems();
 	createMainWindow();
+
+	setTimeout(() => {
+		createBackgroundWindow();
+	}, 2000);
 });
 
 app.on("window-all-closed", () => {});
 
 app.dock.hide();
-
-// global.crotchetApp = menubar({
-// 	icon: appDir("icon.png"),
-// 	dir: buildDir(),
-// 	browserWindow: {
-// 		width: 360,
-// 		height: 540,
-// 		backgroundColor: "#000000",
-// 		webPreferences: {
-// 			nodeIntegration: true,
-// 			preload: appDir("preload.js"),
-// 		},
-// 	},
-// 	preloadWindow: true,
-// });
-
-// global.crotchetApp.on("ready", () => {
-// 	console.log("app is ready");
-// });
