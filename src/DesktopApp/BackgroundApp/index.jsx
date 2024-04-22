@@ -1,4 +1,4 @@
-import { dispatch } from "@/utils";
+import { dispatch, socketEmit } from "@/utils";
 import Confetti from "./Confetti";
 import useEventListener from "@/hooks/useEventListener";
 
@@ -9,6 +9,7 @@ export default function BackgroundApp() {
 
 	useEventListener("socket", (_, { event, payload } = {}) => {
 		if (event == "background-action") {
+			socketEmit("click");
 			const { action, ...actionProps } = payload || {};
 
 			if (action == "confetti") {
