@@ -14,6 +14,7 @@ import {
 	useAppContext,
 	objectToQueryParams,
 	onDesktop,
+	urlQueryParamsAsObject,
 } from "@/crotchet";
 
 const YoutubePlayer = ({ _id, crop, duration, width, height, ...props }) => {
@@ -232,8 +233,9 @@ registerApp("youtubeClips", () => {
 			const _socket = await socket({ retry: true });
 			if (_socket) return openOnDesktop();
 
-			const url = new URL("https://" + path);
-			const props = Object.fromEntries(url.searchParams.entries());
+			const props = urlQueryParamsAsObject(
+				"https://crotchet.app/" + path
+			);
 
 			openPage({
 				background: "black",

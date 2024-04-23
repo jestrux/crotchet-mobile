@@ -624,11 +624,10 @@ export const objectToQueryParams = (obj = {}) => {
 	Object.keys(obj).forEach((key) => {
 		let value = obj[key];
 
-		if (_.isObject(value)) {
+		if (_.isObject(value) && !_.isArray(value))
 			value = JSON.stringify(value);
-		}
 
-		value = encodeURIComponent(value);
+		if (!_.isArray(value)) value = encodeURIComponent(value);
 
 		url.searchParams.set(key, value);
 	});
