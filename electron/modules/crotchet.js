@@ -1,4 +1,5 @@
 const { Tray, Menu, app, globalShortcut } = require("electron");
+const { mouse, Button } = require("@nut-tree/nut-js");
 
 module.exports = function Crotchet() {
 	this.defaultSize = { width: 750, height: 480 };
@@ -129,6 +130,8 @@ module.exports = function Crotchet() {
 
 		this.showBackgroundWindow = show;
 
+		mouse.click(Button.LEFT);
+
 		return show;
 	};
 
@@ -139,6 +142,7 @@ module.exports = function Crotchet() {
 			this.mainWindow.show();
 		} else {
 			this.mainWindow.hide();
+			mouse.click(Button.LEFT);
 
 			if (!Object.keys(this.windows).length) app.dock.hide();
 		}
