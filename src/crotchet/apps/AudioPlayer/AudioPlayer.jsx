@@ -33,7 +33,13 @@ export default function AudioPlayer({ image, title, subtitle, src, url }) {
 
 			<div className="text-content/50 dark:text-content/80 py-1.5 px-3.5 border-t border-content/10 flex items-center">
 				{!loaded ? (
-					"..."
+					<span className="flex relative">
+						<span className="w-16">--:--</span>
+						<span className="absolute inset-0 flex items-center justify-center pr-5">
+							/
+						</span>
+						<span className="w-16">--:--</span>
+					</span>
 				) : (
 					<span className="flex relative">
 						<span className="w-16">{toHms(currentTime)}</span>
@@ -48,7 +54,9 @@ export default function AudioPlayer({ image, title, subtitle, src, url }) {
 					<button
 						className={clsx(
 							"size-10 transition-opacity ",
-							!loop && "opacity-30"
+							!loaded
+								? "opacity-0 pointer-events-none"
+								: !loop && "opacity-30"
 						)}
 						onClick={toggleLoop}
 					>

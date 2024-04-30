@@ -76,7 +76,7 @@ export default function useAudio({ src, autoplay } = {}) {
 		setLoop(newValue);
 		audio.loop = newValue;
 
-		showToast("Looping " + (newValue ? "on" : "off"));
+		showToast("Loop " + (newValue ? "on" : "off"));
 	};
 
 	useEffect(() => {
