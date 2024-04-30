@@ -1,6 +1,12 @@
 import clsx from "clsx";
 
-export default function PreviewCard({ icon, image, title, description }) {
+export default function PreviewCard({
+	icon,
+	image,
+	title,
+	subtitle,
+	description,
+}) {
 	return (
 		<div className="flex items-center gap-3">
 			{icon?.length ? (
@@ -23,9 +29,10 @@ export default function PreviewCard({ icon, image, title, description }) {
 
 			<div className="flex-1">
 				{title?.length > 0 && (
-					<h3 className="text-sm text-content line-clamp-1">
-						{title}
-					</h3>
+					<h3
+						className="text-sm text-content line-clamp-1"
+						dangerouslySetInnerHTML={{ __html: title }}
+					></h3>
 				)}
 
 				<p
@@ -35,9 +42,10 @@ export default function PreviewCard({ icon, image, title, description }) {
 							? "text-xs line-clamp-1"
 							: "text-xs/relaxed line-clamp-2"
 					)}
-				>
-					{description}
-				</p>
+					dangerouslySetInnerHTML={{
+						__html: description || subtitle,
+					}}
+				></p>
 			</div>
 		</div>
 	);

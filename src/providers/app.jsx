@@ -28,6 +28,7 @@ import ActionSheet from "@/components/ActionSheet";
 import Form from "@/components/Form";
 import DesktopApp from "@/DesktopApp";
 import BackgroundApp from "@/DesktopApp/BackgroundApp";
+import DataPreviewer from "@/components/DataPreviewer";
 
 const AppContext = createContext({
 	dataSources: {},
@@ -55,6 +56,8 @@ const AppContext = createContext({
 	openSearchPage: ({ title, source, placeholder } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
 	openForm: ({ title, subtitle, fields, onSubmit } = {}) => {},
+	// eslint-disable-next-line no-unused-vars
+	openDataPreviewer: ({ title, type, data } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
 	registerDataSource: (name, source, version) => {},
 	user: {
@@ -295,6 +298,18 @@ export default function AppProvider({ children }) {
 			fullHeight: fullHeight ?? !props.field,
 		});
 
+	const openDataPreviewer = ({ title, type, data }) =>
+		openPage({
+			fullHeight: false,
+			title,
+			content: [
+				{
+					type: "custom",
+					value: <DataPreviewer type={type} data={data} />,
+				},
+			],
+		});
+
 	const appContextValue = {
 		registerDataSource,
 		bottomSheets,
@@ -325,6 +340,7 @@ export default function AppProvider({ children }) {
 		openPage,
 		openSearchPage,
 		openForm,
+		openDataPreviewer,
 		user: {
 			name: "Walter Kimaro",
 			email: "wakyj07@gmail.com",

@@ -26,6 +26,7 @@ export { default as ListItem } from "@/components/ListItem";
 export { default as Loader } from "@/components/Loader";
 export { default as ActionList } from "@/components/ActionList";
 export { default as ColorPicker } from "@/components/ColorPicker";
+export { default as AudioPlayer } from "@/crotchet/apps/AudioPlayer/AudioPlayer";
 export { default as SliderInput } from "@/components/SliderInput";
 export { default as ActionGrid } from "@/components/ActionGrid";
 

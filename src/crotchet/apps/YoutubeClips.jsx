@@ -233,9 +233,7 @@ registerApp("youtubeClips", () => {
 			const _socket = await socket({ retry: true });
 			if (_socket) return openOnDesktop();
 
-			const props = urlQueryParamsAsObject(
-				"https://crotchet.app/" + path
-			);
+			const props = urlQueryParamsAsObject(path);
 
 			openPage({
 				background: "black",

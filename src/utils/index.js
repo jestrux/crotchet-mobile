@@ -369,7 +369,7 @@ export const openUrl = async (path) => {
 			path.replace("crotchet://action/", "https://crotchet.app/")
 		);
 		const scheme = url.pathname.substring(1).split("/")?.at(0);
-		const params = Object.fromEntries(url.searchParams.entries());
+		const params = urlQueryParamsAsObject(path);
 		const paramValues = Object.values(params);
 		let args;
 
@@ -636,7 +636,9 @@ export const objectToQueryParams = (obj = {}) => {
 };
 
 export const urlQueryParamsAsObject = (path) => {
-	const url = new URL(path);
+	const url = new URL(
+		"https://crotchet.app/" + path.replace("crotchet://", "")
+	);
 
 	const params = Array.from(url.searchParams.entries()).map(
 		([key, value]) => {

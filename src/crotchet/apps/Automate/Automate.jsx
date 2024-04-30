@@ -1,6 +1,6 @@
+import DataPreviewer from "@/components/DataPreviewer";
 import {
 	ActionGrid,
-	DataWidget,
 	objectIsEmpty,
 	objectToQueryParams,
 	randomId,
@@ -10,33 +10,6 @@ import {
 } from "@/crotchet";
 import clsx from "clsx";
 import { useRef, useState } from "react";
-
-const AutomationPreview = ({ data, meta = {}, type }) => {
-	if (!data) return;
-
-	if (type == "jsonArray") data = data[0];
-
-	if (type == "viewData") data = data.slice(0, 4);
-
-	const content = () => {
-		if (type == "viewData")
-			return (
-				<DataWidget large data={data} {...(meta?.layoutProps || {})} />
-			);
-
-		return (
-			<div className="bg-content/5 m-2 p-2 h-16 overflow-hidden">
-				{JSON.stringify(data, null, 4)}
-			</div>
-		);
-	};
-
-	return (
-		<div className="w-full rounded-md bg-card shadow dark:bg-content/5 border border-content/5">
-			{content()}
-		</div>
-	);
-};
 
 const AutomationRunner = ({
 	action: _action,
@@ -158,7 +131,7 @@ const AutomationFlow = ({
 
 	return (
 		<div className="flex flex-col items-center gap-5 w-full">
-			{data && <AutomationPreview {...data} />}
+			{data && <DataPreviewer mini {...data} />}
 
 			<ActionGrid
 				type="wrap"

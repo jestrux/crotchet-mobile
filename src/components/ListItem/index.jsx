@@ -186,6 +186,7 @@ export default function RegularListItem({
 	onClick,
 	onHold,
 	onDoubleClick,
+	meta = {},
 }) {
 	const gestures = useLongPress(() => {
 		if (_.isFunction(onHold)) {
@@ -224,7 +225,14 @@ export default function RegularListItem({
 				/>
 			) : (
 				(image?.length || video?.length) && (
-					<div className="mr-2 size-8 relative flex-shrink-0 bg-content/10 border border-content/10 rounded-full overflow-hidden">
+					<div
+						className={clsx(
+							"mr-2 h-8 relative flex-shrink-0 bg-content/10 border border-content/10 overflow-hidden",
+							meta?.face
+								? "aspect-square rounded-full"
+								: "aspect-[1.3/1] rounded"
+						)}
+					>
 						<img
 							className={"absolute size-full object-cover"}
 							src={image?.length ? image : video}
@@ -253,23 +261,21 @@ export default function RegularListItem({
 				)
 			)}
 
-			<div className="flex-1 mr-3 min-w-0">
+			<div className="flex-1 mr-3 min-w-0 space-y-1">
 				{title?.length > 0 && (
-					<h5 className="text-sm leading-none font-medium line-clamp-1 first-letter:capitalize">
-						{title}
-					</h5>
+					<h5
+						className="text-sm leading-none font-medium line-clamp-1 first-letter:capitalize"
+						dangerouslySetInnerHTML={{ __html: title }}
+					></h5>
 				)}
-				{subtitle?.toString().length > 0 && (
+				{subtitle?.length > 0 && (
 					<p
 						className={clsx(
 							"leading-none line-clamp-1",
-							title?.length
-								? "mt-1.5 text-xs opacity-60"
-								: "text-sm"
+							title?.length ? "text-xs opacity-60" : "text-sm"
 						)}
-					>
-						{subtitle}
-					</p>
+						dangerouslySetInnerHTML={{ __html: subtitle }}
+					></p>
 				)}
 			</div>
 

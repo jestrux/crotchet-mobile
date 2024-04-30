@@ -1,29 +1,158 @@
 import clsx from "clsx";
 import DataWidget from "../DataWidget";
 import WidgetWrapper from "../WidgetWrapper";
-import DataFetcher from "@/providers/data/DataFetcher";
-import { getGradient, openUrl } from "@/utils";
-import { useAppContext } from "@/providers/app";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PreviewCard from "../PreviewCard";
 import { cloneElement } from "react";
+import { openUrl } from "@/utils";
+import useLoadableView from "@/hooks/useLoadableView";
 
 export default function GenericPage({
 	noPadding = false,
 	centerContent = false,
 	image,
-	gradient,
+	icon,
 	title,
 	subtitle,
 	source,
-	content = [],
+	content,
 	fullHeight,
 	maxHeight,
 	dismiss,
 }) {
-	const { dataSources } = useAppContext();
 	const headingSet = image || title || subtitle;
-	if (typeof content == "function") content = content({ dismiss });
+	let { data: contentData, pendingView } = useLoadableView({
+		data: content,
+		dismiss,
+	});
+
+	const renderContent = () => {
+		if (pendingView != true) return pendingView;
+
+		const content =
+			typeof contentData == "function"
+				? contentData({ dismiss })
+				: contentData;
+
+		return content.map(
+			// eslint-disable-next-line no-unused-vars
+			({ type, title, subtitle, ...section }, index) => {
+				const isImage = type == "image";
+				const isVideo = type == "video";
+				let content;
+				const cropped = section.cropped ?? true;
+				const aspectRatio = cropped || isVideo ? "16/9" : "";
+
+				if (isImage || isVideo) {
+					content = (
+						<div
+							className={clsx(
+								"relative bg-content/5 border-4 border-content/10 rounded-md overflow-hidden",
+								index == 0 && headingSet && "mt-2"
+							)}
+							style={{
+								aspectRatio,
+							}}
+						>
+							<img
+								className={clsx(
+									"object-cover rounded",
+									cropped && "absolute inset-0 size-full"
+								)}
+								src={section.value}
+								style={{
+									aspectRatio,
+								}}
+							/>
+
+							{isVideo && section.url && (
+								<a
+									onClick={() => openUrl(section.url)}
+									className="absolute inset-0 bg-black/50 flex items-center justify-center"
+								>
+									<div className="relative w-12 h-12 flex items-center justify-center rounded-full overflow-hidden bg-card">
+										<div className="absolute inset-0 bg-white text-black"></div>
+										<svg
+											className="w-7 ml-0.5 relative text-black"
+											viewBox="0 0 24 24"
+											fill="currentColor"
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
+											/>
+										</svg>
+									</div>
+								</a>
+							)}
+						</div>
+					);
+				} else if (type == "data") {
+					content =
+						section.wrapped ?? false ? (
+							<WidgetWrapper>
+								<DataWidget large {...section} />
+							</WidgetWrapper>
+						) : (
+							<DataWidget
+								large
+								{...section}
+								widgetProps={{
+									noPadding: true,
+								}}
+							/>
+						);
+				} else if (type == "preview") {
+					content = (
+						<div className="relative p-1 bg-content/5 border border-content/10 rounded-md overflow-hidden">
+							<PreviewCard {...section.value} />
+						</div>
+					);
+				} else if (type == "custom") {
+					content = cloneElement(section.value, {
+						dismiss,
+						onClose: dismiss,
+					});
+				} else {
+					content = (
+						<div className="text-base/loose">{section.value}</div>
+					);
+				}
+
+				return (
+					<div key={index}>
+						{(title || subtitle) && (
+							<div
+								className={clsx(
+									"space-y-1",
+									["image", "video"].includes(type)
+										? "mb-3"
+										: "mb-1"
+								)}
+							>
+								{title && (
+									<h5 className="text-base font-bold first-letter:uppercase">
+										{title}
+									</h5>
+								)}
+
+								{subtitle && (
+									<p className="text-sm text-content/80">
+										{subtitle}
+									</p>
+								)}
+							</div>
+						)}
+
+						<ErrorBoundary onReset={dismiss}>
+							{content}
+						</ErrorBoundary>
+					</div>
+				);
+			}
+		);
+	};
 
 	return (
 		<div
@@ -56,21 +185,34 @@ export default function GenericPage({
 				}
 			>
 				<div className="flex-1">
-					{headingSet && (
-						<>
-							{title && (
-								<h3 className="text-lg/none font-bold first-letter:uppercase">
-									{title}
-								</h3>
-							)}
+					<div className="flex items-center gap-3">
+						{icon && (
+							<div className="s-mr-0.5 bg-content/5 border border-content/5 rounded-lg size-10 flex items-center justify-center">
+								<div
+									className="size-5 flex items-center justify-center"
+									// dangerouslySetInnerHTML={{ __html: icon }}
+								>
+									{icon}
+								</div>
+							</div>
+						)}
 
-							{subtitle && (
-								<p className="mt-1 text-sm/none text-content/80 line-clamp-3">
-									{subtitle}
-								</p>
-							)}
-						</>
-					)}
+						{headingSet && (
+							<div>
+								{title && (
+									<h3 className="text-lg/none font-bold first-letter:uppercase">
+										{title}
+									</h3>
+								)}
+
+								{subtitle && (
+									<p className="mt-1 text-sm/none text-content/80 line-clamp-3">
+										{subtitle}
+									</p>
+								)}
+							</div>
+						)}
+					</div>
 				</div>
 
 				<button
@@ -191,6 +333,7 @@ export default function GenericPage({
 			<div
 				className={clsx("flex-1 flex flex-col gap-4", {
 					"justify-center": centerContent,
+					"pt-2": !fullHeight,
 				})}
 			>
 				{source ? (
@@ -201,133 +344,7 @@ export default function GenericPage({
 						widgetProps={{ noPadding: true }}
 					/>
 				) : (
-					content &&
-					content.map(
-						// eslint-disable-next-line no-unused-vars
-						({ type, title, subtitle, ...section }, index) => {
-							const isImage = type == "image";
-							const isVideo = type == "video";
-							let content;
-							const cropped = section.cropped ?? true;
-							const aspectRatio =
-								cropped || isVideo ? "16/9" : "";
-
-							if (isImage || isVideo) {
-								content = (
-									<div
-										className={clsx(
-											"relative bg-content/5 border-4 border-content/10 rounded-md overflow-hidden",
-											index == 0 && headingSet && "mt-2"
-										)}
-										style={{
-											aspectRatio,
-										}}
-									>
-										<img
-											className={clsx(
-												"object-cover rounded",
-												cropped &&
-													"absolute inset-0 size-full"
-											)}
-											src={section.value}
-											style={{
-												aspectRatio,
-											}}
-										/>
-
-										{isVideo && section.url && (
-											<a
-												onClick={() =>
-													openUrl(section.url)
-												}
-												className="absolute inset-0 bg-black/50 flex items-center justify-center"
-											>
-												<div className="relative w-12 h-12 flex items-center justify-center rounded-full overflow-hidden bg-card">
-													<div className="absolute inset-0 bg-white text-black"></div>
-													<svg
-														className="w-7 ml-0.5 relative text-black"
-														viewBox="0 0 24 24"
-														fill="currentColor"
-													>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
-														/>
-													</svg>
-												</div>
-											</a>
-										)}
-									</div>
-								);
-							} else if (type == "data") {
-								content =
-									section.wrapped ?? false ? (
-										<WidgetWrapper>
-											<DataWidget large {...section} />
-										</WidgetWrapper>
-									) : (
-										<DataWidget
-											large
-											{...section}
-											widgetProps={{
-												noPadding: true,
-											}}
-										/>
-									);
-							} else if (type == "preview") {
-								content = (
-									<div className="relative p-1 bg-content/5 border border-content/10 rounded-md overflow-hidden">
-										<PreviewCard {...section.value} />
-									</div>
-								);
-							} else if (type == "custom") {
-								content = cloneElement(section.value, {
-									dismiss,
-									onClose: dismiss,
-								});
-							} else {
-								content = (
-									<div className="text-base/loose">
-										{section.value}
-									</div>
-								);
-							}
-
-							return (
-								<div key={index}>
-									{(title || subtitle) && (
-										<div
-											className={clsx(
-												"space-y-1",
-												["image", "video"].includes(
-													type
-												)
-													? "mb-3"
-													: "mb-1"
-											)}
-										>
-											{title && (
-												<h5 className="text-base font-bold first-letter:uppercase">
-													{title}
-												</h5>
-											)}
-
-											{subtitle && (
-												<p className="text-sm text-content/80">
-													{subtitle}
-												</p>
-											)}
-										</div>
-									)}
-
-									<ErrorBoundary onReset={dismiss}>
-										{content}
-									</ErrorBoundary>
-								</div>
-							);
-						}
-					)
+					content && renderContent()
 				)}
 			</div>
 		</div>

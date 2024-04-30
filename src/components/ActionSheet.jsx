@@ -2,8 +2,8 @@ import { useState } from "react";
 import BottomNavAction from "./BottomNavAction";
 import PreviewCard from "./PreviewCard";
 import { objectExcept, randomId } from "@/utils";
-import { Loader, useSourceGet } from "@/crotchet";
 import clsx from "clsx";
+import useLoadableView from "@/hooks/useLoadableView";
 
 export default function ActionSheet({
 	dismiss,
@@ -20,30 +20,17 @@ export default function ActionSheet({
 		// preview: _preview,
 	});
 
-	const { loading } = useSourceGet(
-		async () => {
-			if (_.isFunction(_actions)) {
-				return await _actions().then((actions) => {
-					setSheetProps((oldProps) => {
-						return {
-							...oldProps,
-							actions,
-						};
-					});
-				});
-			}
-
+	const { pendingView, loading } = useLoadableView({
+		data: _actions,
+		onSuccess: (actions) =>
 			setSheetProps((oldProps) => {
 				return {
 					...oldProps,
-					actions: _actions,
+					actions,
 				};
-			});
-
-			return _actions;
-		},
-		{ delayLoader: false }
-	);
+			}),
+		dismiss,
+	});
 
 	onChange((props) => {
 		setSheetProps((oldProps) => {
@@ -149,13 +136,9 @@ export default function ActionSheet({
 				</button>
 			</div>
 
-			{loading && (
-				<div className="flex justify-center">
-					<Loader size={40} />
-				</div>
-			)}
-
-			{!loading && (
+			{pendingView !== true ? (
+				pendingView
+			) : (
 				<div className="mt-4 space-y-3" onClick={dismiss}>
 					{mainActions?.length > 0 && (
 						<div className="grid grid-cols-3 gap-3">
