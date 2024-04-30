@@ -7,11 +7,9 @@ import {
 	getShareUrl,
 	registerActionSheet,
 } from "@/crotchet";
-import { db } from "@/providers/data/firebase";
-import { addDoc, collection, getDocs } from "firebase/firestore";
 
-registerDataSource("firebase", "reader", {
-	collection: "reader",
+registerDataSource("db", "reader", {
+	table: "reader",
 	orderBy: "index,desc",
 	filter: "group",
 	mapEntry(item) {
@@ -62,7 +60,7 @@ registerAction("addToReadingList", {
 	),
 	handler: async (
 		{ preview, title, subtitle, url },
-		{ utils, openUrl, showToast }
+		{ utils, openUrl, showToast, dbInsert }
 	) => {
 		var payload = await openUrl(
 			`crotchet://action/crawlUrl?${utils.objectToQueryParams({
@@ -77,15 +75,14 @@ registerAction("addToReadingList", {
 		if (!payload?.title) return showToast("Nothing to add");
 
 		try {
-			const collectionRef = collection(db, "reader");
-			const entries = (await getDocs(collectionRef)).docs;
-
-			await addDoc(collectionRef, {
-				...(payload ?? {}),
-				index: (entries?.length ?? 0) + 1,
-				group: "🌎 General",
-				createdAt: new Date(),
-			});
+			await dbInsert(
+				"reader",
+				utils.cleanObject({
+					...(payload ?? {}),
+					group: "🌎 General",
+					createdAt: new Date(),
+				})
+			);
 
 			showToast(`${payload.title || "Entry"} Added `);
 		} catch (error) {

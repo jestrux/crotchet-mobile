@@ -118,7 +118,8 @@ const getYoutubeId = (url) => {
 const getYoutubeClipUrl = (clip) =>
 	`crotchet://app/youtubeClips?${objectToQueryParams(clip)}`;
 
-registerDataSource("firebase", "youtubeClips", {
+registerDataSource("db", "youtubeClips", {
+	table: "youtubeClips",
 	label: "Youtube Clips",
 	collection: "videos",
 	orderBy: "updatedAt,desc",

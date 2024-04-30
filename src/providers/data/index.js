@@ -191,6 +191,9 @@ export function useDataFetch({
 			}));
 		}
 
+		if (source.orderBy)
+			data = _.orderBy(data, ...source.orderBy.split(","));
+
 		if (![true, false].includes(source.searchable) && searchQuery?.length) {
 			const searchFields = source.searchFields || [
 				"title",
