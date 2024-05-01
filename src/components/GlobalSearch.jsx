@@ -9,7 +9,6 @@ export default function GlobalSearch({ searchQuery = "", onClose = () => {} }) {
 	const {
 		globalActions,
 		queryDb,
-		actions,
 		automationActions: allAutomationActions,
 	} = useAppContext();
 	const searchableDataSources = _.sortBy(
@@ -70,12 +69,7 @@ export default function GlobalSearch({ searchQuery = "", onClose = () => {} }) {
 								return {
 									_id: automation._id,
 									label: automation.name,
-									handler: () => {
-										actions.runAutomation.handler({
-											name: automation.name,
-											actions: automation.actions,
-										});
-									},
+									url: automation.url,
 								};
 							})
 						)
