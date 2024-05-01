@@ -70,7 +70,7 @@ export default function RemoteWidget() {
 			setDictatedMessage(`running: ${action.label}...`, 2000);
 
 			socketEmit("emit", {
-				event: "runAction",
+				event: "run-action",
 				payload: action.name,
 			});
 

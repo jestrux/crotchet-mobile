@@ -26,6 +26,14 @@ module.exports = function Crotchet() {
 		return;
 	};
 
+	this.openAppUrl = (url) => {
+		this.toggleWindow(true);
+
+		this.socketEmit("open-url", url);
+
+		return;
+	};
+
 	this.openPage = (page, props) => {
 		this.toggleWindow(true);
 
@@ -64,7 +72,7 @@ module.exports = function Crotchet() {
 
 		this.backgroundWindow.hide();
 
-		globalShortcut.register("Shift+Alt+C", () => {
+		globalShortcut.register("Shift+Alt+T", () => {
 			this.backgroundAction("confetti", {
 				effect: "Left Flowers Then Right Flowers",
 			});
@@ -82,6 +90,16 @@ module.exports = function Crotchet() {
 			this.openPage("search", {
 				source: "heroIcons",
 			});
+		});
+
+		globalShortcut.register("Shift+Alt+C", () => {
+			this.openAppUrl("crotchet://action/clipboard");
+		});
+
+		globalShortcut.register("Shift+Alt+S", () => {
+			this.openAppUrl(
+				"crotchet://action/runAutomation?actions=crotchet%25253A%25252F%25252Fautomation-action%25252FreadClipboard%253C%21%253Ecrotchet%25253A%25252F%25252Fautomation-action%25252FpreviewSpotifySong"
+			);
 		});
 	};
 

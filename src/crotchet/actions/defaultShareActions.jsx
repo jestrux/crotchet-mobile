@@ -258,6 +258,8 @@ export const open = {
 		</svg>
 	),
 	context: "share",
-	match: ({ url, download } = {}) => url?.length && !download?.length,
-	handler: ({ url } = {}, { openUrl }) => openUrl(`crotchet://open/${url}`),
+	match: ({ url, text, download } = {}) =>
+		!download?.length && (url?.length || text?.startsWith("crotchet://")),
+	handler: ({ url, text } = {}, { openUrl }) =>
+		openUrl(`crotchet://open/${url || text}`),
 };

@@ -101,24 +101,19 @@ registerAction("rentersByStatus", (_, { openPage, dataSources }) => {
 
 registerAction("overdueRenters", (_, { openPage, dataSources }) =>
 	openPage({
+		fullHeight: true,
 		image: "random",
 		title: "Overdue renters",
 		subtitle: "Click a renter to chat with them on Whatsapp.",
-		content: [
-			{
-				type: "data",
-				// limit={4}
-				source: {
-					...dataSources.renters,
-					query: /*sql*/ `
-					SELECT r.image, r.name as title, CONCAT("Tsh. ", FORMAT("%,d", a.rent)) as amount, a.name as apartment, REPLACE(REPLACE(r.phone, ' ', ''), '+', '') as phone, CONCAT('https://api.whatsapp.com/send/?text=', 'Hey ', r.name, ',\nYour rent: ', printf("%,d", a.rent), ' is due on: ', strftime('%d / %m', r.due_date), '&phone=', phone) as whatsapp
-					FROM renter as r 
-					LEFT JOIN apartment as a
-					ON r.apartment = a._id
-				`,
-				},
-			},
-		],
+		source: {
+			...dataSources.renters,
+			query: /*sql*/ `
+				SELECT r.image, r.name as title, CONCAT("Tsh. ", FORMAT("%,d", a.rent)) as amount, a.name as apartment, REPLACE(REPLACE(r.phone, ' ', ''), '+', '') as phone, CONCAT('https://api.whatsapp.com/send/?text=', 'Hey ', r.name, ',\nYour rent: ', printf("%,d", a.rent), ' is due on: ', strftime('%d / %m', r.due_date), '&phone=', phone) as whatsapp
+				FROM renter as r 
+				LEFT JOIN apartment as a
+				ON r.apartment = a._id
+			`,
+		},
 	})
 );
 

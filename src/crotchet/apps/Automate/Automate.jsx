@@ -1,6 +1,7 @@
 import DataPreviewer from "@/components/DataPreviewer";
 import {
 	ActionGrid,
+	copyToClipboard,
 	objectIsEmpty,
 	objectToQueryParams,
 	randomId,
@@ -31,7 +32,12 @@ const AutomationRunner = ({
 			if (!_.isFunction(action?.handler))
 				throw `Unknown action ${_action}`;
 
-			const res = await action?.handler({ ...(data || {}), savedData });
+			const res = action?.automation
+				? await action?.handler({ ...(data || {}), savedData })
+				: await action?.handler({
+						...(data?.data || {}),
+						// ...(savedData || {}),
+				  });
 
 			if (!res) return onCancel();
 
@@ -71,12 +77,13 @@ const AutomationFlow = ({
 	onSelect = () => {},
 	onSuccess = () => {},
 }) => {
-	const { automationActions } = useAppContext();
+	const { automationActions, actions: _actions } = useAppContext();
+	const allActions = { ...automationActions, ..._actions };
 	const [{ actions, data, selectedAction: _selectedAction }] =
 		useState(_flow);
 	const [savedData, setSavedData] = useState({});
 	const [selectedAction, _setSelectedAction] = useState(
-		_selectedAction ? automationActions[_selectedAction] : null
+		_selectedAction ? allActions[_selectedAction] : null
 	);
 
 	const setSelectedAction = (action) => {
@@ -114,7 +121,7 @@ const AutomationFlow = ({
 	const getActions = (actions) => {
 		return actions
 			.map((action) => {
-				const actualAction = automationActions[action];
+				const actualAction = allActions[action];
 
 				if (!actualAction) return null;
 
@@ -358,6 +365,19 @@ export default function Automate({ dismiss, maxHeight, action }) {
 								{
 									label: "Save automation",
 									handler: () => saveAutomation(flow),
+								},
+								{
+									label: "Copy automation link",
+									handler: () => {
+										copyToClipboard(
+											"crotchet://action/runAutomation?" +
+												objectToQueryParams({
+													actions: _.compact(
+														_.map(flow, "runUrl")
+													),
+												})
+										);
+									},
 								},
 							]}
 						/>

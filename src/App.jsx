@@ -5,7 +5,7 @@ import clsx from "clsx";
 import { Filesystem } from "@capacitor/filesystem";
 import { App as CapacitorApp } from "@capacitor/app";
 import {
-	isValidUrl,
+	getLinksFromText,
 	objectIsEmpty,
 	objectTake,
 	onDesktop,
@@ -57,9 +57,11 @@ const App = () => {
 			};
 
 			if (resultType == "plain") {
-				if (result.url || isValidUrl(resultUrl))
-					payload.url = resultUrl;
-				else payload.text = resultUrl;
+				if (result.url) payload.url = result.url;
+				else {
+					payload.text = resultUrl;
+					payload.url = getLinksFromText(resultUrl, true);
+				}
 			} else if (["jpg", "png"].includes(resultType)) {
 				payload.title = resultUrl.split("/").at(-1).split(".").at(0);
 				payload.subtitle = `image/${resultType}`;

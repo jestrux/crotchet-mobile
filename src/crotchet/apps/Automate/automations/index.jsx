@@ -1,4 +1,8 @@
-import { registerAutomationAction } from "@/crotchet";
+import {
+	getLinksFromText,
+	getShareActions,
+	registerAutomationAction,
+} from "@/crotchet";
 
 registerAutomationAction("jsonToView", {
 	icon: (
@@ -241,26 +245,21 @@ registerAutomationAction("readClipboard", {
 			/>
 		</svg>
 	),
-	handler: async (_, { readClipboard, openShareSheet, showToast, utils }) => {
+	handler: async (_, { readClipboard, showToast, utils }) => {
 		const { type, value } = await readClipboard();
+		const payload = utils.processShareData(value, type);
 
-		if (!value?.length) return showToast("Nothing in clipboard");
+		if (!payload) return showToast("Nothing in clipboard");
 
-		let payload = {
-			text: value,
+		const shareActions = getShareActions(payload)
+			.map((action) => action.name)
+			.filter((action) => action);
+
+		return {
+			type: "jsonObject",
+			actions: shareActions,
+			data: payload,
 		};
-
-		if (type.includes("image"))
-			payload = {
-				image: value,
-			};
-
-		if (utils.isValidUrl(value))
-			payload = {
-				url: value,
-			};
-
-		return openShareSheet(payload);
 	},
 });
 

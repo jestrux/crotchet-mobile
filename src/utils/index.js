@@ -392,9 +392,14 @@ export const openUrl = async (path) => {
 		const url = new URL(path);
 		const scheme = url.pathname.substring(1).split("/")?.at(0);
 		const params = urlQueryParamsAsObject(path);
+		const { automationActions, actions } = window.__crotchet;
+		const action = { ...automationActions, ...actions }[scheme];
 
-		const action = window.__crotchet.automationActions[scheme];
-		if (action?.handler) return await action.handler(params);
+		if (action?.handler) {
+			return await action.handler(
+				action.automation ? params : params?.data
+			);
+		}
 
 		return showToast(`Automation action ${scheme} not found`);
 	}
@@ -627,6 +632,8 @@ export const objectToQueryParams = (obj = {}) => {
 		if (_.isObject(value) && !_.isArray(value))
 			value = JSON.stringify(value);
 
+		if (_.isArray(value)) value = value.map(encodeURIComponent).join("<!>");
+
 		if (!_.isArray(value)) value = encodeURIComponent(value);
 
 		url.searchParams.set(key, value);
@@ -640,22 +647,35 @@ export const urlQueryParamsAsObject = (path) => {
 		"https://crotchet.app/" + path.replace("crotchet://", "")
 	);
 
+	const mapper = (value) => {
+		if (isNaN(value)) {
+			try {
+				value = decodeURIComponent(value);
+			} catch (error) {
+				//
+			}
+
+			try {
+				value = JSON.parse(value);
+			} catch (error) {
+				//
+			}
+		} else {
+			value = Number(value);
+		}
+
+		return value;
+	};
+
 	const params = Array.from(url.searchParams.entries()).map(
 		([key, value]) => {
-			if (isNaN(value)) {
-				try {
-					value = decodeURIComponent(value);
-				} catch (error) {
-					//
-				}
+			value = mapper(value);
 
-				try {
-					value = JSON.parse(value);
-				} catch (error) {
-					//
-				}
-			} else {
-				value = Number(value);
+			try {
+				if (value.indexOf("<!>") != -1)
+					value = value.split("<!>").map(mapper);
+			} catch (error) {
+				//
 			}
 
 			return [key, value];
@@ -663,6 +683,109 @@ export const urlQueryParamsAsObject = (path) => {
 	);
 
 	return Object.fromEntries(params);
+};
+
+export const getLinksFromText = (text, first) => {
+	if (!text) return null;
+
+	const links = text.split(/\s+/).filter(isValidUrl);
+
+	if (!links.length) return null;
+
+	if (first) return links?.[0];
+
+	return links;
+};
+
+export const processShareData = (value, type = "text") => {
+	if (!value?.trim()?.length) return null;
+
+	let payload = {
+		fromClipboard: true,
+		text: value,
+	};
+
+	if (type.includes("image"))
+		payload = {
+			image: value,
+		};
+
+	if (isValidUrl(value))
+		payload = {
+			url: value,
+		};
+	else payload.url = getLinksFromText(value, true);
+
+	return payload;
+};
+
+export const getShareActions = (content = {}, mainActionNames = []) => {
+	const {
+		image,
+		file,
+		url,
+		text,
+		download,
+		incoming,
+		fromClipboard,
+		scheme,
+		state = {},
+	} = content;
+
+	return Object.entries(window.__crotchet.actions ?? {}).reduce(
+		(agg, [name, action]) => {
+			if (
+				name == "share" ||
+				action.context != "share" ||
+				(action.mobileOnly && onDesktop())
+			)
+				return agg;
+
+			let matches =
+				Object.keys(cleanObject(image, url, file, text)).length > 0;
+
+			const match = action.match;
+
+			if (_.isFunction(match)) {
+				matches = match({
+					image,
+					file,
+					url,
+					text,
+					download,
+					scheme,
+					state,
+					fromClipboard,
+				});
+			} else if (
+				["image", "file", "url", "text", "download"].includes(match)
+			) {
+				matches = {
+					image,
+					file,
+					url,
+					text,
+					download,
+				}[match]?.length;
+			}
+
+			if (!matches) return agg;
+
+			const isMain = mainActionNames.includes(name);
+
+			if (isMain && incoming) return agg;
+
+			return [
+				...agg,
+				{
+					name,
+					...action,
+					main: isMain,
+				},
+			];
+		},
+		[]
+	);
 };
 
 export const shuffle = (array) => {

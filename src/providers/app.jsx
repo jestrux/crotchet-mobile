@@ -232,16 +232,30 @@ export default function AppProvider({ children }) {
 			...props,
 		});
 
-	const openActionSheet = ({ actions, ...payload }, onChange) =>
-		openBottomSheet({
-			content: (
-				<ActionSheet
-					actions={actions}
-					payload={payload}
-					onChange={onChange}
-				/>
-			),
-		});
+	const openActionSheet = ({ actions, ...payload }, onChange) => {
+		const content = (
+			<ActionSheet
+				noHeading={onDesktop()}
+				actions={actions}
+				payload={payload}
+				onChange={onChange}
+				{...(onDesktop()
+					? { dismiss: window.__crotchet.desktop.closePage }
+					: {})}
+			/>
+		);
+
+		return onDesktop()
+			? openPage({
+					...payload,
+					type: "list",
+					actions,
+					content,
+			  })
+			: openBottomSheet({
+					content,
+			  });
+	};
 
 	const openPage = ({
 		background,
@@ -250,16 +264,19 @@ export default function AppProvider({ children }) {
 		content,
 		source,
 		dismissible,
-		fullHeight = true,
+		fullHeight = false,
 		noScroll = false,
 		type = "custom",
 		...props
 	}) => {
+		if (onDesktop()) props.dismiss = window.__crotchet.desktop.closePage;
+
 		if (type == "form")
 			content = [{ type: "custom", value: <Form {...props} /> }];
 
 		let page = (
 			<GenericPage
+				noHeading={onDesktop()}
 				image={image}
 				title={title}
 				content={content}
@@ -268,15 +285,43 @@ export default function AppProvider({ children }) {
 			/>
 		);
 
-		if (type == "search")
-			page = (
-				<SearchPage
-					inBottomSheet
-					title={title}
-					source={source}
-					{...props}
-				/>
-			);
+		if (type == "search") {
+			if (onDesktop()) props.source = source;
+			else {
+				page = (
+					<SearchPage
+						inBottomSheet
+						title={title}
+						source={source}
+						{...props}
+					/>
+				);
+			}
+		}
+
+		if (onDesktop()) {
+			const pageProps = {
+				title,
+				type,
+				...props,
+				background,
+				fullHeight,
+				noScroll,
+				dismissible: dismissible ?? (!fullHeight || noScroll),
+				content: page,
+
+				// type: "search",
+				// placeholder: source
+				// 	? `Search ${camelCaseToSentenceCase(source)}...`
+				// 	: "",
+				// searchQuery: q ?? query,
+				// ...allParams,
+			};
+
+			// dispatch("toggle-app", true);
+
+			return window.__crotchet.desktop.openPage(pageProps);
+		}
 
 		return openBottomSheet({
 			...props,
@@ -300,14 +345,8 @@ export default function AppProvider({ children }) {
 
 	const openDataPreviewer = ({ title, type, data }) =>
 		openPage({
-			fullHeight: false,
 			title,
-			content: [
-				{
-					type: "custom",
-					value: <DataPreviewer type={type} data={data} />,
-				},
-			],
+			content: <DataPreviewer type={type} data={data} />,
 		});
 
 	const appContextValue = {

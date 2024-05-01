@@ -45,10 +45,11 @@ registerAction("runAutomation", {
 				lastData = await action.handler(lastData);
 			}
 		} catch (error) {
-			return showToast(`Automation ${name} failed`);
+			console.log(error, steps);
+			return showToast(`Automation ${name || ""} failed`);
 		}
 
-		return showToast(`Automation ${name} completed`);
+		// return showToast(`Automation ${name} completed`);
 	},
 });
 

@@ -1,14 +1,9 @@
 import { useAppContext } from "@/providers/app";
-import {
-	SearchPage,
-	camelCaseToSentenceCase,
-	dispatch,
-	registerApp,
-} from "@/crotchet";
+import { SearchPage, registerApp } from "@/crotchet";
 
 registerApp("search", () => {
 	return {
-		load(path, { showToast, onDesktop, openSearchPage, dataSources }) {
+		load(path, { showToast, openSearchPage, dataSources }) {
 			const url = new URL("https://" + path);
 			const source = url.pathname
 				.split("/")
@@ -45,19 +40,6 @@ registerApp("search", () => {
 				debounce,
 				global: !source,
 			};
-
-			if (onDesktop()) {
-				dispatch("toggle-app", true);
-
-				return window.__crotchet.desktop.openPage({
-					type: "search",
-					placeholder: source
-						? `Search ${camelCaseToSentenceCase(source)}...`
-						: "",
-					searchQuery: q ?? query,
-					...allParams,
-				});
-			}
 
 			openSearchPage(allParams);
 		},

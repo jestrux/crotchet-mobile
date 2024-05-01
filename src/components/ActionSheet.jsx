@@ -6,6 +6,7 @@ import clsx from "clsx";
 import useLoadableView from "@/hooks/useLoadableView";
 
 export default function ActionSheet({
+	noHeading,
 	dismiss,
 	// preview: _preview,
 	// mainActions = [],
@@ -108,38 +109,40 @@ export default function ActionSheet({
 	if (groups.length && !groupFilter) setGroupFilter(groups[0]);
 
 	return (
-		<div className="pt-5 pb-3 px-5">
-			<div className="flex items-center justify-between gap-2">
-				{contentPreview(
-					sheetProps.preview,
-					sheetProps.title,
-					loading ? null : groups
-				)}
+		<div className={clsx(noHeading ? "px-3 pb-3" : "pt-5 pb-3 px-5")}>
+			{!noHeading && (
+				<div className="flex items-center justify-between gap-2">
+					{contentPreview(
+						sheetProps.preview,
+						sheetProps.title,
+						loading ? null : groups
+					)}
 
-				<button
-					className="flex-shrink-0 ml-auto bg-content/5 border border-content/5 size-7 flex items-center justify-center rounded-full"
-					onClick={dismiss}
-				>
-					<svg
-						className="w-3.5"
-						fill="none"
-						viewBox="0 0 24 24"
-						strokeWidth="1.5"
-						stroke="currentColor"
+					<button
+						className="flex-shrink-0 ml-auto bg-content/5 border border-content/5 size-7 flex items-center justify-center rounded-full"
+						onClick={dismiss}
 					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							d="M6 18 18 6M6 6l12 12"
-						></path>
-					</svg>
-				</button>
-			</div>
+						<svg
+							className="w-3.5"
+							fill="none"
+							viewBox="0 0 24 24"
+							strokeWidth="1.5"
+							stroke="currentColor"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								d="M6 18 18 6M6 6l12 12"
+							></path>
+						</svg>
+					</button>
+				</div>
+			)}
 
 			{pendingView !== true ? (
 				pendingView
 			) : (
-				<div className="mt-4 space-y-3" onClick={dismiss}>
+				<div className="mt-3 space-y-3" onClick={dismiss}>
 					{mainActions?.length > 0 && (
 						<div className="grid grid-cols-3 gap-3">
 							{mainActions.map((action) => (

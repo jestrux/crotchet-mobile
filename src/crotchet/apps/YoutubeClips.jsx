@@ -237,16 +237,12 @@ registerApp("youtubeClips", () => {
 			const props = urlQueryParamsAsObject(path);
 
 			openPage({
+				fullHeight: true,
 				background: "black",
 				noPadding: true,
 				noScroll: true,
 				centerContent: true,
-				content: [
-					{
-						type: "custom",
-						value: <YoutubePlayer {...props} />,
-					},
-				],
+				content: <YoutubePlayer {...props} />,
 			});
 		},
 		open: function Open(props) {

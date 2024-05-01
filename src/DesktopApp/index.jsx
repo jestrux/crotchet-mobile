@@ -98,12 +98,15 @@ const AppPage = ({ page: _page, focused, onClose }) => {
 					</span>
 				)}
 
-				{page?.type == "search" && focused && (
+				{focused && (
 					<Input
 						key={inputCache}
 						ref={searchbar}
 						autoFocus
-						className="command-prompt-input bg-transparent backdrop-blur-sm size-full text-lg outline-none placeholder:text-content/25"
+						className={clsx(
+							"command-prompt-input bg-transparent backdrop-blur-sm size-full text-lg outline-none placeholder:text-content/25",
+							page?.type != "search" && "opacity-0"
+						)}
 						type="text"
 						placeholder={page.placeholder || "Type to search..."}
 						value={page.searchQuery}
@@ -147,15 +150,18 @@ const AppPage = ({ page: _page, focused, onClose }) => {
 					</>
 				)}
 
-				{page?.source && (
-					<div className="p-4">
-						<DataWidget
-							{...page}
-							searchQuery={page.searchQuery}
-							widgetProps={{ noPadding: true }}
-						/>
-					</div>
-				)}
+				{!page?.root &&
+					(page?.source ? (
+						<div className="p-4">
+							<DataWidget
+								{...page}
+								searchQuery={page.searchQuery}
+								widgetProps={{ noPadding: true }}
+							/>
+						</div>
+					) : (
+						page.content
+					))}
 			</div>
 		</div>
 	);
@@ -177,7 +183,7 @@ export default function DesktopApp() {
 	const [pages, setPages] = useState([rootPage]);
 	const page = pages.at(-1);
 	const [app, _setApp] = useState(null);
-	const { apps, actions, dataSources } = useAppContext();
+	const { apps, actions, dataSources, openUrl } = useAppContext();
 
 	const setApp = (app) => {
 		window.__crotchet.desktop.app;
@@ -225,6 +231,8 @@ export default function DesktopApp() {
 		setPages((pages) => pages.filter((p, i) => i != pages.length - 1));
 	};
 
+	window.__crotchet.desktop.closePage = () => dispatch("close-page");
+
 	const popToRoot = () => {
 		setPages((pages) => [pages[0]]);
 	};
@@ -252,6 +260,10 @@ export default function DesktopApp() {
 		// }, 500);
 	});
 
+	useEventListener("close-page", () => {
+		closePage();
+	});
+
 	useEventListener("blur", () => {
 		if (window.hideAppTimeout) clearTimeout(window.hideAppTimeout);
 
@@ -259,7 +271,7 @@ export default function DesktopApp() {
 	});
 
 	useEventListener("socket", (_, { event, payload } = {}) => {
-		if (event == "runAction") {
+		if (event == "run-action") {
 			try {
 				const action = actions[payload];
 
@@ -271,6 +283,19 @@ export default function DesktopApp() {
 
 					return;
 				}
+			} catch (error) {
+				//
+			}
+
+			return;
+		}
+
+		if (event == "open-url") {
+			try {
+				// showToast("Open: " + payload.substring(0, 25) + "...");
+				setTimeout(() => {
+					openUrl(payload);
+				}, 20);
 			} catch (error) {
 				//
 			}

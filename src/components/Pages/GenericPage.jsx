@@ -3,12 +3,13 @@ import DataWidget from "../DataWidget";
 import WidgetWrapper from "../WidgetWrapper";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PreviewCard from "../PreviewCard";
-import { cloneElement } from "react";
+import { cloneElement, isValidElement } from "react";
 import { openUrl } from "@/utils";
 import useLoadableView from "@/hooks/useLoadableView";
 
 export default function GenericPage({
 	noPadding = false,
+	noHeading = false,
 	centerContent = false,
 	image,
 	icon,
@@ -20,7 +21,7 @@ export default function GenericPage({
 	maxHeight,
 	dismiss,
 }) {
-	const headingSet = image || title || subtitle;
+	const headingSet = (!noHeading && image) || title || subtitle;
 	let { data: contentData, pendingView } = useLoadableView({
 		data: content,
 		dismiss,
@@ -29,10 +30,33 @@ export default function GenericPage({
 	const renderContent = () => {
 		if (pendingView != true) return pendingView;
 
-		const content =
-			typeof contentData == "function"
-				? contentData({ dismiss })
-				: contentData;
+		let content = _.isFunction(contentData)
+			? contentData({ dismiss })
+			: contentData;
+
+		if (!content) return <div>No content</div>;
+
+		if (!_.isArray(content)) {
+			content = [
+				isValidElement(content)
+					? {
+							type: "custom",
+							value: content,
+					  }
+					: _.isObject(content)
+					? content
+					: {
+							type: "custom",
+							value: (
+								<div
+									dangerouslySetInnerHTML={{
+										__html: content,
+									}}
+								></div>
+							),
+					  },
+			];
+		}
 
 		return content.map(
 			// eslint-disable-next-line no-unused-vars
@@ -158,7 +182,7 @@ export default function GenericPage({
 		<div
 			className={clsx(
 				"relative flex flex-col items-stretch",
-				!noPadding ? "px-6 py-10" : ""
+				noHeading ? "p-3" : !noPadding ? "px-6 py-10" : ""
 			)}
 			style={
 				fullHeight
@@ -171,69 +195,71 @@ export default function GenericPage({
 					  }
 			}
 		>
-			<div
-				className={clsx(
-					"sticky top-0 z-10 flex items-center justify-between gap-2 mb-2",
-					!noPadding || fullHeight ? "-mt-6" : ""
-				)}
-				style={
-					fullHeight
-						? {
-								paddingTop: "env(safe-area-inset-top)",
-						  }
-						: {}
-				}
-			>
-				<div className="flex-1">
-					<div className="flex items-center gap-3">
-						{icon && (
-							<div className="s-mr-0.5 bg-content/5 border border-content/5 rounded-lg size-10 flex items-center justify-center">
-								<div
-									className="size-5 flex items-center justify-center"
-									// dangerouslySetInnerHTML={{ __html: icon }}
-								>
-									{icon}
-								</div>
-							</div>
-						)}
-
-						{headingSet && (
-							<div>
-								{title && (
-									<h3 className="text-lg/none font-bold first-letter:uppercase">
-										{title}
-									</h3>
-								)}
-
-								{subtitle && (
-									<p className="mt-1 text-sm/none text-content/80 line-clamp-3">
-										{subtitle}
-									</p>
-								)}
-							</div>
-						)}
-					</div>
-				</div>
-
-				<button
-					className="bg-content/5 border border-content/5 size-7 flex items-center justify-center rounded-full"
-					onClick={dismiss}
+			{!noHeading && (
+				<div
+					className={clsx(
+						"sticky top-0 z-10 flex items-center justify-between gap-2 mb-2",
+						!noPadding || fullHeight ? "-mt-6" : ""
+					)}
+					style={
+						fullHeight
+							? {
+									paddingTop: "env(safe-area-inset-top)",
+							  }
+							: {}
+					}
 				>
-					<svg
-						className="w-3.5"
-						fill="none"
-						viewBox="0 0 24 24"
-						strokeWidth="1.5"
-						stroke="currentColor"
+					<div className="flex-1">
+						<div className="flex items-center gap-3">
+							{icon && (
+								<div className="s-mr-0.5 bg-content/5 border border-content/5 rounded-lg size-10 flex items-center justify-center">
+									<div
+										className="size-5 flex items-center justify-center"
+										// dangerouslySetInnerHTML={{ __html: icon }}
+									>
+										{icon}
+									</div>
+								</div>
+							)}
+
+							{headingSet && (
+								<div>
+									{title && (
+										<h3 className="text-lg/none font-bold first-letter:uppercase">
+											{title}
+										</h3>
+									)}
+
+									{subtitle && (
+										<p className="mt-1 text-sm/none text-content/80 line-clamp-3">
+											{subtitle}
+										</p>
+									)}
+								</div>
+							)}
+						</div>
+					</div>
+
+					<button
+						className="bg-content/5 border border-content/5 size-7 flex items-center justify-center rounded-full"
+						onClick={dismiss}
 					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							d="M6 18 18 6M6 6l12 12"
-						></path>
-					</svg>
-				</button>
-			</div>
+						<svg
+							className="w-3.5"
+							fill="none"
+							viewBox="0 0 24 24"
+							strokeWidth="1.5"
+							stroke="currentColor"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								d="M6 18 18 6M6 6l12 12"
+							></path>
+						</svg>
+					</button>
+				</div>
+			)}
 			{/* <div
 				className={clsx(
 					"sticky top-0 z-10 flex items-center justify-end pointer-events-none",
@@ -333,7 +359,7 @@ export default function GenericPage({
 			<div
 				className={clsx("flex-1 flex flex-col gap-4", {
 					"justify-center": centerContent,
-					"pt-2": !fullHeight,
+					"pt-2": !fullHeight && !noHeading,
 				})}
 			>
 				{source ? (
@@ -344,7 +370,7 @@ export default function GenericPage({
 						widgetProps={{ noPadding: true }}
 					/>
 				) : (
-					content && renderContent()
+					renderContent()
 				)}
 			</div>
 		</div>

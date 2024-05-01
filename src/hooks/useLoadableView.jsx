@@ -18,7 +18,7 @@ export default function useLoadableView({
 	);
 
 	const content = () => {
-		if (!data && !loading && !error) return null;
+		if (!data && !loading && !error) return true;
 
 		if (error) {
 			const dismissible = typeof dismiss == "function";

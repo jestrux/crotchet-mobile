@@ -264,6 +264,7 @@ export const registerAutomationAction = (name, action) => {
 
 	window.__crotchet.automationActions[name] = {
 		_id: randomId(),
+		automation: true,
 		icon,
 		color,
 		name,
@@ -330,12 +331,12 @@ export const registerActionSheet = (name, props) => {
 			if (typeof callback == "function") changeHander = callback;
 		};
 
-		if (_.isArray(props.actions) && props.actions.length == 1) {
-			return props.actions[0].handler({
-				...(payload || {}),
-				...(props || {}),
-			});
-		}
+		// if (_.isArray(props.actions) && props.actions.length == 1) {
+		// 	return props.actions[0].handler({
+		// 		...(payload || {}),
+		// 		...(props || {}),
+		// 	});
+		// }
 
 		return window.__crotchet.openActionSheet(
 			{

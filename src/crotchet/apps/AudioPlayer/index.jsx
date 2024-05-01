@@ -19,14 +19,7 @@ registerApp("AudioPlayer", () => {
 
 			return openPage({
 				title: "Media Player",
-				fullHeight: false,
-				// dismissible: false,
-				content: [
-					{
-						type: "custom",
-						value: <AudioPlayer {...params} />,
-					},
-				],
+				content: <AudioPlayer {...params} />,
 			});
 		},
 	};
