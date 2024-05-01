@@ -251,21 +251,19 @@ export default function Automate({ dismiss, maxHeight, action }) {
 		}
 
 		const actions = _.compact(_.map(flow, "runUrl"));
+		const url =
+			"crotchet://action/runAutomation?" +
+			objectToQueryParams({
+				actions,
+			});
+
 		try {
 			if (rowId) {
-				console.log(
-					"Rowd id: ",
-					"automations",
-					{
-						actions,
-					},
-					{ rowId }
-				);
-
 				await dbInsert(
 					"automations",
 					{
 						actions,
+						url,
 					},
 					{ rowId }
 				);
@@ -282,11 +280,7 @@ export default function Automate({ dismiss, maxHeight, action }) {
 				await dbInsert("automations", {
 					name,
 					actions,
-				});
-
-				console.log("Save: ", "automations", {
-					name,
-					actions,
+					url,
 				});
 			}
 		} catch (error) {
@@ -298,8 +292,6 @@ export default function Automate({ dismiss, maxHeight, action }) {
 	};
 
 	if (!automationActions) return <h3>Loading...</h3>;
-
-	console.log("Actions: ", _.compact(_.map(flow, "runUrl")));
 
 	return (
 		<div style={{ height: maxHeight + "px" }}>
