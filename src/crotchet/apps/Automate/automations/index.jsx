@@ -1,8 +1,4 @@
-import {
-	getLinksFromText,
-	getShareActions,
-	registerAutomationAction,
-} from "@/crotchet";
+import { getShareActions, registerAutomationAction } from "@/crotchet";
 
 registerAutomationAction("jsonToView", {
 	icon: (
@@ -23,18 +19,67 @@ registerAutomationAction("jsonToView", {
 		{ data, meta = {}, savedData, runData },
 		{ openForm, utils }
 	) => {
-		if (!data || !meta?.fields) throw "No valid data provided";
+		if (!data) throw "No valid data provided";
 
-		const fieldDefaultValues = savedData?.form?.fieldMappings || {
-			title: "",
+		const fields =
+			meta?.fields || Object.keys(utils.objectExcept(data[0], ["_id"]));
+
+		const fieldSchemaMappings = {
+			index: { type: "text", matches: ["index", "_index"] },
+			video: { type: "text", matches: ["video", "videourl"] },
+			image: {
+				type: "text",
+				matches: [
+					"image",
+					"picture",
+					"poster",
+					"dp",
+					"artwork",
+					"imageurl",
+				],
+			},
+			title: {
+				type: "text",
+				matches: ["title", "name", "heading", "question"],
+			},
+			subtitle: {
+				type: "text",
+				matches: ["subtitle", "description", "answer"],
+			},
+			progress: { type: "text", matches: ["progress", "percent"] },
+			status: { type: "text", matches: ["status", "checked"] },
+			action: { type: "text", matches: ["action", "url", "link"] },
+			share: { type: "text", matches: ["share"] },
 		};
 
-		if (
-			Object.keys(meta.fields).length !=
-			Object.keys(fieldDefaultValues).length
-		) {
-			fieldDefaultValues[""] = "";
-		}
+		const getDefaultFields = (fields) => {
+			return fields.reduce(
+				(matchedFields, field) => {
+					const unmatchedFields = Object.entries(
+						fieldSchemaMappings
+					).filter((key) => !matchedFields[key]?.length);
+
+					const match = unmatchedFields.find(([, { matches }]) =>
+						matches.find(
+							(match) =>
+								match ==
+								field
+									.toLowerCase()
+									.replaceAll("_", "")
+									.replaceAll("-", "")
+						)
+					)?.[0];
+
+					if (match) matchedFields[match] = field;
+
+					return matchedFields;
+				},
+				{ title: "" }
+			);
+		};
+
+		const fieldDefaultValues =
+			savedData?.form?.fieldMappings || getDefaultFields(fields);
 
 		let layoutProps = runData?.fieldMappings
 			? runData
@@ -53,23 +98,20 @@ registerAutomationAction("jsonToView", {
 							type: "keyvalue",
 							key: (data) => data?.table,
 							meta: {
-								schema: {
-									image: "image",
-									title: "text",
-									subtitle: "text",
-									progress: "number",
-									status: "status",
-									action: "url",
-								},
+								schema: Object.fromEntries(
+									Object.entries(fieldSchemaMappings).map(
+										([field, { type }]) => [field, type]
+									)
+								),
 								choices: _.map(
-									utils.objectFieldChoices(meta.fields),
+									utils.objectFieldChoices(fields),
 									"value"
 								),
 							},
 						},
 						layout: {
 							type: "radio",
-							choices: ["list", "grid"],
+							choices: ["list", "card", "grid"],
 							group: "Layout Properties",
 						},
 						columns: {
@@ -146,6 +188,69 @@ registerAutomationAction("previewData", {
 });
 
 /* Global Actions */
+registerAutomationAction("readDataSource", {
+	global: true,
+	icon: (
+		<svg
+			fill="none"
+			viewBox="0 0 24 24"
+			strokeWidth={1.5}
+			stroke="currentColor"
+		>
+			<path
+				strokeLinecap="round"
+				strokeLinejoin="round"
+				d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"
+			/>
+		</svg>
+	),
+	handler: async ({ runData }, appContext) => {
+		const { dataSources, openChoicePicker, showToast } = appContext;
+		const searchableDataSources = _.sortBy(
+			_.filter(
+				Object.values(dataSources),
+				({ searchable }) => !searchable
+			)
+		).map((source) => ({
+			_id: source._id,
+			label: source.label,
+			value: source.name,
+		}));
+
+		const source =
+			runData?.source ||
+			(await openChoicePicker({
+				title: "Select table",
+				choices: searchableDataSources,
+			}));
+
+		const actualSource = dataSources?.[source];
+		if (!_.isFunction(actualSource?.get)) {
+			showToast(`${source} isn't a valid source`);
+			return null;
+		}
+
+		const data = await actualSource.get();
+
+		if (!data?.length) {
+			showToast(`${source} has no data`);
+			return null;
+		}
+
+		return {
+			type: "jsonArray",
+			actions: ["jsonToView"],
+			data,
+			state: {
+				form: { source },
+			},
+			meta: {
+				source,
+			},
+		};
+	},
+});
+
 registerAutomationAction("networkRequest", {
 	global: true,
 	icon: (
@@ -209,10 +314,7 @@ registerAutomationAction("readDbTable", {
 				"createdAt",
 				"updatedAt",
 			])
-		).map((label) => ({
-			label,
-			type: "String",
-		}));
+		);
 
 		return {
 			type: "jsonArray",

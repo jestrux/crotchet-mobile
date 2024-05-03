@@ -11,6 +11,7 @@ function ActionCenter({ onClose = () => {} }) {
 		globalActions,
 		queryDb,
 		automationActions: allAutomationActions,
+		actions,
 	} = useAppContext();
 
 	let filteredActions = globalActions();
@@ -56,7 +57,11 @@ function ActionCenter({ onClose = () => {} }) {
 							return {
 								_id: automation._id,
 								label: automation.name,
-								url: automation.url,
+								handler: () =>
+									actions.runAutomation.handler({
+										actions: automation.actions,
+									}),
+								// url: automation.url,
 							};
 						})
 					)

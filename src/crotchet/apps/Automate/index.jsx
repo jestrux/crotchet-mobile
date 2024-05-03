@@ -14,8 +14,11 @@ registerAction("runAutomation", {
 			/>
 		</svg>
 	),
-	handler: async ({ name, actions: steps }, { openUrl, utils }) => {
-		const actions = steps.map((step) => {
+	handler: async (
+		{ name, actions: steps },
+		{ utils, actions, automationActions }
+	) => {
+		const automationSteps = steps.map((step) => {
 			var actionName = new URL(
 				step.replace(
 					"crotchet://automation-action/",
@@ -27,21 +30,36 @@ registerAction("runAutomation", {
 				?.at(0);
 
 			return {
-				handler: (data) =>
-					openUrl(
-						`crotchet://automation-action/${actionName}?${utils.objectToQueryParams(
-							{
-								...(data || {}),
-								runData: utils.urlQueryParamsAsObject(step),
-							}
-						)}`
-					),
+				handler: (data) => {
+					const action = { ...automationActions, ...actions }[
+						actionName
+					];
+
+					if (_.isFunction(action?.handler)) {
+						return action.handler({
+							...((action.automation ? data : data?.data) || {}),
+							runData: utils.urlQueryParamsAsObject(step),
+						});
+					}
+
+					return showToast(
+						`Automation action ${actionName} not found`
+					);
+					// return openUrl(
+					// 	`crotchet://automation-action/${actionName}?${utils.objectToQueryParams(
+					// 		{
+					// 			...((action.automation ? data : data?.data) || {}),
+					// 			runData: utils.urlQueryParamsAsObject(step),
+					// 		}
+					// 	)}`
+					// );
+				},
 			};
 		});
 
 		try {
 			let lastData;
-			for (const action of actions) {
+			for (const action of automationSteps) {
 				lastData = await action.handler(lastData);
 			}
 		} catch (error) {

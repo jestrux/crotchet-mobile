@@ -190,11 +190,13 @@ export const objectTake = (obj = {}, excludedFields = []) => {
 };
 
 export const cleanObject = (obj = {}) => {
+	const isValid = (value) =>
+		(value ?? "").toString().length &&
+		!["undefined", "false", "0", "null"].includes(value);
+
 	return Object.fromEntries(
 		Object.entries(obj || {}).filter(
-			([, value]) =>
-				(value ?? "").toString().length &&
-				!["undefined", "false", "0", "null"].includes(value)
+			([key, value]) => isValid(key) && isValid(value)
 		)
 	);
 };
