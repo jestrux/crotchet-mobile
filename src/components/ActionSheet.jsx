@@ -109,9 +109,9 @@ export default function ActionSheet({
 	if (groups.length && !groupFilter) setGroupFilter(groups[0]);
 
 	return (
-		<div className={clsx(noHeading ? "px-3 pb-3" : "pt-5 pb-3 px-5")}>
+		<div className={clsx(noHeading ? "px-3" : "pt-5 px-5")}>
 			{!noHeading && (
-				<div className="flex items-center justify-between gap-2">
+				<div className="flex items-center justify-between gap-2 px-1">
 					{contentPreview(
 						sheetProps.preview,
 						sheetProps.title,
@@ -162,7 +162,7 @@ export default function ActionSheet({
 					)}
 
 					{otherActions.length > 0 && (
-						<div className="mb-2 bg-card shadow dark:border border-content/5 rounded-lg overflow-hidden divide-y divide-content/5">
+						<div className="bg-card shadow dark:border border-content/5 rounded-lg overflow-hidden divide-y divide-content/5">
 							{otherActions.map((action) => {
 								if (groupFilter && action.group != groupFilter)
 									return null;
