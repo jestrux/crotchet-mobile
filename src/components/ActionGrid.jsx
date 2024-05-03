@@ -1,4 +1,4 @@
-import { useSourceGet } from "@/crotchet";
+import { ListItem, useSourceGet } from "@/crotchet";
 import ActionButton from "./ActionButton";
 import clsx from "clsx";
 
@@ -59,23 +59,16 @@ export default function ActionGrid({
 			return (
 				<ActionButton
 					action={action}
-					className="w-full flex items-center gap-1.5 px-2.5"
+					className="w-full h-12 flex items-center gap-3 pl-4 pr-2.5"
 				>
-					<div
-						className={clsx(
-							"my-2 size-7 rounded-full flex items-center justify-center border",
-							...colorClasses
-						)}
-					>
-						<div className="size-3.5">
-							<Icon icon={action.icon} />
-						</div>
+					<div className="size-5 opacity-60">
+						<Icon icon={action.icon} />
 					</div>
 
-					<div className="text-sm/none">{action.label}</div>
+					<div className="">{action.label}</div>
 
 					<svg
-						className="ml-auto size-4 opacity-30"
+						className="ml-auto size-5 opacity-30"
 						fill="none"
 						viewBox="0 0 24 24"
 						strokeWidth={1.5}

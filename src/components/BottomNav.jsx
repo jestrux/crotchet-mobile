@@ -1,14 +1,104 @@
 import { motion } from "framer-motion";
 import { clsx } from "clsx";
 import BottomSheet from "./BottomSheet";
-import { useAppContext } from "@/providers/app";
-import { useRef, useState } from "react";
-import { Input, openUrl } from "@/crotchet";
-import GlobalSearch from "./GlobalSearch";
-import useStickyObserver from "@/hooks/useStickyObserver";
+import { useRef, openUrl, ActionGrid, useAppContext } from "@/crotchet";
 import MutliGestureButton from "./MutliGestureButton";
+import ActionButton from "./ActionButton";
+import { useState } from "react";
 
-export const BottomNavButton = ({ page, selected, onClick, onHold }) => {
+function ActionCenter({ onClose = () => {} }) {
+	const {
+		globalActions,
+		queryDb,
+		automationActions: allAutomationActions,
+	} = useAppContext();
+
+	let filteredActions = globalActions();
+
+	const automationActions = Object.values(allAutomationActions).reduce(
+		(agg, action) => {
+			if (!action.global) return agg;
+
+			return [
+				...agg,
+				{
+					...action,
+					handler: () =>
+						openUrl(
+							`crotchet://app/automate?action=${action.name}`
+						),
+				},
+			];
+		},
+		[]
+	);
+
+	return (
+		<div className="space-y-6 pt-2 px-5">
+			<ActionGrid
+				type="wrap"
+				color="#F97315"
+				colorDark="#FDBA74"
+				title="Quick Actions"
+				data={filteredActions}
+				fallbackIcon="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"
+				onClose={onClose}
+			/>
+
+			<ActionGrid
+				type="wrap"
+				title="Run an Automation"
+				color="#84cc16"
+				colorDark="#bef264"
+				data={() =>
+					queryDb("automations").then((res) =>
+						res.map((automation) => {
+							return {
+								_id: automation._id,
+								label: automation.name,
+								url: automation.url,
+							};
+						})
+					)
+				}
+				fallbackIcon="m6.75 7.5 3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z"
+				onClose={onClose}
+			/>
+
+			<ActionGrid
+				type="wrap"
+				title="Start an Automation"
+				data={automationActions}
+				color="#1e3a8a"
+				colorDark="#93c5fd"
+				fallbackIcon="m6.75 7.5 3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z"
+				onClose={onClose}
+			/>
+
+			{/* <ActionGrid
+				type="inline"
+				title="Search Data"
+				// color="#F97315"
+				// colorDark="#FDBA74"
+				data={searchableDataSources.map((source) => ({
+					_id: source._id,
+					label: source.label,
+					url: `crotchet://search/${source.name}`,
+				}))}
+				fallbackIcon="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"
+				onClose={onClose}
+			/> */}
+		</div>
+	);
+}
+
+export const BottomNavButton = ({
+	disabled,
+	page,
+	selected,
+	onClick,
+	onHold,
+}) => {
 	const { apps } = useAppContext();
 	const icon = apps?.[page]?.icon;
 	const activeIcon = apps?.[page]?.activeIcon || icon;
@@ -23,7 +113,8 @@ export const BottomNavButton = ({ page, selected, onClick, onHold }) => {
 		<MutliGestureButton
 			className={clsx(
 				"flex-shrink-0 focus:outline-none rounded-full border inline-flex items-center justify-center h-9 w-16 px-2.5 text-center text-xs uppercase font-bold",
-				selected ? activeClass : inActiveClass
+				selected ? activeClass : inActiveClass,
+				disabled ? "" : "pointer-events-auto"
 			)}
 			style={
 				page == "home" && selected
@@ -45,113 +136,38 @@ export const BottomNavButton = ({ page, selected, onClick, onHold }) => {
 };
 
 export function BottomNav({ hidden, pinnedApps, currentPage, setCurrentPage }) {
+	const { __crotchetApp } = useAppContext();
+	const [hidePinnedMenu, setHidePinnedMenu] = useState(false);
 	const navRef = useRef(null);
-	const stuck = useStickyObserver(navRef.current);
-	const [autoFocus, setAutoFocus] = useState(false);
-	const [searchQuery, setSearchQuery] = useState("");
-	const wrapperRef = useRef(null);
 	const navHeight = 56;
-
-	const input = () => {
-		return wrapperRef.current.querySelector("input");
-	};
-
-	const handleClear = () => {
-		setSearchQuery("");
-		input()?.focus();
-	};
-
-	const handleSubmit = (e) => {
-		e.preventDefault();
-		input()?.blur();
-		// if (query?.length && query != searchQuery) setSearchQuery(query);
-		// searchbar.current.blur();
-	};
+	const expand = useRef();
 
 	return (
-		<div ref={wrapperRef}>
+		<div>
 			<BottomSheet
 				hidden={hidden}
 				peekSize={pinnedApps?.length ? navHeight : 0}
+				noScroll
 				fullHeight
-				dismissible="auto"
+				dismissible
+				// dismissible="auto"
 				// dismissible={!searchQuery?.length}
 			>
-				{({ collapse, collapsed, expand, dragRatio }) => {
-					if (collapsed && autoFocus) setAutoFocus(false);
+				{({ collapse, collapsed, expand: _expand, dragRatio }) => {
+					if (!expand.current) expand.current = _expand;
+
+					setHidePinnedMenu(!collapsed || dragRatio);
 
 					return (
 						<div style={{ minHeight: navHeight + "px" }}>
 							<motion.div
-								className={clsx("px-8 fixed inset-x-0", {
-									"pointer-events-none":
-										!collapsed || dragRatio,
-								})}
-								animate={
-									dragRatio
-										? {
-												opacity: 0,
-												y: "30%",
-										  }
-										: {
-												opacity: collapsed ? 1 : 0,
-												y: collapsed ? 0 : "20%",
-										  }
-								}
-								transition={
-									dragRatio
-										? {
-												duration: collapsed ? 0.6 : 0,
-										  }
-										: {
-												duration: collapsed ? 0.3 : 0,
-												delay: collapsed ? 0.1 : 0,
-										  }
-								}
-								style={{
-									paddingBottom:
-										"env(safe-area-inset-bottom)",
-								}}
-							>
-								<div
-									className="flex items-center justify-between gap-4"
-									style={{
-										height: navHeight + "px",
-									}}
-								>
-									{(pinnedApps || ["", "home", ""]).map(
-										(page, index) => (
-											<BottomNavButton
-												key={page + index}
-												page={page}
-												selected={currentPage == page}
-												onHold={
-													page == "home" &&
-													currentPage == page
-														? () =>
-																openUrl(
-																	"crotchet://action/remote"
-																)
-														: null
-												}
-												onClick={() => {
-													if (currentPage != page)
-														setCurrentPage(page);
-													else if (page == "home") {
-														// setAutoFocus(true);
-														expand();
-													}
-												}}
-											/>
-										)
-									)}
-								</div>
-							</motion.div>
-
-							<motion.div
-								className={clsx("relative", {
-									"pointer-events-none": collapsed,
-								})}
+								onClick={() => collapse()}
+								className={clsx(
+									"relative h-screen flex flex-col items-stretch justify-end",
+									{
+										"pointer-events-none": collapsed,
+									}
+								)}
 								animate={{
 									opacity: !collapsed
 										? dragRatio || 1
@@ -166,14 +182,12 @@ export function BottomNav({ hidden, pinnedApps, currentPage, setCurrentPage }) {
 										  }
 								}
 							>
+								<div className="bg-primary dark:bg-primary-dark opacity-5 z-[-1] absolute inset-0 bottom-1 pointer-events-none"></div>
+
 								<div
 									ref={navRef}
 									className={clsx(
-										"px-4 pb-4 sticky top-0 z-10",
-										{
-											"bg-stone-100/90 dark:bg-card/90 backdrop-blur":
-												stuck && !collapsed,
-										}
+										"flex-1 flex flex-col items-stretch justify-end gap-6 px-4 pb-6 sticky top-0 z-10"
 									)}
 									style={{
 										paddingTop:
@@ -182,20 +196,13 @@ export function BottomNav({ hidden, pinnedApps, currentPage, setCurrentPage }) {
 												: "1rem",
 									}}
 								>
-									<form
-										className="relative w-full flex items-center h-12 pl-10 pr-5 rounded-full border border-content/5 bg-content/5 text-xl/none placeholder:text-content/30"
-										onSubmit={handleSubmit}
-									>
+									<div className="mt-2 flex-shrink-0 flex items-center justify-between">
 										<button
 											type="button"
-											className="absolute z-10 inset-y-0 left-0 rounded-l-full pl-2 pr-1 flex items-center justify-center"
-											onClick={() => {
-												setSearchQuery("");
-												collapse();
-											}}
+											className="bg-content/5 dark:border border-stroke size-10 rounded-full flex items-center justify-center"
 										>
 											<svg
-												className="w-6 opacity-40"
+												className="w-6 opacity-80"
 												fill="none"
 												viewBox="0 0 24 24"
 												strokeWidth="2"
@@ -208,76 +215,96 @@ export function BottomNav({ hidden, pinnedApps, currentPage, setCurrentPage }) {
 												/>
 											</svg>
 										</button>
+									</div>
 
-										{dragRatio ? (
-											<span
-												className={clsx(
-													!searchQuery?.length
-														? "text-content/30"
-														: ""
-												)}
+									<div className="flex-1 flex flex-col items-center justify-center">
+										<h2 className="text-primary dark:text-primary-dark text-4xl/none font-bold">
+											{__crotchetApp.name}
+										</h2>
+									</div>
+
+									<ActionButton
+										action="crotchet://app/search"
+										className="flex-shrink-0 h-12 px-3 flex items-center gap-1.5 bg-card dark:bg-content/5 text-content/50 shadow dark:border border-stroke rounded-full"
+									>
+										<div
+											className={clsx(
+												"size-8 rounded-full flex items-center justify-center"
+											)}
+										>
+											<svg
+												className="size-5"
+												viewBox="0 0 24 24"
+												fill="none"
+												strokeWidth={1.5}
+												stroke="currentColor"
 											>
-												{searchQuery?.length > 0
-													? searchQuery
-													: "Type to search..."}
-											</span>
-										) : (
-											!collapsed &&
-											!hidden && (
-												<>
-													<Input
-														id="searchbar"
-														autoFocus={autoFocus}
-														type="text"
-														className="w-full h-full bg-transparent text-xl/none placeholder:text-content/30 focus:outline-none"
-														placeholder="Type to search..."
-														value={searchQuery}
-														onChange={
-															setSearchQuery
-														}
-														onEnter={handleSubmit}
-													/>
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+												/>
+											</svg>
+										</div>
 
-													<button
-														type="button"
-														className={clsx(
-															"absolute top-0 bottom-0 my-auto right-1.5 w-8 h-8 flex items-center justify-center rounded-full",
-															{
-																"opacity-0":
-																	!searchQuery,
-															}
-														)}
-														onClick={handleClear}
-													>
-														<svg
-															className="w-4"
-															fill="none"
-															viewBox="0 0 24 24"
-															strokeWidth="1.5"
-															stroke="currentColor"
-														>
-															<path
-																strokeLinecap="round"
-																strokeLinejoin="round"
-																d="M6 18 18 6M6 6l12 12"
-															/>
-														</svg>
-													</button>
-												</>
-											)
-										)}
-									</form>
+										<div className="mr-5 text-lg/none">
+											Search...
+										</div>
+									</ActionButton>
 								</div>
 
-								<GlobalSearch
-									searchQuery={searchQuery}
-									onClose={collapse}
-								/>
+								<div
+									className="overflow-hidden"
+									style={{
+										maxHeight: "calc(90vh-180px)",
+									}}
+								>
+									<ActionCenter onClose={collapse} />
+
+									<div
+										className="mb-8"
+										style={{
+											height: "env(safe-area-inset-bottom)",
+										}}
+									></div>
+								</div>
 							</motion.div>
 						</div>
 					);
 				}}
 			</BottomSheet>
+
+			<div
+				className={clsx(
+					"pointer-events-none z-50 fixed inset-x-8 bottom-0 flex items-center justify-between gap-4 transition",
+					{ "opacity-0 translate-y-4": hidePinnedMenu }
+				)}
+				style={{
+					height: navHeight + "px",
+					paddingBottom: "env(safe-area-inset-bottom)",
+				}}
+			>
+				{(pinnedApps || ["", "home", ""]).map((page, index) => (
+					<BottomNavButton
+						key={page + index}
+						page={page}
+						disabled={hidePinnedMenu}
+						selected={currentPage == page}
+						onHold={
+							page == "home" && currentPage == page
+								? () => openUrl("crotchet://action/remote")
+								: null
+						}
+						onClick={() => {
+							if (currentPage != page) setCurrentPage(page);
+							else if (page == "home") {
+								// setAutoFocus(true);
+								expand.current?.();
+							}
+						}}
+					/>
+				))}
+			</div>
 		</div>
 	);
 }

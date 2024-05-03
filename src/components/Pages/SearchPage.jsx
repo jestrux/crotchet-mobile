@@ -17,11 +17,13 @@ export default function SearchPage({
 	inBottomSheet,
 	placeholder,
 	query: _query,
-	source = {},
+	source: _source,
 	collapse,
 	debounce = false,
 	global = false,
 }) {
+	const [source, setSource] = useState(_source);
+
 	placeholder =
 		placeholder ||
 		`Type to search${
@@ -240,13 +242,16 @@ export default function SearchPage({
 			</div>
 
 			<div className="p-3">
-				{global && (
+				{!source && global && (
 					<div className="-mx-5">
-						<GlobalSearch searchQuery={searchQuery} />
+						<GlobalSearch
+							searchQuery={searchQuery}
+							onSelectSource={setSource}
+						/>
 					</div>
 				)}
 
-				{!global && source && (
+				{source && (
 					<DataWidget
 						source={source}
 						searchQuery={searchQuery}

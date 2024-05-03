@@ -334,7 +334,8 @@ export default function AppProvider({ children }) {
 		});
 	};
 
-	const openSearchPage = (props) => openPage({ ...props, type: "search" });
+	const openSearchPage = (props) =>
+		openPage({ ...props, fullHeight: true, type: "search" });
 
 	const openForm = ({ fullHeight, ...props }) =>
 		openPage({
@@ -446,16 +447,58 @@ export default function AppProvider({ children }) {
 			: DesktopApp;
 	}
 
+	const __crotchetApp = window.__crotchet.__crotchetApp;
+
 	return (
 		<AppContext.Provider
 			value={{
 				...appContextValue,
+				__crotchetApp,
 				apps: window.__crotchet.apps,
 				actions: window.__crotchet.actions,
 				automationActions: window.__crotchet.automationActions,
 				dataSources: window.__crotchet.dataSources,
 			}}
 		>
+			<style>
+				{
+					/*css*/ `
+					:root {
+						--primary-color: ${Object.values(
+							utils
+								.tinyColor(__crotchetApp.colors.primary)
+								.toRgb()
+						)
+							.slice(0, 3)
+							.join(" ")};
+						--primary-dark-color: ${Object.values(
+							utils
+								.tinyColor(
+									__crotchetApp.colors.primaryDark ||
+										__crotchetApp.colors.primary
+								)
+								.toRgb()
+						)
+							.slice(0, 3)
+							.join(" ")};
+						--on-primary-color: ${
+							utils
+								.tinyColor(__crotchetApp.colors.primary)
+								.isLight()
+								? "0 0 0"
+								: "255 255 255"
+						};
+						--on-primary-inverted-color: ${
+							utils
+								.tinyColor(__crotchetApp.colors.primary)
+								.isLight()
+								? "255 255 255"
+								: "0 0 0"
+						};
+					}
+				`
+				}
+			</style>
 			{App ? (
 				<App {...(window.__crotchet.app?.props || {})} />
 			) : (

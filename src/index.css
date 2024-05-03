@@ -36,6 +36,13 @@
 	}
 }
 
+.primary-bg {
+	background-color: rgb(var(--primary-color));
+	color: rgb(var(--on-primary-color));
+	--content-color: var(--on-primary-color);
+	--content-inverted-color: var(--on-primary-inverted-color);
+}
+
 * {
 	border-color: rgb(var(--stroke-color));
 	min-width: 0;

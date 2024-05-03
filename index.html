@@ -29,6 +29,7 @@
 				--canvas-color: 240 240 240;
 				--card-color: 255 255 255;
 				--content-color: 0 0 0;
+				--content-inverted-color: 255 255 255;
 				--primary-color: 102 51 153;
 				--primary-light-color: 246 173 85;
 			}
@@ -50,6 +51,7 @@
 					--canvas-color: 24 24 24;
 					--card-color: 37 37 37;
 					--content-color: 255 255 255;
+					--content-inverted-color: 0 0 0;
 
 					--primary-color: 176 112 241;
 					--primary-light-color: 246 173 85;
@@ -58,6 +60,13 @@
 				input[type="date"] {
 					color-scheme: dark;
 				}
+			}
+
+			.primary-bg {
+				background-color: rgb(var(--primary-color));
+				color: rgb(var(--on-primary-color));
+				--content-color: var(--on-primary-color);
+				--content-inverted-color: var(--on-primary-inverted-color);
 			}
 
 			* {
@@ -152,7 +161,11 @@
 							canvas: `rgb(var(--canvas-color) / <alpha-value>)`,
 							card: `rgb(var(--card-color) / <alpha-value>)`,
 							content: `rgb(var(--content-color) / <alpha-value>)`,
+							inverted: `rgb(var(--content-inverted-color) / <alpha-value>)`,
 							primary: `rgb(var(--primary-color) / <alpha-value>)`,
+							"on-primary": `rgb(var(--on-primary-color) / <alpha-value>)`,
+							"on-primary-inverted": `rgb(var(--on-primary-inverted-color) / <alpha-value>)`,
+							"primary-dark": `rgb(var(--primary-dark-color) / <alpha-value>)`,
 							stroke: `rgb(var(--stroke-color) / <alpha-value>)`,
 						},
 					},

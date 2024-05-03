@@ -285,7 +285,7 @@ const getIcon = (path, react, filled) => {
 		return `<svg className="size-6" viewBox="0 0 24 24" ${
 			filled
 				? 'fill="currentColor"'
-				: 'strokeWidth={1.5} stroke="currentColor"'
+				: 'fill="none" strokeWidth={1.5} stroke="currentColor"'
 		}>\n\t<path ${
 			filled ? "" : 'strokeLinecap="round" strokeLinejoin="round"'
 		} d="${path}" />\n</svg>`;

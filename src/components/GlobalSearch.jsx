@@ -4,13 +4,13 @@ import { ActionGrid, openUrl, useAppContext } from "@/crotchet";
 import { matchSorter } from "match-sorter";
 import BottomNavAction from "./BottomNavAction";
 
-export default function GlobalSearch({ searchQuery = "", onClose = () => {} }) {
+export default function GlobalSearch({
+	searchQuery = "",
+	onSelectSource,
+	onClose = () => {},
+}) {
 	const searching = searchQuery?.length > 0;
-	const {
-		globalActions,
-		queryDb,
-		automationActions: allAutomationActions,
-	} = useAppContext();
+	const { globalActions } = useAppContext();
 	const searchableDataSources = _.sortBy(
 		_.filter(
 			Object.values(window.__crotchet.dataSources),
@@ -27,76 +27,24 @@ export default function GlobalSearch({ searchQuery = "", onClose = () => {} }) {
 		});
 	}
 
-	const automationActions = Object.values(allAutomationActions).reduce(
-		(agg, action) => {
-			if (!action.global) return agg;
-
-			return [
-				...agg,
-				{
-					...action,
-					handler: () =>
-						openUrl(
-							`crotchet://app/automate?action=${action.name}`
-						),
-				},
-			];
-		},
-		[]
-	);
+	const handlerSourceClick = (source) => {
+		if (_.isFunction(onSelectSource))
+			onSelectSource(window.__crotchet.dataSources[source.name]);
+		else openUrl(`crotchet://search/${source.name}`);
+	};
 
 	if (!searching) {
 		return (
 			<div className="space-y-6 pt-2 px-5">
 				<ActionGrid
-					// type="inline"
-					color="#F97315"
-					colorDark="#FDBA74"
-					title="Quick Actions"
-					data={filteredActions}
-					fallbackIcon="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"
-					onClose={onClose}
-				/>
-
-				<ActionGrid
-					type="wrap"
-					title="Run an Automation"
-					color="#84cc16"
-					colorDark="#bef264"
-					data={() =>
-						queryDb("automations").then((res) =>
-							res.map((automation) => {
-								return {
-									_id: automation._id,
-									label: automation.name,
-									url: automation.url,
-								};
-							})
-						)
-					}
-					fallbackIcon="m6.75 7.5 3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z"
-					onClose={onClose}
-				/>
-
-				<ActionGrid
-					type="wrap"
-					title="Start an Automation"
-					data={automationActions}
-					color="#1e3a8a"
-					colorDark="#93c5fd"
-					fallbackIcon="m6.75 7.5 3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z"
-					onClose={onClose}
-				/>
-
-				<ActionGrid
 					type="inline"
-					title="Search Data"
+					title="Search a data source"
 					// color="#F97315"
 					// colorDark="#FDBA74"
 					data={searchableDataSources.map((source) => ({
 						_id: source._id,
 						label: source.label,
-						url: `crotchet://search/${source.name}`,
+						handler: () => handlerSourceClick(source),
 					}))}
 					fallbackIcon="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"
 					onClose={onClose}
