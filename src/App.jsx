@@ -6,6 +6,7 @@ import { Filesystem } from "@capacitor/filesystem";
 import { App as CapacitorApp } from "@capacitor/app";
 import {
 	getLinksFromText,
+	isValidUrl,
 	objectIsEmpty,
 	objectTake,
 	onDesktop,
@@ -57,7 +58,7 @@ const App = () => {
 			};
 
 			if (resultType == "plain") {
-				if (result.url) payload.url = result.url;
+				if (isValidUrl(resultUrl)) payload.url = resultUrl;
 				else {
 					payload.text = resultUrl;
 					payload.url = getLinksFromText(resultUrl, true);
