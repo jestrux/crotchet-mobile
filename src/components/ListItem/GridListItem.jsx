@@ -50,7 +50,7 @@ export default function GridListItem({
 				<div className="w-full relative">
 					{(image?.length || video?.length) && (
 						<div
-							className="relative flex-shrink-0 bg-content/10 border border-content/10 rounded overflow-hidden w-full"
+							className="relative flex-shrink-0 bg-content/10 border border-stroke rounded overflow-hidden w-full"
 							style={
 								width && height
 									? {
@@ -103,7 +103,7 @@ export default function GridListItem({
 						dangerouslySetInnerHTML={{ __html: icon }}
 					/>
 				) : (
-					<div className="relative flex-shrink-0 bg-content/10 border border-content/10 rounded overflow-hidden w-full aspect-[16/9]">
+					<div className="relative flex-shrink-0 bg-content/10 border border-stroke rounded overflow-hidden w-full aspect-[16/9]">
 						{(image?.length || video?.length) && (
 							<>
 								<img
