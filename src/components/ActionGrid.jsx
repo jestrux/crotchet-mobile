@@ -1,4 +1,4 @@
-import { ListItem, useSourceGet } from "@/crotchet";
+import { useSourceGet } from "@/crotchet";
 import ActionButton from "./ActionButton";
 import clsx from "clsx";
 
@@ -15,6 +15,7 @@ export default function ActionGrid({
 	data,
 	fallbackIcon,
 	color: _color,
+	maxLines,
 	colorDark: _colorDark,
 	onClose = () => {},
 }) {
@@ -138,19 +139,47 @@ export default function ActionGrid({
 		<div className="space-y-1.5" onClick={onClose}>
 			<h3 className="text-sm/none text-content/50">{title}</h3>
 
-			<div
-				className={
-					typeWrap
-						? "flex gap-x-1.5 gap-y-2 flex-wrap justify-start"
-						: typeInline
-						? "bg-card dark:bg-content/5 shadow dark:border border-content/5 rounded-lg overflow-hidden divide-y divide-content/5"
-						: "grid grid-cols-3 gap-2"
-				}
-			>
-				{actions.map((action) => (
-					<ActionItem key={action._id} action={action} />
-				))}
-			</div>
+			{typeWrap && maxLines ? (
+				<div className="-mx-4 px-4 space-y-1.5 overflow-x-auto">
+					{_.chunk(
+						actions,
+						Math.ceil(actions.length / maxLines)
+					).map((actions, index) => (
+						<div
+							key={index}
+							className="flex gap-x-1.5 gap-y-2 justify-start"
+						>
+							{actions.map((action, index) => {
+								return (
+									<div
+										key={action._id + index}
+										className="flex-shrink-0"
+									>
+										<ActionItem
+											key={action._id}
+											action={action}
+										/>
+									</div>
+								);
+							})}
+						</div>
+					))}
+				</div>
+			) : (
+				<div
+					className={
+						typeWrap
+							? "flex gap-x-1.5 gap-y-2 flex-wrap justify-start"
+							: typeInline
+							? "bg-card dark:bg-content/5 shadow dark:border border-content/5 rounded-lg overflow-hidden divide-y divide-content/5"
+							: "grid grid-cols-3 gap-2"
+					}
+				>
+					{actions.map((action) => (
+						<ActionItem key={action._id} action={action} />
+					))}
+				</div>
+			)}
 		</div>
 	);
 }
