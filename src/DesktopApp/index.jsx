@@ -8,6 +8,7 @@ import {
 	objectIsEmpty,
 	randomId,
 	showToast,
+	urlQueryParamsAsObject,
 	useAppContext,
 } from "@/crotchet";
 import useEventListener from "../hooks/useEventListener";
@@ -202,12 +203,12 @@ export default function DesktopApp() {
 	};
 
 	window.__crotchet.desktop.openApp = ({ scheme, url }) => {
-		const { searchParams } = new URL(`crotchet://app${url}`);
+		const props = urlQueryParamsAsObject(url);
 
 		setApp({
 			scheme,
 			url,
-			props: Object.fromEntries(searchParams.entries()),
+			props,
 		});
 	};
 
