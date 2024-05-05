@@ -11,6 +11,8 @@ module.exports = function Crotchet() {
 
 	this.menuItems = {};
 
+	this.fullScreenTimeout = { then: (resolve) => setTimeout(resolve, 40) };
+
 	this.backgroundAction = (action, props = {}) => {
 		this.toggleBackgroundWindow(true);
 
@@ -42,12 +44,20 @@ module.exports = function Crotchet() {
 		return;
 	};
 
-	this.openApp = ({ scheme, url, window = {} }) => {
-		const { width, height } = window || {};
+	this.openApp = async ({ scheme, url, window = {} }) => {
+		const { width, height, maximize, fullScreen } = window || {};
 
 		this.toggleWindow(true);
 		this.toggleDock(true);
-		this.resize(width && height ? { width, height } : undefined);
+
+		if (maximize || fullScreen) {
+			if (fullScreen) {
+				this.mainWindow.setFullScreen(true);
+				await this.fullScreenTimeout;
+			}
+
+			this.mainWindow.maximize();
+		} else this.resize(width && height ? { width, height } : undefined);
 
 		this.mainWindow.webContents.executeJavaScript(
 			/*js*/ `
@@ -58,6 +68,8 @@ module.exports = function Crotchet() {
 			`,
 			true
 		);
+
+		this.mainWindow.focus();
 
 		return;
 	};
@@ -116,8 +128,16 @@ module.exports = function Crotchet() {
 		this.mainWindow.webContents.send(event, payload, background);
 	};
 
-	this.restore = () => {
+	this.restore = async () => {
+		if (this.mainWindow.isFullScreen) {
+			this.mainWindow.setFullScreen(false);
+			await this.fullScreenTimeout;
+		}
+
+		if (this.mainWindow.isMaximized) this.mainWindow.restore();
+
 		this.resize();
+		this.toggleWindow(true);
 		this.toggleDock(false);
 	};
 
