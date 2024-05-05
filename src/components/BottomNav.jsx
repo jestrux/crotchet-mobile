@@ -78,21 +78,8 @@ function ActionCenter({ onClose = () => {} }) {
 				colorDark="#93c5fd"
 				fallbackIcon="m6.75 7.5 3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z"
 				onClose={onClose}
+				maxLines={3}
 			/>
-
-			{/* <ActionGrid
-				type="inline"
-				title="Search Data"
-				// color="#F97315"
-				// colorDark="#FDBA74"
-				data={searchableDataSources.map((source) => ({
-					_id: source._id,
-					label: source.label,
-					url: `crotchet://search/${source.name}`,
-				}))}
-				fallbackIcon="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"
-				onClose={onClose}
-			/> */}
 		</div>
 	);
 }
