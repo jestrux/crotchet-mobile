@@ -29,6 +29,7 @@ import Form from "@/components/Form";
 import DesktopApp from "@/DesktopApp";
 import BackgroundApp from "@/DesktopApp/BackgroundApp";
 import DataPreviewer from "@/components/DataPreviewer";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const AppContext = createContext({
 	dataSources: {},
@@ -499,27 +500,31 @@ export default function AppProvider({ children }) {
 				`
 				}
 			</style>
-			{App ? (
-				<App {...(window.__crotchet.app?.props || {})} />
-			) : (
-				<>
-					{children}
 
-					{bottomSheets.map((sheet) => (
-						<BottomSheet
-							key={sheet._id}
-							open
-							{...sheet}
-							onClose={() =>
-								setTimeout(() => {
-									setBottomSheets((sheets) =>
-										sheets.filter((s) => s._id != sheet._id)
-									);
-								}, 50)
-							}
-						>
-							{sheet.content}
-							{/* {({ maxHeight, collapse, ...props }) => (
+			<ErrorBoundary onReset={() => window.location.reload()}>
+				{App ? (
+					<App {...(window.__crotchet.app?.props || {})} />
+				) : (
+					<>
+						{children}
+
+						{bottomSheets.map((sheet) => (
+							<BottomSheet
+								key={sheet._id}
+								open
+								{...sheet}
+								onClose={() =>
+									setTimeout(() => {
+										setBottomSheets((sheets) =>
+											sheets.filter(
+												(s) => s._id != sheet._id
+											)
+										);
+									}, 50)
+								}
+							>
+								{sheet.content}
+								{/* {({ maxHeight, collapse, ...props }) => (
 						<div
 							style={{
 								minHeight: sheet.fullHeight
@@ -539,10 +544,11 @@ export default function AppProvider({ children }) {
 							})}
 						</div>
 					)} */}
-						</BottomSheet>
-					))}
-				</>
-			)}
+							</BottomSheet>
+						))}
+					</>
+				)}
+			</ErrorBoundary>
 		</AppContext.Provider>
 	);
 }
