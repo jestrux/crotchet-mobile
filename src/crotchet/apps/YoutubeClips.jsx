@@ -30,7 +30,7 @@ const YoutubePlayer = ({ _id, crop, duration, width, height, ...props }) => {
 	};
 
 	const videoId = _id || props.id;
-	const [start, end] = (crop || `0,${duration}`).split(",").map(Number);
+	const [start, end] = (crop || [0, duration]).map(Number);
 	const player = useRef();
 
 	useEffect(() => {
