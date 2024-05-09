@@ -10,6 +10,7 @@ import {
 	openUrl,
 	randomId,
 } from "@/utils";
+import { WidgetsBridgePlugin } from "capacitor-widgetsbridge-plugin";
 import { useEffect, useRef, useState } from "react";
 
 export { useSourceGet, sourceGet } from "@/providers/data";
@@ -106,6 +107,27 @@ export const useActionClick = (
 	};
 };
 
+const updateDataSourceWidget = async (name, { title, value } = {}) => {
+	if (!value) {
+		await WidgetsBridgePlugin.setItem({
+			key: "dataSources",
+			value: Object.keys(window.__crotchet.dataSources).join(", "),
+			group: "group.tz.co.crotchet",
+		});
+	}
+
+	await WidgetsBridgePlugin.setItem({
+		key: value ? name + "count" : name,
+		value: value ? value : title,
+		group: "group.tz.co.crotchet",
+	});
+
+	// await await WidgetsBridgePlugin.reloadAllTimelines();
+	await WidgetsBridgePlugin.reloadTimelines({ ofKind: "CrotchetWidget" });
+
+	return;
+};
+
 export const registerDataSource = (provider, name, props = {}) => {
 	const sourceFields = ["fieldMap", "mapEntry", "searchable", "searchFields"];
 
@@ -133,7 +155,17 @@ export const registerDataSource = (provider, name, props = {}) => {
 	if (typeof _handler != "function")
 		return console.error(`Unkown data provider: ${provider}`);
 
-	const handler = (payload) => _handler(payload, window.__crotchet);
+	const handler = async (payload) => {
+		const res = await _handler(payload, window.__crotchet);
+		try {
+			updateDataSourceWidget(name, {
+				value: res?.length + " records",
+			});
+		} catch (error) {
+			//
+		}
+		return res;
+	};
 
 	const get = ({ shuffle, limit, single, ...payload } = {}) =>
 		sourceGet(
@@ -151,6 +183,10 @@ export const registerDataSource = (provider, name, props = {}) => {
 
 	const random = async (payload = {}) =>
 		get({ random: true, single: true, ...payload });
+
+	updateDataSourceWidget(name, {
+		title: label,
+	});
 
 	window.__crotchet.dataSources[name] = {
 		...objectExcept(props, sourceFields),

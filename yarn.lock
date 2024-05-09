@@ -4515,6 +4515,11 @@ canvas-confetti@^1.9.2:
   resolved "https://registry.yarnpkg.com/canvas-confetti/-/canvas-confetti-1.9.2.tgz#c9f74098c7fdf66dd9d1aab5d381061cf74e48f0"
   integrity sha512-6Xi7aHHzKwxZsem4mCKoqP6YwUG3HamaHHAlz1hTNQPCqXhARFpSXnkC9TWlahHY5CG6hSL5XexNjxK8irVErg==
 
+capacitor-widgetsbridge-plugin@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/capacitor-widgetsbridge-plugin/-/capacitor-widgetsbridge-plugin-0.1.1.tgz#87c105a016ebf70a0ad46aafdd1a0db3db8a1a74"
+  integrity sha512-Bh+yMoaSIGVBV2wkzaBr6SV3HbroIhL1XpGwcoRCfpQvk/R4tOy+HRb499wOWaWgyncZygHsaY0jcnJqSHah6A==
+
 chalk@2.4.2, chalk@^2.4.2:
   version "2.4.2"
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-2.4.2.tgz#cd42541677a54333cf541a49108c1432b44c9424"

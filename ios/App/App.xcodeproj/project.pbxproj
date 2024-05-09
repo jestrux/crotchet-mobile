@@ -8,6 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
+		324F7E462BEC2ABB00DA0CC9 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 324F7E452BEC2ABB00DA0CC9 /* WidgetKit.framework */; };
+		324F7E482BEC2ABB00DA0CC9 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 324F7E472BEC2ABB00DA0CC9 /* SwiftUI.framework */; };
+		324F7E4B2BEC2ABB00DA0CC9 /* CrotchetWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 324F7E4A2BEC2ABB00DA0CC9 /* CrotchetWidgetBundle.swift */; };
+		324F7E4D2BEC2ABB00DA0CC9 /* CrotchetWidgetLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 324F7E4C2BEC2ABB00DA0CC9 /* CrotchetWidgetLiveActivity.swift */; };
+		324F7E4F2BEC2ABB00DA0CC9 /* CrotchetWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 324F7E4E2BEC2ABB00DA0CC9 /* CrotchetWidget.swift */; };
+		324F7E512BEC2ABB00DA0CC9 /* AppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 324F7E502BEC2ABB00DA0CC9 /* AppIntent.swift */; };
+		324F7E532BEC2ABC00DA0CC9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 324F7E522BEC2ABC00DA0CC9 /* Assets.xcassets */; };
+		324F7E572BEC2ABC00DA0CC9 /* CrotchetWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 324F7E442BEC2ABB00DA0CC9 /* CrotchetWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		32ABF6832B81E5EA0042690C /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ABF6822B81E5EA0042690C /* ShareViewController.swift */; };
 		32ABF6862B81E5EA0042690C /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 32ABF6842B81E5EA0042690C /* MainInterface.storyboard */; };
 		32ABF68A2B81E5EA0042690C /* share.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 32ABF6802B81E5EA0042690C /* share.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -21,6 +29,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		324F7E552BEC2ABC00DA0CC9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 324F7E432BEC2ABB00DA0CC9;
+			remoteInfo = CrotchetWidgetExtension;
+		};
 		32ABF6882B81E5EA0042690C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
@@ -37,6 +52,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				324F7E572BEC2ABC00DA0CC9 /* CrotchetWidgetExtension.appex in Embed Foundation Extensions */,
 				32ABF68A2B81E5EA0042690C /* share.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
@@ -46,6 +62,16 @@
 
 /* Begin PBXFileReference section */
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
+		324F7E442BEC2ABB00DA0CC9 /* CrotchetWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CrotchetWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		324F7E452BEC2ABB00DA0CC9 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		324F7E472BEC2ABB00DA0CC9 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		324F7E4A2BEC2ABB00DA0CC9 /* CrotchetWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrotchetWidgetBundle.swift; sourceTree = "<group>"; };
+		324F7E4C2BEC2ABB00DA0CC9 /* CrotchetWidgetLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrotchetWidgetLiveActivity.swift; sourceTree = "<group>"; };
+		324F7E4E2BEC2ABB00DA0CC9 /* CrotchetWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrotchetWidget.swift; sourceTree = "<group>"; };
+		324F7E502BEC2ABB00DA0CC9 /* AppIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntent.swift; sourceTree = "<group>"; };
+		324F7E522BEC2ABC00DA0CC9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		324F7E542BEC2ABC00DA0CC9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		324F7E5B2BEC3C0F00DA0CC9 /* CrotchetWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CrotchetWidgetExtension.entitlements; sourceTree = "<group>"; };
 		32ABF6802B81E5EA0042690C /* share.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = share.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		32ABF6822B81E5EA0042690C /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		32ABF6852B81E5EA0042690C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
@@ -66,6 +92,15 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		324F7E412BEC2ABB00DA0CC9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				324F7E482BEC2ABB00DA0CC9 /* SwiftUI.framework in Frameworks */,
+				324F7E462BEC2ABB00DA0CC9 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		32ABF67D2B81E5EA0042690C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -88,8 +123,23 @@
 			isa = PBXGroup;
 			children = (
 				AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */,
+				324F7E452BEC2ABB00DA0CC9 /* WidgetKit.framework */,
+				324F7E472BEC2ABB00DA0CC9 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		324F7E492BEC2ABB00DA0CC9 /* CrotchetWidget */ = {
+			isa = PBXGroup;
+			children = (
+				324F7E4A2BEC2ABB00DA0CC9 /* CrotchetWidgetBundle.swift */,
+				324F7E4C2BEC2ABB00DA0CC9 /* CrotchetWidgetLiveActivity.swift */,
+				324F7E4E2BEC2ABB00DA0CC9 /* CrotchetWidget.swift */,
+				324F7E502BEC2ABB00DA0CC9 /* AppIntent.swift */,
+				324F7E522BEC2ABC00DA0CC9 /* Assets.xcassets */,
+				324F7E542BEC2ABC00DA0CC9 /* Info.plist */,
+			);
+			path = CrotchetWidget;
 			sourceTree = "<group>";
 		};
 		32ABF6812B81E5EA0042690C /* share */ = {
@@ -106,8 +156,10 @@
 		504EC2FB1FED79650016851F = {
 			isa = PBXGroup;
 			children = (
+				324F7E5B2BEC3C0F00DA0CC9 /* CrotchetWidgetExtension.entitlements */,
 				504EC3061FED79650016851F /* App */,
 				32ABF6812B81E5EA0042690C /* share */,
+				324F7E492BEC2ABB00DA0CC9 /* CrotchetWidget */,
 				504EC3051FED79650016851F /* Products */,
 				7F8756D8B27F46E3366F6CEA /* Pods */,
 				27E2DDA53C4D2A4D1A88CE4A /* Frameworks */,
@@ -119,6 +171,7 @@
 			children = (
 				504EC3041FED79650016851F /* App.app */,
 				32ABF6802B81E5EA0042690C /* share.appex */,
+				324F7E442BEC2ABB00DA0CC9 /* CrotchetWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -151,6 +204,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		324F7E432BEC2ABB00DA0CC9 /* CrotchetWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 324F7E5A2BEC2ABC00DA0CC9 /* Build configuration list for PBXNativeTarget "CrotchetWidgetExtension" */;
+			buildPhases = (
+				324F7E402BEC2ABB00DA0CC9 /* Sources */,
+				324F7E412BEC2ABB00DA0CC9 /* Frameworks */,
+				324F7E422BEC2ABB00DA0CC9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CrotchetWidgetExtension;
+			productName = CrotchetWidgetExtension;
+			productReference = 324F7E442BEC2ABB00DA0CC9 /* CrotchetWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		32ABF67F2B81E5EA0042690C /* share */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 32ABF68E2B81E5EA0042690C /* Build configuration list for PBXNativeTarget "share" */;
@@ -183,6 +253,7 @@
 			);
 			dependencies = (
 				32ABF6892B81E5EA0042690C /* PBXTargetDependency */,
+				324F7E562BEC2ABC00DA0CC9 /* PBXTargetDependency */,
 			);
 			name = App;
 			productName = App;
@@ -198,6 +269,10 @@
 				LastSwiftUpdateCheck = 1500;
 				LastUpgradeCheck = 0920;
 				TargetAttributes = {
+					324F7E432BEC2ABB00DA0CC9 = {
+						CreatedOnToolsVersion = 15.0.1;
+						ProvisioningStyle = Automatic;
+					};
 					32ABF67F2B81E5EA0042690C = {
 						CreatedOnToolsVersion = 15.0.1;
 						ProvisioningStyle = Automatic;
@@ -224,11 +299,20 @@
 			targets = (
 				504EC3031FED79650016851F /* App */,
 				32ABF67F2B81E5EA0042690C /* share */,
+				324F7E432BEC2ABB00DA0CC9 /* CrotchetWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		324F7E422BEC2ABB00DA0CC9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				324F7E532BEC2ABC00DA0CC9 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		32ABF67E2B81E5EA0042690C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -289,6 +373,17 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		324F7E402BEC2ABB00DA0CC9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				324F7E4F2BEC2ABB00DA0CC9 /* CrotchetWidget.swift in Sources */,
+				324F7E512BEC2ABB00DA0CC9 /* AppIntent.swift in Sources */,
+				324F7E4D2BEC2ABB00DA0CC9 /* CrotchetWidgetLiveActivity.swift in Sources */,
+				324F7E4B2BEC2ABB00DA0CC9 /* CrotchetWidgetBundle.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		32ABF67C2B81E5EA0042690C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -308,6 +403,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		324F7E562BEC2ABC00DA0CC9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 324F7E432BEC2ABB00DA0CC9 /* CrotchetWidgetExtension */;
+			targetProxy = 324F7E552BEC2ABC00DA0CC9 /* PBXContainerItemProxy */;
+		};
 		32ABF6892B81E5EA0042690C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 32ABF67F2B81E5EA0042690C /* share */;
@@ -343,6 +443,78 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		324F7E582BEC2ABC00DA0CC9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CODE_SIGN_ENTITLEMENTS = CrotchetWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TSY535DDJ2;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CrotchetWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CrotchetWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = tz.co.crotchet.CrotchetWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		324F7E592BEC2ABC00DA0CC9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CODE_SIGN_ENTITLEMENTS = CrotchetWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TSY535DDJ2;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CrotchetWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CrotchetWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = tz.co.crotchet.CrotchetWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		32ABF68C2B81E5EA0042690C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -566,6 +738,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		324F7E5A2BEC2ABC00DA0CC9 /* Build configuration list for PBXNativeTarget "CrotchetWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				324F7E582BEC2ABC00DA0CC9 /* Debug */,
+				324F7E592BEC2ABC00DA0CC9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		32ABF68E2B81E5EA0042690C /* Build configuration list for PBXNativeTarget "share" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

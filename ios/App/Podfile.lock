@@ -20,6 +20,8 @@ PODS:
     - Capacitor
   - CapacitorToast (5.0.7):
     - Capacitor
+  - CapacitorWidgetsbridgePlugin (0.1.1):
+    - Capacitor
   - SendIntent (0.0.1):
     - Capacitor
 
@@ -35,6 +37,7 @@ DEPENDENCIES:
   - "CapacitorPreferences (from `../../node_modules/@capacitor/preferences`)"
   - "CapacitorShare (from `../../node_modules/@capacitor/share`)"
   - "CapacitorToast (from `../../node_modules/@capacitor/toast`)"
+  - CapacitorWidgetsbridgePlugin (from `../../node_modules/capacitor-widgetsbridge-plugin`)
   - SendIntent (from `../../node_modules/send-intent`)
 
 EXTERNAL SOURCES:
@@ -60,6 +63,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/share"
   CapacitorToast:
     :path: "../../node_modules/@capacitor/toast"
+  CapacitorWidgetsbridgePlugin:
+    :path: "../../node_modules/capacitor-widgetsbridge-plugin"
   SendIntent:
     :path: "../../node_modules/send-intent"
 
@@ -75,8 +80,9 @@ SPEC CHECKSUMS:
   CapacitorPreferences: 77ac427e98db83bace772455f8ba447430382c4c
   CapacitorShare: c6a1ebbf0114ff9e863b966cd6052678fa25d480
   CapacitorToast: c8bb89eeb59a23c1fc298f138cc06c8ff4d90ac1
+  CapacitorWidgetsbridgePlugin: aeec37c7851ce9b28ec0d441359ebf1bd89b20b1
   SendIntent: 0a17b6984c4f27e9dfa56513267ba2c044a5a6c8
 
-PODFILE CHECKSUM: 22be84d8f7d5c6019e8bcc815d39fb32a2ef552e
+PODFILE CHECKSUM: 34677444d512c3b76b05fb62ff48269b12e56b65
 
 COCOAPODS: 1.15.2
