@@ -132,7 +132,7 @@ const updateDataSourceWidget = async (name, key, value) => {
 				group: "group.tz.co.crotchet",
 			});
 		} catch (error) {
-			alert(error);
+			// alert(error);
 		}
 
 		await WidgetsBridgePlugin.reloadTimelines({ ofKind: "CrotchetWidget" });
