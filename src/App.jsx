@@ -10,6 +10,7 @@ import {
 	objectIsEmpty,
 	objectTake,
 	onDesktop,
+	openUrl,
 	useAppContext,
 	usePrefsState,
 } from "@/crotchet";
@@ -45,11 +46,25 @@ const App = () => {
 	const [currentPage, setCurrentPage] = useState("home");
 	const [pinnedApps] = usePrefsState("pinnedApps");
 
-	const listenForShare = async () => {
-		try {
-			const result = await SendIntent.checkSendIntentReceived();
+	const handleShareIntent = async (result, fromOpen) => {
+		if (window.shareTimeout) {
+			clearTimeout(window.shareTimeout);
+			window.shareTimeout = null;
+		}
 
-			if (!result.url && !result.title) return;
+		try {
+			if (!fromOpen) {
+				result = await SendIntent.checkSendIntentReceived();
+
+				if (!result.url?.length && !result.title?.length) {
+					if (window.openTimeout) {
+						clearTimeout(window.openTimeout);
+						window.openTimeout = null;
+					}
+
+					return;
+				}
+			}
 
 			let resultUrl = decodeURIComponent(result.url || result.title);
 			let [, resultType] = decodeURIComponent(result.type).split("/");
@@ -98,32 +113,44 @@ const App = () => {
 
 	// eslint-disable-next-line no-unused-vars
 	const listenForOpen = () => {
-		CapacitorApp.addListener("appUrlOpen", (event) => {
-			const slug = event.url.split("/app").pop();
-			if (slug) {
-				alert(
-					"App: " +
-						JSON.stringify(
-							Object.fromEntries(
-								new URL(slug).searchParams.entries()
-							)
-						)
-				);
+		CapacitorApp.addListener("appUrlOpen", async (event) => {
+			const result = await SendIntent.checkSendIntentReceived();
+
+			if (
+				result.url?.length ||
+				result.title?.length ||
+				result.description?.length
+			) {
+				handleShareIntent(result, true);
+				return;
+			}
+
+			if (window.openTimeout) {
+				clearTimeout(window.openTimeout);
+				window.openTimeout = null;
+			}
+
+			try {
+				window.openTimeout = setTimeout(async () => {
+					openUrl(decodeURIComponent(event.url));
+				}, 10);
+			} catch (error) {
+				// alert("Error: " + error);
 			}
 		});
 	};
 
 	useEffect(() => {
-		// listenForOpen();
+		listenForOpen();
 
-		listenForShare();
+		// 	handleShareIntent();
 
-		window.addEventListener("sendIntentReceived", listenForShare, false);
+		// window.addEventListener("sendIntentReceived", handleShareIntent, false);
 
 		return () => {
 			window.removeEventListener(
 				"sendIntentReceived",
-				listenForShare,
+				handleShareIntent,
 				false
 			);
 

@@ -9,6 +9,7 @@ import {
 	objectTake,
 	openUrl,
 	randomId,
+	shuffle,
 } from "@/utils";
 import { WidgetsBridgePlugin } from "capacitor-widgetsbridge-plugin";
 import { useEffect, useRef, useState } from "react";
@@ -107,20 +108,111 @@ export const useActionClick = (
 	};
 };
 
-const updateDataSourceWidget = async (name, { title, value } = {}) => {
-	if (!value) {
-		await WidgetsBridgePlugin.setItem({
-			key: "dataSources",
-			value: Object.keys(window.__crotchet.dataSources).join(", "),
-			group: "group.tz.co.crotchet",
-		});
+const updateDataSourceWidget = async (name, key, value) => {
+	const dataSources = window.__crotchet.dataSources;
+	const validDataSources = Object.keys(dataSources)
+		.filter((key) => ["db"].includes(dataSources[key]?.provider))
+		.join(", ");
+
+	if (!validDataSources.includes(name)) return;
+
+	if (key && value) {
+		try {
+			await WidgetsBridgePlugin.setItem({
+				key: name + key,
+				value: JSON.stringify(
+					objectTake(value, [
+						"video",
+						"image",
+						"title",
+						"subtitle",
+						"url",
+					])
+				),
+				group: "group.tz.co.crotchet",
+			});
+		} catch (error) {
+			alert(error);
+		}
+
+		await WidgetsBridgePlugin.reloadTimelines({ ofKind: "CrotchetWidget" });
+
+		return;
 	}
 
-	await WidgetsBridgePlugin.setItem({
-		key: value ? name + "count" : name,
-		value: value ? value : title,
-		group: "group.tz.co.crotchet",
-	});
+	try {
+		await WidgetsBridgePlugin.setItem({
+			key: "dataSources",
+			value: validDataSources,
+			group: "group.tz.co.crotchet",
+		});
+	} catch (error) {
+		//
+	}
+
+	const source = dataSources[name];
+
+	if (!_.isFunction(source.get)) return;
+
+	const data = await source.get();
+
+	if (!data.length) return;
+
+	try {
+		await WidgetsBridgePlugin.setItem({
+			key: name + "Stat",
+			value: JSON.stringify({
+				title: source.label,
+				subtitle: data.length + " records",
+			}),
+			group: "group.tz.co.crotchet",
+		});
+	} catch (error) {
+		// console.log("Update widget: error: ", error);
+	}
+
+	const latest = data[0];
+	if (latest?.title) {
+		const latestData = {
+			video: latest.video,
+			image: latest.image,
+			title: latest.title,
+			subtitle: latest.subtitle,
+			url: latest.url,
+		};
+
+		try {
+			await WidgetsBridgePlugin.setItem({
+				key: name + "Latest",
+				value: JSON.stringify(latestData),
+				group: "group.tz.co.crotchet",
+			});
+		} catch (error) {
+			//
+		}
+	}
+
+	const random = shuffle(shuffle(data))[0];
+
+	if (random?.title) {
+		const randomData = {
+			video: random.video,
+			image: random.image,
+			title: random.title,
+			subtitle: random.subtitle,
+			url: random.url,
+		};
+
+		try {
+			await WidgetsBridgePlugin.setItem({
+				key: name + "Random",
+				value: JSON.stringify(randomData),
+				group: "group.tz.co.crotchet",
+			});
+		} catch (error) {
+			//
+		}
+	}
 
 	// await await WidgetsBridgePlugin.reloadAllTimelines();
 	await WidgetsBridgePlugin.reloadTimelines({ ofKind: "CrotchetWidget" });
@@ -155,17 +247,7 @@ export const registerDataSource = (provider, name, props = {}) => {
 	if (typeof _handler != "function")
 		return console.error(`Unkown data provider: ${provider}`);
 
-	const handler = async (payload) => {
-		const res = await _handler(payload, window.__crotchet);
-		try {
-			updateDataSourceWidget(name, {
-				value: res?.length + " records",
-			});
-		} catch (error) {
-			//
-		}
-		return res;
-	};
+	const handler = async (payload) => _handler(payload, window.__crotchet);
 
 	const get = ({ shuffle, limit, single, ...payload } = {}) =>
 		sourceGet(
@@ -181,16 +263,18 @@ export const registerDataSource = (provider, name, props = {}) => {
 			}
 		);
 
-	const random = async (payload = {}) =>
-		get({ random: true, single: true, ...payload });
-
-	updateDataSourceWidget(name, {
-		title: label,
-	});
+	const random = async (payload = {}) => {
+		const res = await get({ random: true, single: true, ...payload });
+		setTimeout(() => {
+			updateDataSourceWidget(name, "Random", res);
+		}, 300);
+		return res;
+	};
 
 	window.__crotchet.dataSources[name] = {
 		...objectExcept(props, sourceFields),
 		_id: randomId(),
+		provider,
 		name,
 		label,
 		...objectTake(props, sourceFields),
@@ -198,6 +282,10 @@ export const registerDataSource = (provider, name, props = {}) => {
 		get,
 		random,
 	};
+
+	setTimeout(() => {
+		updateDataSourceWidget(name);
+	}, 10);
 
 	const pendingDataSources = window.__crotchet.pendingDataSources?.[name];
 

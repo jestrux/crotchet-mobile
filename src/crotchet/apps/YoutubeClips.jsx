@@ -115,6 +115,11 @@ const getYoutubeId = (url) => {
 	)?.[1];
 };
 
+// const getYoutubeClipUrl = ({ _id, crop, duration } = {}) => {
+// 	const [start] = (crop || [0, duration]).map(Number);
+// 	return `https://youtube.com/watch?v=${_id}&t=${start.toFixed(0)}`;
+// };
+
 const getYoutubeClipUrl = (clip) =>
 	`crotchet://app/youtubeClips?${objectToQueryParams(clip)}`;
 
