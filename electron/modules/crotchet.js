@@ -168,7 +168,9 @@ module.exports = function Crotchet() {
 
 		this.showBackgroundWindow = show;
 
-		mouse.click(Button.LEFT);
+		if (!this.mainWindow.isFullScreen) {
+			mouse.click(Button.LEFT);
+		}
 
 		return show;
 	};
