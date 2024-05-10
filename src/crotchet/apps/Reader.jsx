@@ -10,7 +10,7 @@ import {
 
 registerDataSource("db", "reader", {
 	table: "reader",
-	orderBy: "index,desc",
+	orderBy: "_index,desc",
 	filter: "group",
 	mapEntry(item) {
 		const isVideo =

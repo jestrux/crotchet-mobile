@@ -127,7 +127,7 @@ registerDataSource("db", "youtubeClips", {
 	table: "youtubeClips",
 	label: "Youtube Clips",
 	collection: "videos",
-	orderBy: "updatedAt,desc",
+	orderBy: "updatedAt,asc",
 	mapEntry: (entry) => ({
 		...entry,
 		video: `https://i.ytimg.com/vi/${entry._id}/hqdefault.jpg`,
