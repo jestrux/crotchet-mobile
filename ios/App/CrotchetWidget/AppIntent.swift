@@ -60,7 +60,6 @@ struct WidgetView: AppEntity {
 struct WidgetViewQuery: EntityQuery {
     func getSources() ->[WidgetView] {
         return [
-            WidgetView(id: "Stat"),
             WidgetView(id: "Random"),
             WidgetView(id: "Latest"),
         ]
@@ -77,7 +76,7 @@ struct WidgetViewQuery: EntityQuery {
     }
 
     func defaultResult() async -> WidgetView? {
-        WidgetView(id: "Stat")
+        WidgetView(id: "Latest")
     }
 }
 
