@@ -13,14 +13,17 @@ export const sourceGet = async (source, props = {}) => {
 		"random",
 		"fieldMap",
 		"mapEntry",
+		"orderBy",
 		"searchable",
 		"searchFields",
 	];
 	const payload = objectExcept(props, getterFields);
-	let { limit, single, random, mapEntry } = objectTake(
+	let { limit, single, random, orderBy, mapEntry } = objectTake(
 		{ ...source, ...props },
 		getterFields
 	);
+
+	console.log("Order by: ", orderBy);
 
 	let handler;
 
@@ -37,6 +40,8 @@ export const sourceGet = async (source, props = {}) => {
 	if (!Array.isArray(res)) return res;
 
 	res = typeof mapEntry == "function" ? res.map(mapEntry) : res;
+
+	if (orderBy) res = _.orderBy(res, ...orderBy.split(","));
 
 	if (random) res = doShuffle(doShuffle(res));
 

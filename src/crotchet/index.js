@@ -221,7 +221,7 @@ const updateDataSourceWidget = async (name, key, value) => {
 };
 
 export const registerDataSource = (provider, name, props = {}) => {
-	const sourceFields = ["fieldMap", "mapEntry", "searchable", "searchFields"];
+	const sourceFields = ["fieldMap", "mapEntry", "orderBy", "searchable", "searchFields"];
 
 	if (provider.startsWith("crotchet://")) {
 		const _source = getCrotchetDataSourceProvider(
