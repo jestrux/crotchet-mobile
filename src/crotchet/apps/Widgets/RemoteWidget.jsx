@@ -8,7 +8,7 @@ import MutliGestureButton from "@/components/MutliGestureButton";
 export default function RemoteWidget() {
 	const dictatedMessageTimeout = useRef(null);
 	const trackpad = useRef(null);
-	const { socketEmit, actions: appActions } = useAppContext();
+	const { socketEmit, actions: appActions, remoteActions } = useAppContext();
 	const [dictating, setDictating] = useState(false);
 	const [modifiers, setModifiers] = useState({});
 	const [dictatedMessage, _setDictatedMessage] = useState("");
@@ -223,17 +223,21 @@ export default function RemoteWidget() {
 					Control Desktop
 				</span>
 
-				<button
-					className="relative h-10 w-10 flex items-center justify-center text-center"
-					onClick={() =>
-						socketEmit("background-action", {
-							action: "confetti",
-							effect: "Left Flowers Then Right Flowers",
-						})
-					}
-				>
-					<span className="text-xl/none">🎉</span>
-				</button>
+				{Object.keys(remoteActions).map((actionName, index) => {
+					const action = remoteActions[actionName];
+
+					return (
+						<button
+							key={(action.icon || action.name) + index}
+							className="relative h-10 w-10 overflow-hidden flex items-center justify-center text-center"
+							onClick={action.handler}
+						>
+							<span className="text-xl/none">
+								{action.icon || action.name}
+							</span>
+						</button>
+					);
+				})}
 
 				<button
 					className="relative h-10 w-14 flex items-center justify-center"

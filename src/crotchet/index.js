@@ -463,31 +463,19 @@ export const registerBackgroundApp = (scheme, _app) => {
 	};
 };
 
-export const registerBackgroundAction = (name, action) => {
+const createGenericAction = (name, action) => {
 	let _label = name,
 		_handler = action,
-		tags = [],
-		type,
-		icon,
-		global = false,
-		context,
-		match,
-		mobileOnly = false;
+		icon;
 
 	if (typeof action != "function") {
 		icon = action.icon;
-		type = action.type;
-		global = action.global;
-		context = action.context;
-		match = action.match;
-		mobileOnly = action.mobileOnly;
 		_label = action.label;
 		_handler = action.handler
 			? action.handler
 			: action.url
 			? () => openUrl(action.url)
 			: null;
-		tags = action.tags || [];
 	}
 
 	const label = camelCaseToSentenceCase(
@@ -496,27 +484,24 @@ export const registerBackgroundAction = (name, action) => {
 
 	const handler = (payload) => _handler(payload ?? {}, window.__crotchet);
 
-	console.log("Register backgroundActions: ", name);
-
-	window.__crotchet.backgroundActions[name] = {
+	return {
 		_id: randomId(),
-		type,
 		icon,
 		name,
 		label,
-		tags,
-		global,
-		context,
-		match,
-		mobileOnly,
 		handler,
 	};
+};
 
-	window.addEventListener(`menu-item-click:${name}`, async () => {
-		// console.log("Handling...", label);
-		await handler();
-		// console.log("Handled: ", label, res);
-	});
+export const registerBackgroundAction = (name, action) => {
+	window.__crotchet.backgroundActions[name] = createGenericAction(
+		name,
+		action
+	);
+};
+
+export const registerRemoteAction = (name, action) => {
+	window.__crotchet.remoteActions[name] = createGenericAction(name, action);
 };
 
 export const registerActionSheet = (name, props) => {

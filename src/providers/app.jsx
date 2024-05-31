@@ -15,7 +15,6 @@ import {
 	openUrl,
 	utils,
 	registerDataSource,
-	socketEmit,
 	objectFieldChoices,
 	readClipboard,
 } from "@/crotchet";
@@ -36,6 +35,7 @@ const AppContext = createContext({
 	apps: {},
 	backgroundApps: {},
 	backgroundActions: {},
+	remoteActions: {},
 	app: {},
 	actions: {},
 	automationActions: {},
@@ -92,6 +92,8 @@ const AppContext = createContext({
 	dbInsert: (table, data, { rowId, merge = true }) => {},
 	// eslint-disable-next-line no-unused-vars
 	socketEmit: (event, data) => {},
+	// eslint-disable-next-line no-unused-vars
+	backgroundAction: (action, payload) => {},
 	socketConnected: () => {},
 	onDesktop: () => {},
 });
@@ -353,6 +355,15 @@ export default function AppProvider({ children }) {
 			content: <DataPreviewer type={type} data={data} />,
 		});
 
+	const socketEmit = async (event, data) => {
+		const _socket = await window.__crotchet.socket({
+			retry: true,
+			silent: true,
+		});
+
+		if (_socket) _socket.emit(event, data);
+	};
+
 	const appContextValue = {
 		registerDataSource,
 		bottomSheets,
@@ -423,13 +434,12 @@ export default function AppProvider({ children }) {
 
 			return socket.current;
 		},
-		socketEmit: async (event, data) => {
-			const _socket = await window.__crotchet.socket({
-				retry: true,
-				silent: true,
+		socketEmit,
+		backgroundAction: async (action, payload = {}) => {
+			socketEmit("background-action", {
+				action,
+				...payload,
 			});
-
-			if (_socket) _socket.emit(event, data);
 		},
 		onDesktop,
 		socketConnected: () => {
@@ -460,6 +470,7 @@ export default function AppProvider({ children }) {
 				apps: window.__crotchet.apps,
 				backgroundApps: window.__crotchet.backgroundApps,
 				backgroundActions: window.__crotchet.backgroundActions,
+				remoteActions: window.__crotchet.remoteActions,
 				actions: window.__crotchet.actions,
 				automationActions: window.__crotchet.automationActions,
 				dataSources: window.__crotchet.dataSources,

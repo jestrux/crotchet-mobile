@@ -4,16 +4,25 @@ import {
 	registerBackgroundAction,
 	useEffect,
 	useRef,
+	registerRemoteAction,
 } from "@/crotchet";
 
 registerBackgroundAction("confetti", async (actionProps) => {
 	const { effect = "Center Flowers", options = {} } = actionProps;
-	console.log("Play confetti: ", window.playConfetti);
 
 	return window.playConfetti({
 		effect,
 		options,
 	});
+});
+
+registerRemoteAction("confetti", {
+	icon: "🎉",
+	handler: (_, { backgroundAction }) => {
+		return backgroundAction("confetti", {
+			effect: "Left Flowers Then Right Flowers",
+		});
+	},
 });
 
 registerBackgroundApp("confetti", () => {
