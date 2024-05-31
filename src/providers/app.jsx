@@ -17,6 +17,7 @@ import {
 	registerDataSource,
 	objectFieldChoices,
 	readClipboard,
+	dispatch,
 } from "@/crotchet";
 import GenericPage from "@/components/Pages/GenericPage";
 import SearchPage from "@/components/Pages/SearchPage";
@@ -35,6 +36,7 @@ const AppContext = createContext({
 	apps: {},
 	backgroundApps: {},
 	backgroundActions: {},
+	remoteApps: {},
 	remoteActions: {},
 	app: {},
 	actions: {},
@@ -61,6 +63,8 @@ const AppContext = createContext({
 	openForm: ({ title, subtitle, fields, onSubmit } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
 	openDataPreviewer: ({ title, type, data } = {}) => {},
+	// eslint-disable-next-line no-unused-vars
+	toggleRemoteApp: (app) => {},
 	// eslint-disable-next-line no-unused-vars
 	registerDataSource: (name, source, version) => {},
 	user: {
@@ -395,6 +399,7 @@ export default function AppProvider({ children }) {
 		openSearchPage,
 		openForm,
 		openDataPreviewer,
+		toggleRemoteApp: (app) => dispatch("toggle-remote-app", app),
 		user: {
 			name: "Walter Kimaro",
 			email: "wakyj07@gmail.com",
@@ -413,7 +418,7 @@ export default function AppProvider({ children }) {
 		queryDb,
 		dbInsert,
 		utils,
-		socket: ({ retry = false, silent = false } = {}) => {
+		socket: ({ retry = false, silent = true } = {}) => {
 			if (!socket.current?.connected && retry) {
 				return getSocket()
 					.then((_socket) => {
@@ -429,6 +434,8 @@ export default function AppProvider({ children }) {
 						console.log(e);
 
 						if (!silent) showToast("Desktop connect failed");
+
+						return null;
 					});
 			}
 
@@ -470,6 +477,7 @@ export default function AppProvider({ children }) {
 				apps: window.__crotchet.apps,
 				backgroundApps: window.__crotchet.backgroundApps,
 				backgroundActions: window.__crotchet.backgroundActions,
+				remoteApps: window.__crotchet.remoteApps,
 				remoteActions: window.__crotchet.remoteActions,
 				actions: window.__crotchet.actions,
 				automationActions: window.__crotchet.automationActions,

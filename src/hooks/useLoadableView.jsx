@@ -6,11 +6,13 @@ export default function useLoadableView({
 	delayLoader = false,
 	onSuccess,
 }) {
-	const { data, error, loading } = useSourceGet(
+	const { data, error, loading, refetch } = useSourceGet(
 		async () => {
 			const res = _.isFunction(_data) ? await _data() : _data;
 
 			if (_.isFunction(onSuccess)) onSuccess(res);
+
+			if (res == null || res == undefined) throw Error("Unkown error!");
 
 			return res;
 		},
@@ -52,5 +54,5 @@ export default function useLoadableView({
 		return true;
 	};
 
-	return { data, loading, error, pendingView: content() };
+	return { data, loading, error, pendingView: content(), retry: refetch };
 }

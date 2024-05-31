@@ -31,6 +31,7 @@ export { default as ColorPicker } from "@/components/ColorPicker";
 export { default as AudioPlayer } from "@/crotchet/apps/AudioPlayer/AudioPlayer";
 export { default as SliderInput } from "@/components/SliderInput";
 export { default as ActionGrid } from "@/components/ActionGrid";
+export { default as useRemoteButtons } from "@/crotchet/apps/Remote/useRemoteButtons";
 
 export * from "@/utils";
 
@@ -502,6 +503,34 @@ export const registerBackgroundAction = (name, action) => {
 
 export const registerRemoteAction = (name, action) => {
 	window.__crotchet.remoteActions[name] = createGenericAction(name, action);
+};
+
+export const registerRemoteApp = (scheme, _app) => {
+	const app = _app();
+	let appProps = {};
+
+	let name = scheme,
+		load = app;
+
+	if (typeof app != "function") {
+		const { name: appName, load: appLoader, open, ...props } = app;
+
+		name = appName || scheme;
+		load = appLoader;
+		appProps = props;
+
+		appProps.open = (payload) => {
+			if (typeof open == "function")
+				return open(payload, window.__crotchet);
+		};
+	}
+
+	window.__crotchet.remoteApps[scheme] = {
+		_id: randomId(),
+		name: camelCaseToSentenceCase(name.replace("-", " ").replace("_", " ")),
+		load: (payload = {}) => load(payload, window.__crotchet),
+		...appProps,
+	};
 };
 
 export const registerActionSheet = (name, props) => {

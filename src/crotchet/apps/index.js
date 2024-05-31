@@ -1,6 +1,9 @@
 import "./Automate";
 
 import "./AudioPlayer";
+import "./Remote";
+import "./VoiceAssistant";
+
 import "./Confetti";
 import "./Reader";
 import "./LaCroix";

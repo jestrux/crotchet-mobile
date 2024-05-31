@@ -1,6 +1,6 @@
 import { firebaseUploadFile } from "@/providers/data/firebase/useFirebase";
-import { readClipboard, showToast, WidgetWrapper } from "@/crotchet";
-import RemoteWidget from "../apps/Widgets/RemoteWidget";
+import { readClipboard, showToast } from "@/crotchet";
+import RemoteApp from "@/crotchet/apps/Remote/RemoteApp";
 
 // export const uploadFile = async (_, { showToast }) => {
 // 	await firebaseUploadFile();
@@ -37,17 +37,10 @@ export const remote = {
 	),
 	global: true,
 	mobileOnly: true,
-	handler: async (_, { socket, openBottomSheet }) => {
-		const _socket = await socket({ retry: true });
-
-		if (_socket) {
-			return openBottomSheet({
-				content: <RemoteWidget />,
-			});
-		}
-
-		showToast("Desktop not connected");
-	},
+	handler: async (_, { openBottomSheet }) =>
+		openBottomSheet({
+			content: <RemoteApp />,
+		}),
 };
 
 export const share = {

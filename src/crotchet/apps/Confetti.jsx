@@ -5,6 +5,9 @@ import {
 	useEffect,
 	useRef,
 	registerRemoteAction,
+	registerRemoteApp,
+	useAppContext,
+	useRemoteButtons,
 } from "@/crotchet";
 
 registerBackgroundAction("confetti", async (actionProps) => {
@@ -18,16 +21,63 @@ registerBackgroundAction("confetti", async (actionProps) => {
 
 registerRemoteAction("confetti", {
 	icon: "🎉",
-	handler: (_, { backgroundAction }) => {
-		return backgroundAction("confetti", {
+	handler: (_, { backgroundAction, toggleRemoteApp }) => {
+		backgroundAction("confetti", {
 			effect: "Left Flowers Then Right Flowers",
 		});
+
+		toggleRemoteApp("confetti");
 	},
+});
+
+registerRemoteApp("confetti", () => {
+	return {
+		main: function Open() {
+			const { backgroundAction } = useAppContext();
+			const keys = [
+				{ key: "Center Flowers", label: "Center", span: 2 },
+				{ key: "Left Flowers", label: "Left", span: 2 },
+				{ key: "Right Flowers", label: "Left", span: 2 },
+				{
+					key: "Left And Right Flowers",
+					label: "Left & Right",
+					span: 2,
+				},
+				{
+					key: "Left Flowers Then Right Flowers",
+					label: "Left > Right",
+					span: 2,
+				},
+				{ key: "Snow", label: "Snow", span: 2 },
+				{ key: "Fireworks", label: "Fireworks", span: 2 },
+				{ key: "Star Bust", label: "Star Bust", span: 2 },
+			];
+			const { buttons } = useRemoteButtons({
+				keys,
+				onKeypress: ({ key: effect }) => {
+					return backgroundAction("confetti", {
+						effect,
+					});
+				},
+			});
+
+			return (
+				<>
+					{/* <div
+						className="flex items-center justify-center text-center"
+						ref={trackpad}
+						style={{ height: "100px" }}
+					></div> */}
+
+					{buttons}
+				</>
+			);
+		},
+	};
 });
 
 registerBackgroundApp("confetti", () => {
 	return {
-		icon: "🎉",
 		name: "Confetti",
 		main: function Confetti() {
 			const canvasRef = useRef();
