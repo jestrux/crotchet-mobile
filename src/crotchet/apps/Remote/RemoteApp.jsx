@@ -1,11 +1,10 @@
-import { useState, useAppContext } from "@/crotchet";
+import { useState, useEffect, useAppContext, clsx } from "@/crotchet";
 import useEventListener from "@/hooks/useEventListener";
 import useLoadableView from "@/hooks/useLoadableView";
-import clsx from "clsx";
 
 export default function RemoteApp() {
 	const { remoteActions, remoteApps, socket } = useAppContext();
-	const [currentApp, setCurrentApp] = useState();
+	const [apps, setApps] = useState([]);
 	const {
 		pendingView,
 		data: socketConnected,
@@ -13,73 +12,127 @@ export default function RemoteApp() {
 		loading,
 	} = useLoadableView({
 		data: () => socket({ retry: true }),
-		// dismiss,
 	});
 
-	useEventListener("toggle-remote-app", (_, app) => {
-		setCurrentApp(currentApp == app ? null : app);
+	useEventListener("toggle-remote-app", (_, newApp) => {
+		setApps((apps) => {
+			return apps.includes(newApp)
+				? apps.filter((app) => app != newApp)
+				: [...apps, newApp];
+		});
 	});
 
-	const activeApp = remoteApps?.[currentApp] ?? remoteApps.defaultRemoteApp;
-	const Content = activeApp?.main;
+	useEffect(() => {
+		return () => {
+			apps.forEach((appName) => {
+				const app = remoteApps[appName];
+				if (typeof app.onClose == "function")
+					app.onClose(window.__crotchet);
+			});
+		};
+	});
 
-	const actions = Object.keys(remoteActions);
+	const allActions = Object.keys(remoteActions);
+	const actions = allActions.filter(
+		(actionName) => !apps.includes(actionName)
+	);
+
+	if (loading) return <div className="px-4 py-12">{pendingView}</div>;
+
+	if (!socketConnected)
+		return (
+			<div className="px-4 py-12 flex flex-col items-center justify-center gap-4">
+				Socket not connected!
+				<button onClick={retry}>Retry</button>
+			</div>
+		);
+
+	const activeApps = apps.length ? apps : ["defaultRemoteApp"];
 
 	return (
-		<div>
+		<>
 			<div className="rounded-t-2xl relative z-10 flex-shrink-0 h-10 flex items-center bg-content/5">
-				<span
-					className="ml-5 flex-1 capitalize tracking-tight text-sm font-semibold opacity-80"
-					onClick={() => setCurrentApp(null)}
-				>
-					{activeApp?.name}
+				<span className="ml-5 flex-1 capitalize tracking-tight text-sm font-semibold opacity-80">
+					Control Desktop
 				</span>
 
-				{socketConnected &&
-					actions.map((actionName, index) => {
-						const action = remoteActions[actionName];
-						const active = currentApp == action.name;
-						const content = action.icon || action.name;
-						const isLast = index == actions.length - 1;
+				{actions.map((actionName, index) => {
+					const action = remoteActions[actionName];
+					const content = action.icon || action.name;
+					const isLast = index == actions.length - 1;
 
-						return (
-							<button
-								key={action.name + index}
-								className={clsx(
-									"relative h-10 flex items-center justify-center",
-									isLast ? "w-14" : "w-10"
-								)}
-								onClick={action.handler}
-							>
-								<div
-									className={clsx(
-										"absolute inset-0 bg-content/5 transition duration-150",
-										{
-											"opacity-0 scale-90 translate-x-1/3":
-												!active,
-										},
-										isLast
-											? "rounded-l-full origin-right"
-											: "rounded-full origin-center"
-									)}
-								></div>
-
-								{content}
-							</button>
-						);
-					})}
+					return (
+						<button
+							key={action.name + index}
+							className={clsx(
+								"relative h-10 flex items-center justify-center",
+								isLast ? "w-14" : "w-10"
+							)}
+							onClick={action.handler}
+						>
+							{content}
+						</button>
+					);
+				})}
 			</div>
 
-			{loading ? (
-				<div className="px-4 py-12">{pendingView}</div>
-			) : !socketConnected ? (
-				<div className="px-4 py-12 flex flex-col items-center justify-center gap-4">
-					Socket not connected!
-					<button onClick={retry}>Retry</button>
-				</div>
-			) : (
-				Content && <Content />
-			)}
-		</div>
+			<div className="space-y-5">
+				{activeApps.map((appName) => {
+					const app = remoteApps[appName];
+					const Content = app?.main;
+					const isDefaultApp = appName == "defaultRemoteApp";
+
+					if (isDefaultApp) return Content ? <Content /> : null;
+
+					let appAction = allActions.find((name) => name == appName);
+					if (appAction) appAction = remoteActions[appAction];
+
+					return (
+						<div
+							key={app._id}
+							className="mt-4 mx-3 border-2 border-content/10 rounded-2xl"
+						>
+							<div className="pl-5 rounded-t-2xl relative z-10 flex-shrink-0 h-10 flex items-center gap-3 bg-content/5">
+								{app?.icon}
+
+								<span className="flex-1 capitalize tracking-tight text-sm font-semibold opacity-80">
+									{app.name}
+								</span>
+
+								<button
+									className="relative h-10 w-14 flex items-center justify-center"
+									onClick={() => {
+										if (typeof app.onClose == "function")
+											app.onClose(window.__crotchet);
+
+										setApps((apps) =>
+											apps.filter(
+												(name) => name != appName
+											)
+										);
+									}}
+								>
+									<svg
+										className="size-4"
+										viewBox="0 0 24 24"
+										fill="none"
+										strokeWidth={2}
+										stroke="currentColor"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											d="M6 18 18 6M6 6l12 12"
+										/>
+									</svg>
+								</button>
+							</div>
+
+							{Content && <Content />}
+						</div>
+					);
+				})}
+			</div>
+		</>
 	);
 }

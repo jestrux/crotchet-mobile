@@ -2,6 +2,7 @@ import "./Automate";
 
 import "./AudioPlayer";
 import "./Remote";
+import "./FloatingHead";
 import "./VoiceAssistant";
 
 import "./Confetti";

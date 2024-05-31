@@ -14,6 +14,7 @@ Object.assign(window.__crotchet, {
 	},
 	apps: {},
 	backgroundApps: {},
+	visibleBackgroundApps: [],
 	backgroundActions: {},
 	remoteApps: {},
 	remoteActions: {},

@@ -5,36 +5,58 @@ import {
 	useState,
 	useAppContext,
 	registerRemoteApp,
+	useRemoteButtons,
 } from "@/crotchet";
-import clsx from "clsx";
+
+const icon = (
+	<svg
+		className="relative size-5 transition-transform duration-300"
+		viewBox="0 0 24 24"
+		fill="currentColor"
+	>
+		<path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" />
+	</svg>
+);
 
 registerRemoteAction("voiceAssistant", {
-	icon: (
-		<svg
-			className="relative size-5 transition-transform duration-300"
-			viewBox="0 0 24 24"
-			fill="currentColor"
-		>
-			<path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" />
-		</svg>
-	),
+	icon,
 	handler: (_, { toggleRemoteApp }) => toggleRemoteApp("voiceAssistant"),
 });
 
 registerRemoteApp("voiceAssistant", () => {
 	return {
+		icon,
 		main: function Open() {
 			const { socketEmit, actions: appActions } = useAppContext();
 			const dictatedMessageTimeout = useRef(null);
 			const [dictating, setDictating] = useState(false);
 			const [dictatedMessage, _setDictatedMessage] = useState("");
 			const [value, setValue] = useState("");
-			const filters = [
-				"Type",
-				"Run Action",
-				// "automation"
-			];
-			const [filter, setFilter] = useState("Run Action");
+			const { buttons, modifiers } = useRemoteButtons({
+				keys: [
+					{
+						name: "filter",
+						modifier: true,
+						key: "Type",
+						span: 2,
+					},
+					{
+						name: "filter",
+						modifier: true,
+						key: "Run Action",
+						span: 2,
+					},
+					// {
+					// 	name: "filter",
+					// 	modifier: true,
+					// 	key: "Automation",
+					// 	span: 2,
+					// },
+				],
+				modifiers: {
+					filter: "Type",
+				},
+			});
 
 			const setDictatedMessage = (message, timeout) => {
 				if (dictatedMessageTimeout.current) {
@@ -114,7 +136,7 @@ registerRemoteApp("voiceAssistant", () => {
 
 					setDictatedMessage("");
 
-					if (filter == "Run Action") {
+					if (modifiers.filter == "Run Action") {
 						const actionName = value.toLowerCase();
 
 						if (!checkCommandForAction(value.toLowerCase()))
@@ -126,7 +148,7 @@ registerRemoteApp("voiceAssistant", () => {
 						return;
 					}
 
-					if (filter == "Type") {
+					if (modifiers.filter == "Type") {
 						const clear = value.toLowerCase() == "clear";
 						const paste = value.toLowerCase() == "paste";
 						// const replace = value.toLowerCase() == "replace";
@@ -142,36 +164,13 @@ registerRemoteApp("voiceAssistant", () => {
 				}
 
 				listen();
-				// then((res) => {
-				// 	setDictating(false);
-				// 	socketEmit("type", value);
-				// 	// setTimeout(() => {
-				// 	// 	alert(value);
-				// 	// }, 300);
-				// });
 
 				setDictating(true);
 			};
 
 			return (
 				<>
-					<div className="mt-2 p-3 flex gap-2">
-						{filters.map((action) => (
-							<button
-								key={action}
-								className={clsx(
-									"flex-1 flex-shrink-0 border border-content/20 h-10 font-bold rounded-full flex items-center justify-center",
-									{
-										"bg-content/80 text-canvas":
-											filter == action,
-									}
-								)}
-								onClick={() => setFilter(action)}
-							>
-								{action}
-							</button>
-						))}
-					</div>
+					<div className="pt-2">{buttons}</div>
 
 					<div
 						className="flex flex-col gap-4 py-10 items-center justify-center text-center"

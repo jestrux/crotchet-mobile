@@ -21,10 +21,12 @@ registerBackgroundAction("confetti", async (actionProps) => {
 
 registerRemoteAction("confetti", {
 	icon: "🎉",
-	handler: (_, { backgroundAction, toggleRemoteApp }) => {
-		backgroundAction("confetti", {
-			effect: "Left Flowers Then Right Flowers",
-		});
+	handler: ({ close }, { backgroundAction, toggleRemoteApp }) => {
+		if (!close) {
+			backgroundAction("confetti", {
+				effect: "Left Flowers Then Right Flowers",
+			});
+		}
 
 		toggleRemoteApp("confetti");
 	},
@@ -32,6 +34,7 @@ registerRemoteAction("confetti", {
 
 registerRemoteApp("confetti", () => {
 	return {
+		icon: "🎉",
 		main: function Open() {
 			const { backgroundAction } = useAppContext();
 			const keys = [
@@ -78,6 +81,7 @@ registerRemoteApp("confetti", () => {
 
 registerBackgroundApp("confetti", () => {
 	return {
+		zIndex: 999,
 		name: "Confetti",
 		main: function Confetti() {
 			const canvasRef = useRef();

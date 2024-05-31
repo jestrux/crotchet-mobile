@@ -100,6 +100,7 @@ const createBackgroundWindow = () => {
 
 	if (isDev) {
 		backgroundWindow.loadURL("http://localhost:5173/");
+		// backgroundWindow.webContents.openDevTools({ mode: "detach" });
 
 		try {
 			require("electron-reloader")(module);

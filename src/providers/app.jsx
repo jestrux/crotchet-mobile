@@ -97,6 +97,10 @@ const AppContext = createContext({
 	// eslint-disable-next-line no-unused-vars
 	socketEmit: (event, data) => {},
 	// eslint-disable-next-line no-unused-vars
+	backgroundToast: (message) => {},
+	// eslint-disable-next-line no-unused-vars
+	toggleBackgroundApp: (app, value) => {},
+	// eslint-disable-next-line no-unused-vars
 	backgroundAction: (action, payload) => {},
 	socketConnected: () => {},
 	onDesktop: () => {},
@@ -442,9 +446,22 @@ export default function AppProvider({ children }) {
 			return socket.current;
 		},
 		socketEmit,
+		backgroundToast: (message) => {
+			socketEmit("background-action", {
+				_action: "toast",
+				message,
+			});
+		},
+		toggleBackgroundApp: (app, value) => {
+			socketEmit("background-action", {
+				_action: "toggle-app",
+				app,
+				value,
+			});
+		},
 		backgroundAction: async (action, payload = {}) => {
 			socketEmit("background-action", {
-				action,
+				_action: action,
 				...payload,
 			});
 		},
@@ -475,6 +492,7 @@ export default function AppProvider({ children }) {
 				...appContextValue,
 				__crotchetApp,
 				apps: window.__crotchet.apps,
+				visibleBackgroundApps: window.__crotchet.visibleBackgroundApps,
 				backgroundApps: window.__crotchet.backgroundApps,
 				backgroundActions: window.__crotchet.backgroundActions,
 				remoteApps: window.__crotchet.remoteApps,

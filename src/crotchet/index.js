@@ -14,6 +14,7 @@ import {
 import { WidgetsBridgePlugin } from "capacitor-widgetsbridge-plugin";
 import { useEffect, useRef, useState } from "react";
 
+export { default as clsx } from "clsx";
 export { useSourceGet, sourceGet } from "@/providers/data";
 export { useState, useEffect, useRef } from "react";
 export { default as usePrefsState } from "@/providers/prefs/usePrefsState";
