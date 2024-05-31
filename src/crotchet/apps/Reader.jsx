@@ -60,7 +60,7 @@ registerAction("addToReadingList", {
 	),
 	handler: async (
 		{ preview, title, subtitle, url },
-		{ utils, openUrl, showToast, dbInsert }
+		{ utils, openUrl, showToast, dbInsert, openForm }
 	) => {
 		var payload = await openUrl(
 			`crotchet://action/crawlUrl?${utils.objectToQueryParams({
@@ -72,14 +72,40 @@ registerAction("addToReadingList", {
 			})}`
 		);
 
-		if (!payload?.title) return showToast("Nothing to add");
+		var res = await openForm({
+			title: "Add to reading list",
+			data: {
+				// group: (await Preferences.get({ key: "groupFilter" })).value ?? "",
+				group: "🌎 General",
+				image: payload.preview,
+				title: payload.title,
+				description: payload.description || payload.subtitle,
+			},
+			fields: {
+				group: {
+					type: "radio",
+					choices: [
+						"📺 Watch",
+						"🧪 Learn",
+						"🎧 Listen",
+						"🌎 General",
+					],
+				},
+				image: "text",
+				title: "text",
+				description: "text",
+			},
+		});
+
+		if (!res) return;
+
+		payload = res;
 
 		try {
 			await dbInsert(
 				"reader",
 				utils.cleanObject({
 					...(payload ?? {}),
-					group: "🌎 General",
 					createdAt: new Date(),
 				})
 			);
