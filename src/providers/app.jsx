@@ -34,6 +34,8 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 const AppContext = createContext({
 	dataSources: {},
 	apps: {},
+	backgroundApps: {},
+	backgroundActions: {},
 	app: {},
 	actions: {},
 	automationActions: {},
@@ -456,6 +458,8 @@ export default function AppProvider({ children }) {
 				...appContextValue,
 				__crotchetApp,
 				apps: window.__crotchet.apps,
+				backgroundApps: window.__crotchet.backgroundApps,
+				backgroundActions: window.__crotchet.backgroundActions,
 				actions: window.__crotchet.actions,
 				automationActions: window.__crotchet.automationActions,
 				dataSources: window.__crotchet.dataSources,

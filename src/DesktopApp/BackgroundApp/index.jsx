@@ -1,34 +1,39 @@
 import { dispatch } from "@/utils";
-import Confetti from "./Confetti";
 import useEventListener from "@/hooks/useEventListener";
+import { useAppContext } from "@/crotchet";
 
 export default function BackgroundApp() {
+	const { backgroundApps, backgroundActions } = useAppContext();
 	const hideBackgroundApp = () => {
 		dispatch("toggle-background-app", false);
 	};
 
-	useEventListener("socket", (_, { event, payload } = {}) => {
+	const cleanup = () => {
+		hideBackgroundApp();
+	};
+
+	useEventListener("socket", async (_, { event, payload } = {}) => {
 		if (event == "background-action") {
-			const { action, ...actionProps } = payload || {};
+			const { action: actionName, ...actionProps } = payload || {};
+			const action = backgroundActions[actionName];
 
-			if (action == "confetti") {
-				const { effect = "Center Flowers", options = {} } = actionProps;
+			if (action?.handler) await action.handler(actionProps);
 
-				window
-					.playConfetti({
-						effect,
-						options,
-					})
-					.then(() => {
-						hideBackgroundApp();
-					});
-
-				return;
-			}
+			cleanup();
 
 			return;
 		}
 	});
 
-	return <Confetti />;
+	return (
+		<>
+			{Object.keys(backgroundApps).map((scheme) => {
+				const App = backgroundApps?.[scheme]?.main;
+
+				if (!App) return null;
+
+				return <App key={scheme} />;
+			})}
+		</>
+	);
 }

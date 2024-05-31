@@ -221,7 +221,13 @@ const updateDataSourceWidget = async (name, key, value) => {
 };
 
 export const registerDataSource = (provider, name, props = {}) => {
-	const sourceFields = ["fieldMap", "mapEntry", "orderBy", "searchable", "searchFields"];
+	const sourceFields = [
+		"fieldMap",
+		"mapEntry",
+		"orderBy",
+		"searchable",
+		"searchFields",
+	];
 
 	if (provider.startsWith("crotchet://")) {
 		const _source = getCrotchetDataSourceProvider(
@@ -427,6 +433,90 @@ export const registerApp = (scheme, _app) => {
 		load: (payload = {}) => load(payload, window.__crotchet),
 		...appProps,
 	};
+};
+
+export const registerBackgroundApp = (scheme, _app) => {
+	const app = _app();
+	let appProps = {};
+
+	let name = scheme,
+		load = app;
+
+	if (typeof app != "function") {
+		const { name: appName, load: appLoader, open, ...props } = app;
+
+		name = appName || scheme;
+		load = appLoader;
+		appProps = props;
+
+		appProps.open = (payload) => {
+			if (typeof open == "function")
+				return open(payload, window.__crotchet);
+		};
+	}
+
+	window.__crotchet.backgroundApps[scheme] = {
+		_id: randomId(),
+		name: camelCaseToSentenceCase(name.replace("-", " ").replace("_", " ")),
+		load: (payload = {}) => load(payload, window.__crotchet),
+		...appProps,
+	};
+};
+
+export const registerBackgroundAction = (name, action) => {
+	let _label = name,
+		_handler = action,
+		tags = [],
+		type,
+		icon,
+		global = false,
+		context,
+		match,
+		mobileOnly = false;
+
+	if (typeof action != "function") {
+		icon = action.icon;
+		type = action.type;
+		global = action.global;
+		context = action.context;
+		match = action.match;
+		mobileOnly = action.mobileOnly;
+		_label = action.label;
+		_handler = action.handler
+			? action.handler
+			: action.url
+			? () => openUrl(action.url)
+			: null;
+		tags = action.tags || [];
+	}
+
+	const label = camelCaseToSentenceCase(
+		(_label || name).replace("-", " ").replace("_", " ")
+	);
+
+	const handler = (payload) => _handler(payload ?? {}, window.__crotchet);
+
+	console.log("Register backgroundActions: ", name);
+
+	window.__crotchet.backgroundActions[name] = {
+		_id: randomId(),
+		type,
+		icon,
+		name,
+		label,
+		tags,
+		global,
+		context,
+		match,
+		mobileOnly,
+		handler,
+	};
+
+	window.addEventListener(`menu-item-click:${name}`, async () => {
+		// console.log("Handling...", label);
+		await handler();
+		// console.log("Handled: ", label, res);
+	});
 };
 
 export const registerActionSheet = (name, props) => {

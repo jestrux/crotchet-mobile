@@ -13,6 +13,8 @@ Object.assign(window.__crotchet, {
 		// }
 	},
 	apps: {},
+	backgroundApps: {},
+	backgroundActions: {},
 	automationActions: {},
 	actions: {},
 	dataSources: {},
