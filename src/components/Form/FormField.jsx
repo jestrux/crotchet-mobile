@@ -109,7 +109,7 @@ const KeyValueInput = ({
 	return (
 		<select
 			ref={inputRef}
-			className="bg-transparent w-full py-1.5 px-3 placeholder:text-content/20"
+			className="unstyled border-none bg-transparent w-full py-1.5 px-3 placeholder:text-content/20"
 			value={value}
 			onChange={(e) => {
 				const v = e.target.value;

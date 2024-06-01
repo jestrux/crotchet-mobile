@@ -45,6 +45,24 @@
 				-webkit-box-orient: vertical;
 			}
 
+			[type="text"],
+			[type="email"],
+			[type="url"],
+			[type="password"],
+			[type="number"],
+			[type="date"],
+			[type="datetime-local"],
+			[type="month"],
+			[type="search"],
+			[type="tel"],
+			[type="time"],
+			[type="week"],
+			[multiple],
+			textarea,
+			select:not(.unstyled) {
+				@apply w-full bg-transparent border-content/20 rounded-lg shadow-sm focus:border-content/50 focus:ring-transparent;
+			}
+
 			@media (prefers-color-scheme: dark) {
 				:root {
 					--stroke-color: 53 53 53;
