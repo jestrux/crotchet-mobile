@@ -80,6 +80,7 @@ registerAction("addToReadingList", {
 				image: payload.preview,
 				title: payload.title,
 				description: payload.description || payload.subtitle,
+				url: payload.url,
 			},
 			fields: {
 				group: {
@@ -94,6 +95,7 @@ registerAction("addToReadingList", {
 				image: "text",
 				title: "text",
 				description: "text",
+				url: "text",
 			},
 		});
 
