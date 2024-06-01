@@ -108,7 +108,7 @@ const AppPage = ({ page: _page, focused, onClose }) => {
 							"command-prompt-input bg-transparent backdrop-blur-sm size-full text-lg outline-none placeholder:text-content/25",
 							page?.type != "search" && "opacity-0"
 						)}
-						type="text"
+						type="custom"
 						placeholder={page.placeholder || "Type to search..."}
 						value={page.searchQuery}
 						onChange={setSearchQuery}
