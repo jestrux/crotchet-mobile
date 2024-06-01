@@ -641,6 +641,7 @@ export default function FormField({
 	field,
 	onChange = () => {},
 }) {
+	field.optional = field.optional ?? !(field.required ?? false);
 	// const { user } = useAppContext();
 	const [value, setValue] = useState(field.value ?? field.defaultValue ?? "");
 	const handleChange = (e) => {
