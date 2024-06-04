@@ -12,7 +12,7 @@ const crotchetApp = new Crotchet();
 console.log("Env: ", process.env.NODE_ENV);
 
 global.appDir = (...subPaths) => path.join(__dirname, ...subPaths);
-global.buildDir = (...subPaths) => appDir("build", ...subPaths);
+global.buildDir = (...subPaths) => appDir("app", ...subPaths);
 global.crotchetApp = crotchetApp;
 
 const expressServer = require("./modules/express-server");
@@ -100,6 +100,7 @@ const createBackgroundWindow = () => {
 
 	if (isDev) {
 		backgroundWindow.loadURL("http://localhost:5173/");
+		backgroundWindow.setHiddenInMissionControl(true);
 		// backgroundWindow.webContents.openDevTools({ mode: "detach" });
 
 		try {

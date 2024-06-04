@@ -13,11 +13,11 @@
 		"assets": "npx @capacitor/assets generate",
 		"ios": "npm run build && npx cap run ios",
 		"ios:dev": "NODE_ENV=dev npm run config && npx cap copy && npx cap open ios && vite --host",
-		"predesktop": "vite build && rm -r ./electron/build && cp -R ./docs/. ./electron/build",
+		"predesktop": "vite build && rm -r ./electron/app && cp -R ./docs/. ./electron/app",
 		"desktop": "electron electron/index.js",
 		"desktop:dev": "cross-env NODE_ENV=dev concurrently \"npm:dev\" \"npm:desktop\"",
-		"predesktop:package": "vite build && rm -r ./electron/build && cp -R ./docs/. ./electron/build",
-		"desktop:package": "electron-packager ./electron --appname=Crotchet --platform=darwin --arch=x64 --icon=electron/icon.icns --overwrite"
+		"predesktop:package": "vite build && rm -r ./electron/app && cp -R ./docs/. ./electron/app",
+		"desktop:package": "cd electron && npx electron-builder"
 	},
 	"dependencies": {
 		"@adobe/react-spectrum": "^3.34.1",
