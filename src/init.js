@@ -7,7 +7,7 @@ Object.assign(window.__crotchet, {
 			primary: "#84cc16",
 			primaryDark: "#a3e635",
 		},
-		// name: "iPf Softwares",
+		// name: "iPF Softwares",
 		// colors: {
 		// 	primary: "#197AE4",
 		// }

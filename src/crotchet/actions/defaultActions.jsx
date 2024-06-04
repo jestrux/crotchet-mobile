@@ -60,7 +60,12 @@ export const share = {
 export const sendEmail = {
 	global: true,
 	icon: (
-		<svg viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+		<svg
+			viewBox="0 0 24 24"
+			fill="none"
+			strokeWidth={1.5}
+			stroke="currentColor"
+		>
 			<path
 				strokeLinecap="round"
 				strokeLinejoin="round"
