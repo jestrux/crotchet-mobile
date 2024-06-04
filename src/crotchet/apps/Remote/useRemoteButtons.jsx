@@ -12,7 +12,11 @@ export default function useRemoteButtons({
 	const setModifier = ({ name, key, value }) => {
 		_setModifiers((m) => {
 			const field = name || key;
-			const newValue = value != undefined ? value : name ? key : !m[key];
+			let newValue = value;
+			if (value == undefined) {
+				newValue = !m[key];
+				if (name) newValue = m[field] == key ? null : key;
+			}
 			const newModifiers = { ...m, [field]: newValue };
 			onModifiersChanged(newModifiers);
 			return newModifiers;
