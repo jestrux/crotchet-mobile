@@ -47,6 +47,8 @@ export default function BackgroundApp() {
 				return;
 			} else if (actionName == "toast")
 				action = { handler: () => showToast(actionProps.message) };
+			else if (actionName == "log")
+				action = { handler: () => console.log(actionProps.message) };
 			else action = backgroundActions[actionName];
 
 			if (action?.handler) await action.handler(actionProps);
@@ -58,13 +60,16 @@ export default function BackgroundApp() {
 	});
 
 	const showToast = (message) => {
-		if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+		return new Promise((resolve) => {
+			if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
 
-		setToasts([{ _id: randomId(), message }]);
+			setToasts([{ _id: randomId(), message }]);
 
-		toastTimerRef.current = setTimeout(() => {
-			setToasts([]);
-		}, 2000);
+			toastTimerRef.current = setTimeout(() => {
+				setToasts([]);
+				resolve();
+			}, 2000);
+		});
 	};
 
 	return (

@@ -12,7 +12,7 @@ import { useState } from "react";
 
 registerBackgroundAction(
 	"floatingHead",
-	async (actionProps = {}, { toggleBackgroundApp, backgroundToast }) => {
+	async (actionProps = {}, { toggleBackgroundApp }) => {
 		const { action = "toggle", position, size, filter } = actionProps;
 
 		if (action == "resize") return window.resizeFloatingHead(size);
@@ -21,10 +21,7 @@ registerBackgroundAction(
 			window.resetFloatingHead();
 			return toggleBackgroundApp("floatingHead", false);
 		}
-		if (action == "filter") {
-			backgroundToast("Change filter: " + filter);
-			return window.setFloatingHeadFilter(filter);
-		}
+		if (action == "filter") return window.setFloatingHeadFilter(filter);
 
 		toggleBackgroundApp("floatingHead");
 		window.toggleFloatingHead();
@@ -34,7 +31,11 @@ registerBackgroundAction(
 registerRemoteAction("floatingHead", {
 	icon: "🎥",
 	handler: (_, { backgroundAction, toggleRemoteApp }) => {
-		backgroundAction("floatingHead");
+		backgroundAction("floatingHead", {
+			permisssions: {
+				camera: true,
+			},
+		});
 		toggleRemoteApp("floatingHead");
 	},
 });
@@ -73,7 +74,6 @@ registerRemoteApp("floatingHead", () => {
 				],
 				modifiers: {
 					size: "regular",
-					position: "Bottom Left",
 				},
 				onModifiersChanged: (modifiers) => {
 					backgroundAction("floatingHead", {
@@ -128,8 +128,7 @@ registerRemoteApp("floatingHead", () => {
 					},
 				],
 				modifiers: {
-					size: "regular",
-					position: "Bottom Left",
+					position: "Top Right",
 				},
 				onModifiersChanged: (modifiers) => {
 					backgroundAction("floatingHead", {

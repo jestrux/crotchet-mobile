@@ -1,4 +1,10 @@
-const { Tray, Menu, app, globalShortcut } = require("electron");
+const {
+	Tray,
+	Menu,
+	app,
+	globalShortcut,
+	systemPreferences,
+} = require("electron");
 const { mouse, Button } = require("@nut-tree/nut-js");
 
 module.exports = function Crotchet() {
@@ -13,19 +19,32 @@ module.exports = function Crotchet() {
 
 	this.fullScreenTimeout = { then: (resolve) => setTimeout(resolve, 40) };
 
-	this.backgroundAction = (action, props = {}) => {
-		this.toggleBackgroundWindow(true);
+	this.backgroundAction = async (action, allProps = {}) => {
+		const { permissions, ...props } = allProps;
+		try {
+			if (permissions?.camera)
+				await systemPreferences.askForMediaAccess("camera");
 
-		this.socketEmit(
-			"background-action",
-			{
-				action,
-				...props,
-			},
-			true
-		);
+			this.toggleBackgroundWindow(true);
 
-		return;
+			this.socketEmit(
+				"background-action",
+				{
+					action,
+					...props,
+				},
+				true
+			);
+		} catch (error) {
+			this.socketEmit(
+				"background-action",
+				{
+					_action: "log",
+					message: error,
+				},
+				true
+			);
+		}
 	};
 
 	this.openAppUrl = (url) => {
