@@ -37,7 +37,11 @@ export default function BackgroundApp() {
 					const visibleApps = window.__crotchet.visibleBackgroundApps;
 					const exists = visibleApps.includes(appName);
 
-					if (!exists && newValue === false) return;
+					if (
+						(!exists && newValue === false) ||
+						(exists && newValue == true)
+					)
+						return;
 
 					window.__crotchet.visibleBackgroundApps = exists
 						? visibleApps.filter((app) => app != appName)

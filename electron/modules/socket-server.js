@@ -85,8 +85,8 @@ module.exports = function socketServer(server) {
 			shell.openExternal(url);
 		},
 
-		"background-action": ({ action, ...payload } = {}) =>
-			crotchetApp.backgroundAction(action, payload),
+		"background-action": ({ _action, ...payload } = {}) =>
+			crotchetApp.backgroundAction(_action, payload),
 
 		emit({ event, payload } = {}) {
 			crotchetApp.toggleWindow(true);

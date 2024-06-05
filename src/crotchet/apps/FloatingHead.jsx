@@ -7,6 +7,7 @@ import {
 	useRemoteButtons,
 	useRef,
 	clsx,
+	registerAction,
 } from "@/crotchet";
 import { useState } from "react";
 
@@ -21,6 +22,10 @@ registerBackgroundAction(
 			window.resetFloatingHead();
 			return toggleBackgroundApp("floatingHead", false);
 		}
+		if (action == "show") {
+			toggleBackgroundApp("floatingHead", true);
+			return window.toggleFloatingHead(true);
+		}
 		if (action == "filter") return window.setFloatingHeadFilter(filter);
 
 		toggleBackgroundApp("floatingHead");
@@ -28,10 +33,23 @@ registerBackgroundAction(
 	}
 );
 
+registerAction("floatingHead", {
+	icon: "🎥",
+	global: true,
+	handler: (_, { backgroundAction }) => {
+		backgroundAction("floatingHead", {
+			permisssions: {
+				camera: true,
+			},
+		});
+	},
+});
+
 registerRemoteAction("floatingHead", {
 	icon: "🎥",
 	handler: (_, { backgroundAction, toggleRemoteApp }) => {
 		backgroundAction("floatingHead", {
+			action: "show",
 			permisssions: {
 				camera: true,
 			},

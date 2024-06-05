@@ -5,7 +5,7 @@ const {
 	globalShortcut,
 	systemPreferences,
 } = require("electron");
-const { mouse, Button } = require("@nut-tree/nut-js");
+// const { mouse, Button } = require("@nut-tree/nut-js");
 
 module.exports = function Crotchet() {
 	this.defaultSize = { width: 750, height: 480 };
@@ -19,7 +19,7 @@ module.exports = function Crotchet() {
 
 	this.fullScreenTimeout = { then: (resolve) => setTimeout(resolve, 40) };
 
-	this.backgroundAction = async (action, allProps = {}) => {
+	this.backgroundAction = async (_action, allProps = {}) => {
 		const { permissions, ...props } = allProps;
 		try {
 			if (permissions?.camera)
@@ -30,7 +30,7 @@ module.exports = function Crotchet() {
 			this.socketEmit(
 				"background-action",
 				{
-					action,
+					_action,
 					...props,
 				},
 				true
@@ -106,6 +106,14 @@ module.exports = function Crotchet() {
 		globalShortcut.register("Shift+Alt+T", () => {
 			this.backgroundAction("confetti", {
 				effect: "Left Flowers Then Right Flowers",
+			});
+		});
+
+		globalShortcut.register("Alt+F", () => {
+			this.backgroundAction("floatingHead", {
+				permissions: {
+					camera: true,
+				},
 			});
 		});
 
@@ -188,7 +196,7 @@ module.exports = function Crotchet() {
 		this.showBackgroundWindow = show;
 
 		if (!this.mainWindow.isFullScreen) {
-			mouse.click(Button.LEFT);
+			// mouse.click(Button.LEFT);
 		}
 
 		return show;
@@ -201,7 +209,7 @@ module.exports = function Crotchet() {
 			this.mainWindow.show();
 		} else {
 			this.mainWindow.hide();
-			mouse.click(Button.LEFT);
+			// mouse.click(Button.LEFT);
 
 			if (!Object.keys(this.windows).length) app.dock.hide();
 		}

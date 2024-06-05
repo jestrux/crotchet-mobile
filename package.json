@@ -17,7 +17,9 @@
 		"desktop": "electron electron/index.js",
 		"desktop:dev": "cross-env NODE_ENV=dev concurrently \"npm:dev\" \"npm:desktop\"",
 		"predesktop:package": "vite build && rm -r ./electron/app && cp -R ./docs/. ./electron/app",
-		"desktop:package": "cd electron && npx electron-builder"
+		"desktop:package": "cd electron && npx electron-builder",
+		"reset-camera": "tccutil reset Camera tz.co.akil.crotchet",
+		"reset-perms": "tccutil reset Camera"
 	},
 	"dependencies": {
 		"@adobe/react-spectrum": "^3.34.1",
