@@ -8,6 +8,7 @@ import {
 	registerRemoteApp,
 	useAppContext,
 	useRemoteButtons,
+	registerAction,
 } from "@/crotchet";
 
 registerBackgroundAction("confetti", async (actionProps) => {
@@ -30,6 +31,13 @@ registerRemoteAction("confetti", {
 
 		toggleRemoteApp("confetti");
 	},
+});
+
+registerAction("confetti", {
+	icon: "🎥",
+	shortcut: "Shift+Alt+T",
+	global: true,
+	handler: (_, { backgroundAction }) => backgroundAction("confetti"),
 });
 
 registerRemoteApp("confetti", () => {

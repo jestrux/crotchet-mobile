@@ -403,6 +403,7 @@ registerActionSheet(
 
 registerAction("searchHeroicons", {
 	type: "search",
+	shortcut: "Shift+Alt+H",
 	url: `crotchet://search/heroIcons`,
 	tags: ["svg", "icon", "search"],
 });

@@ -42,6 +42,8 @@ const AppContext = createContext({
 	actions: {},
 	automationActions: {},
 	// eslint-disable-next-line no-unused-vars
+	toggleAppWindow: (status) => {},
+	// eslint-disable-next-line no-unused-vars
 	openApp: (url) => {},
 	closeApp: () => {},
 	// eslint-disable-next-line no-unused-vars
@@ -189,8 +191,8 @@ export default function AppProvider({ children }) {
 				"add-menu-items",
 				Object.fromEntries(
 					globalActions({ desktopShortcuts: true }).map(
-						({ name, label }) => {
-							return [name, { label }];
+						({ name, label, shortcut }) => {
+							return [name, { label: label.trim(), shortcut }];
 						}
 					)
 				)

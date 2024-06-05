@@ -103,42 +103,12 @@ module.exports = function Crotchet() {
 
 		this.backgroundWindow.hide();
 
-		globalShortcut.register("Shift+Alt+T", () => {
-			this.backgroundAction("confetti", {
-				effect: "Left Flowers Then Right Flowers",
-			});
-		});
-
-		globalShortcut.register("Alt+F", () => {
-			this.backgroundAction("floatingHead", {
-				permissions: {
-					camera: true,
-				},
-			});
-		});
-
 		this.windowEmit("background-window", null, true);
 	};
 
 	this.registerShortcuts = () => {
 		globalShortcut.register("Alt+/", () => {
 			this.toggleWindow();
-		});
-
-		globalShortcut.register("Shift+Alt+H", () => {
-			this.openPage("search", {
-				source: "heroIcons",
-			});
-		});
-
-		globalShortcut.register("Shift+Alt+C", () => {
-			this.openAppUrl("crotchet://action/clipboard");
-		});
-
-		globalShortcut.register("Shift+Alt+S", () => {
-			this.openAppUrl(
-				"crotchet://action/runAutomation?actions=crotchet%25253A%25252F%25252Fautomation-action%25252FreadClipboard%253C%21%253Ecrotchet%25253A%25252F%25252Fautomation-action%25252FpreviewSpotifySong"
-			);
 		});
 	};
 
@@ -188,10 +158,13 @@ module.exports = function Crotchet() {
 	};
 
 	this.toggleBackgroundWindow = (show) => {
+		const mainWindowWasVisible = this.showWindow;
 		if (show == undefined) show = !this.showBackgroundWindow;
 
-		if (show) this.backgroundWindow.show();
-		else this.backgroundWindow.hide();
+		if (show) {
+			this.backgroundWindow.show();
+			if (mainWindowWasVisible) this.toggleWindow(true);
+		} else this.backgroundWindow.hide();
 
 		this.showBackgroundWindow = show;
 
@@ -255,12 +228,20 @@ module.exports = function Crotchet() {
 
 	this.addMenuItems = (items, { replace = false } = {}) => {
 		this.setMenuItems(
-			Object.entries(items).map(([key, item]) => ({
-				...item,
-				click: async () => {
-					this.windowEmit("menu-item-click", key, true);
-				},
-			})),
+			Object.entries(items).map(([key, item]) => {
+				if (item.shortcut) {
+					item.accelerator = item.shortcut;
+
+					globalShortcut.register(item.shortcut, () => {
+						this.windowEmit("menu-item-click", key);
+					});
+				}
+
+				return {
+					...item,
+					click: () => this.windowEmit("menu-item-click", key),
+				};
+			}),
 			{ replace }
 		);
 	};

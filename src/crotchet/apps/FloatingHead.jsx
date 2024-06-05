@@ -35,6 +35,7 @@ registerBackgroundAction(
 
 registerAction("floatingHead", {
 	icon: "🎥",
+	shortcut: "Alt+F",
 	global: true,
 	handler: (_, { backgroundAction }) => {
 		backgroundAction("floatingHead", {

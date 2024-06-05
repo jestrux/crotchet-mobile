@@ -133,11 +133,13 @@ const updateDataSourceWidget = async (name, key, value) => {
 				),
 				group: "group.tz.co.crotchet",
 			});
+
+			await WidgetsBridgePlugin.reloadTimelines({
+				ofKind: "CrotchetWidget",
+			});
 		} catch (error) {
 			// alert(error);
 		}
-
-		await WidgetsBridgePlugin.reloadTimelines({ ofKind: "CrotchetWidget" });
 
 		return;
 	}
@@ -211,13 +213,13 @@ const updateDataSourceWidget = async (name, key, value) => {
 				value: JSON.stringify(randomData),
 				group: "group.tz.co.crotchet",
 			});
+
+			// await await WidgetsBridgePlugin.reloadAllTimelines();
+			await WidgetsBridgePlugin.reloadTimelines({ ofKind: "CrotchetWidget" });
 		} catch (error) {
 			//
 		}
 	}
-
-	// await await WidgetsBridgePlugin.reloadAllTimelines();
-	await WidgetsBridgePlugin.reloadTimelines({ ofKind: "CrotchetWidget" });
 
 	return;
 };
@@ -318,6 +320,7 @@ export const registerAction = (name, action) => {
 		global = false,
 		context,
 		match,
+		shortcut,
 		mobileOnly = false;
 
 	if (typeof action != "function") {
@@ -326,6 +329,7 @@ export const registerAction = (name, action) => {
 		global = action.global;
 		context = action.context;
 		match = action.match;
+		shortcut = action.shortcut;
 		mobileOnly = action.mobileOnly;
 		_label = action.label;
 		_handler = action.handler
@@ -352,6 +356,7 @@ export const registerAction = (name, action) => {
 		global,
 		context,
 		match,
+		shortcut,
 		mobileOnly,
 		handler,
 	};

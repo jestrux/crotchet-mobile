@@ -266,9 +266,20 @@ export const crawlUrl = async (url) => {
 	return res;
 };
 
-export const openUrl = async (path) => {
-	// showToast("Open url: " + path);
+export const someTime = async (duration = 200) => {
+	return await { then: (res) => setTimeout(res, duration) };
+};
 
+export const toggleAppWindow = async (status, duration) => {
+	const changing = onDesktop() && window.__crotchet.desktop.visible != status;
+	dispatch("toggle-app", status);
+	if (changing) return await someTime(duration);
+};
+
+export const openUrl = async (path) => {
+	if (onDesktop()) dispatch("toggle-app", true);
+
+	// showToast("Open url: " + path);
 	if (path.startsWith("crotchet://download/")) {
 		console.log("Download:", path.replace("crotchet://download/", ""));
 		// showToast("Download:", path.replace("crotchet://download/", ""));
@@ -489,7 +500,14 @@ export const formatDate = (
 export const showToast = (text, { image, position = "bottom" } = {}) => {
 	console.log(text);
 
-	if (onDesktop()) return window.__crotchet.desktop.showToast(text, image);
+	if (onDesktop()) {
+		const backgroundToast = window.__crotchet.backgroundToast;
+		if (typeof backgroundToast == "function") return backgroundToast(text);
+
+		return window.__crotchet.desktop.showToast(text, image);
+	}
+
+	// if (onDesktop()) return window.__crotchet.desktop.showToast(text, image);
 
 	Toast.show({
 		text,

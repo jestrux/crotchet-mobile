@@ -1,6 +1,9 @@
+import * as crotchet from "@/crotchet";
+
 if (!window.__crotchet) window.__crotchet = {};
 
 Object.assign(window.__crotchet, {
+	...crotchet,
 	__crotchetApp: {
 		name: "Crotchet",
 		colors: {

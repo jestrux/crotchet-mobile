@@ -184,7 +184,8 @@ export default function DesktopApp() {
 	const [pages, setPages] = useState([rootPage]);
 	const page = pages.at(-1);
 	const [app, _setApp] = useState(null);
-	const { apps, actions, dataSources, openUrl } = useAppContext();
+	const { apps, actions, dataSources, openUrl, toggleAppWindow } =
+		useAppContext();
 
 	const setApp = (app) => {
 		window.__crotchet.desktop.app;
@@ -212,12 +213,14 @@ export default function DesktopApp() {
 		});
 	};
 
-	window.__crotchet.desktop.openPage = (props) => {
+	window.__crotchet.desktop.openPage = (props, push) => {
 		props._id = randomId();
 
 		if (objectIsEmpty(props)) return;
 
 		if (app) closeApp();
+
+		if (!push) popToRoot();
 
 		setPages((pages) => [...pages, cleanObject(props)]);
 	};
@@ -240,8 +243,8 @@ export default function DesktopApp() {
 
 	const hideAppWindow = () => {
 		if (app) closeApp();
-
-		dispatch("toggle-app", false);
+		toggleAppWindow(false);
+		window.__crotchet.desktop.visible = false;
 	};
 
 	const closeApp = () => {
@@ -253,13 +256,47 @@ export default function DesktopApp() {
 		if (app) return;
 	};
 
+	const handleOpenPage = (payload) => {
+		const { page, ...pageProps } = payload || {};
+
+		if (page == "search") {
+			const { q, query, source } = pageProps;
+			const actualSource = dataSources[source];
+
+			if (!actualSource) {
+				console.log(payload, dataSources);
+				return showToast(`Invalid data source ${source}`);
+			}
+
+			const searchProps = actualSource.searchProps
+				? actualSource.searchProps
+				: {};
+
+			window.__crotchet.desktop.openPage({
+				type: "search",
+				...searchProps,
+				placeholder: source
+					? `Search ${camelCaseToSentenceCase(source)}...`
+					: "",
+				searchQuery: q ?? query,
+				...payload,
+				source: actualSource,
+			});
+
+			return;
+		}
+	};
+
 	useEventListener("focus", () => {
+		window.__crotchet.desktop.visible = true;
 		if (window.hideAppTimeout) clearTimeout(window.hideAppTimeout);
 
 		// setTimeout(() => {
 		// 	if (!app) dispatch("restore");
 		// }, 500);
 	});
+
+	useEventListener("open-page", (_, payload) => handleOpenPage(payload));
 
 	useEventListener("close-page", () => {
 		closePage();
@@ -305,34 +342,8 @@ export default function DesktopApp() {
 		}
 
 		if (event == "open-page") {
-			const { page, ...pageProps } = payload || {};
-
-			if (page == "search") {
-				const { q, query, source } = pageProps;
-				const actualSource = dataSources[source];
-
-				if (!actualSource) {
-					console.log(payload, dataSources);
-					return showToast(`Invalid data source ${source}`);
-				}
-
-				const searchProps = actualSource.searchProps
-					? actualSource.searchProps
-					: {};
-
-				window.__crotchet.desktop.openPage({
-					type: "search",
-					...searchProps,
-					placeholder: source
-						? `Search ${camelCaseToSentenceCase(source)}...`
-						: "",
-					searchQuery: q ?? query,
-					...payload,
-					source: actualSource,
-				});
-
-				return;
-			}
+			handleOpenPage(payload);
+			return;
 		}
 	});
 
