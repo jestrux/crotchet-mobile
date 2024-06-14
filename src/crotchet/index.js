@@ -1,4 +1,4 @@
-import { sourceGet } from "@/providers/data";
+import { getterFields, sourceGet } from "@/providers/data";
 import dataSourceProviders, {
 	getCrotchetDataSourceProvider,
 } from "@/providers/data/dataSourceProviders";
@@ -215,7 +215,9 @@ const updateDataSourceWidget = async (name, key, value) => {
 			});
 
 			// await await WidgetsBridgePlugin.reloadAllTimelines();
-			await WidgetsBridgePlugin.reloadTimelines({ ofKind: "CrotchetWidget" });
+			await WidgetsBridgePlugin.reloadTimelines({
+				ofKind: "CrotchetWidget",
+			});
 		} catch (error) {
 			//
 		}
@@ -225,19 +227,11 @@ const updateDataSourceWidget = async (name, key, value) => {
 };
 
 export const registerDataSource = (provider, name, props = {}) => {
-	const sourceFields = [
-		"fieldMap",
-		"mapEntry",
-		"orderBy",
-		"searchable",
-		"searchFields",
-	];
-
 	if (provider.startsWith("crotchet://")) {
 		const _source = getCrotchetDataSourceProvider(
 			provider.replace("crotchet://", ""),
 			name,
-			objectExcept(props, sourceFields)
+			objectExcept(props, getterFields)
 		);
 
 		if (!_source) return;
@@ -245,7 +239,7 @@ export const registerDataSource = (provider, name, props = {}) => {
 		props = {
 			...props,
 			..._source,
-			...objectTake(props, sourceFields),
+			...objectTake(props, getterFields),
 		};
 	}
 
@@ -259,15 +253,16 @@ export const registerDataSource = (provider, name, props = {}) => {
 
 	const handler = async (payload) => _handler(payload, window.__crotchet);
 
-	const get = ({ shuffle, limit, single, ...payload } = {}) =>
+	const get = ({ shuffle, limit, first, single, ...payload } = {}) =>
 		sourceGet(
 			{
 				handler,
 			},
 			{
-				...objectTake(props, sourceFields),
+				...objectTake(props, getterFields),
 				shuffle,
 				limit,
+				first,
 				single,
 				...payload,
 			}
@@ -282,12 +277,12 @@ export const registerDataSource = (provider, name, props = {}) => {
 	};
 
 	window.__crotchet.dataSources[name] = {
-		...objectExcept(props, sourceFields),
+		...objectExcept(props, getterFields),
 		_id: randomId(),
 		provider,
 		name,
 		label,
-		...objectTake(props, sourceFields),
+		...objectTake(props, getterFields),
 		handler,
 		get,
 		random,

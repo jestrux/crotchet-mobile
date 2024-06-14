@@ -4,21 +4,23 @@ import { useEffect, useRef, useState } from "react";
 import { matchSorter } from "match-sorter";
 import { useOnInit } from "@/crotchet";
 
+export const getterFields = [
+	"limit",
+	"single",
+	"first",
+	"random",
+	"fieldMap",
+	"mapEntry",
+	"orderBy",
+	"searchable",
+	"searchFields",
+];
+
 export const sourceGet = async (source, props = {}) => {
 	if (typeof source == "function") source = { handler: source };
 
-	const getterFields = [
-		"limit",
-		"single",
-		"random",
-		"fieldMap",
-		"mapEntry",
-		"orderBy",
-		"searchable",
-		"searchFields",
-	];
 	const payload = objectExcept(props, getterFields);
-	let { limit, single, random, orderBy, mapEntry } = objectTake(
+	let { limit, single, first, random, orderBy, mapEntry } = objectTake(
 		{ ...source, ...props },
 		getterFields
 	);
@@ -31,6 +33,7 @@ export const sourceGet = async (source, props = {}) => {
 		handler = typeof source.get == "function" ? source.get : source.handler;
 		random = random || source.random;
 		single = single || source.single;
+		first = first || source.first;
 	}
 
 	if (typeof handler != "function") return null;
@@ -45,7 +48,7 @@ export const sourceGet = async (source, props = {}) => {
 
 	if (random) res = doShuffle(doShuffle(res));
 
-	if (single) return res[0];
+	if (single || first) return res[0];
 
 	if (limit) return res.slice(0, limit);
 
