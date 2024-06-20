@@ -63,7 +63,7 @@ export default function BottomNavAction({
 					inShareSheet && vertical ? "text-sm " : ""
 				)}
 			>
-				{action.label}
+				{action.label || action.name}
 			</div>
 
 			{loading && (

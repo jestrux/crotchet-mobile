@@ -246,6 +246,21 @@ export const getShareUrl = (content, type = "text") => {
 		return `crotchet://share-${type}/${content}`;
 	}
 
+	if (content.sheet) {
+		return `crotchet://action-sheet/${content.sheet}/?${objectToQueryParams(
+			{
+				...content,
+				previewImage: content.preview || content.video,
+				preview: {
+					video: content.video,
+					image: content.preview,
+					title: content.title,
+					description: content.subtitle || content.url,
+				},
+			}
+		)}`;
+	}
+
 	return `crotchet://share-object/${encodeURIComponent(
 		JSON.stringify(content)
 	)}`;
@@ -337,7 +352,9 @@ export const openUrl = async (path) => {
 
 		if (!sheet?.handler) return showToast(`Sheet ${scheme} not found!`);
 
-		return sheet.handler(Object.fromEntries(url.searchParams.entries()));
+		return sheet.handler(
+			urlQueryParamsAsObject(path.replace("crotchet://action-sheet/", ""))
+		);
 	}
 
 	if (path.startsWith("crotchet://share")) {
@@ -739,7 +756,11 @@ export const processShareData = (value, type = "text") => {
 	return payload;
 };
 
-export const getShareActions = (content = {}, mainActionNames = []) => {
+export const getShareActions = (
+	content = {},
+	actions,
+	mainActionNames = []
+) => {
 	const {
 		image,
 		file,
@@ -752,7 +773,7 @@ export const getShareActions = (content = {}, mainActionNames = []) => {
 		state = {},
 	} = content;
 
-	return Object.entries(window.__crotchet.actions ?? {}).reduce(
+	return Object.entries((actions || window.__crotchet.actions) ?? {}).reduce(
 		(agg, [name, action]) => {
 			if (
 				name == "share" ||
@@ -762,7 +783,7 @@ export const getShareActions = (content = {}, mainActionNames = []) => {
 				return agg;
 
 			let matches =
-				Object.keys(cleanObject(image, url, file, text)).length > 0;
+				Object.keys(cleanObject({ image, url, file, text })).length > 0;
 
 			const match = action.match;
 

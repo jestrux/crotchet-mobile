@@ -52,6 +52,7 @@ registerActionSheet("share", async (payload = {}, { utils }, onChange) => {
 
 					const shareActions = getShareActions(
 						content,
+						window.__crotchet.actions,
 						mainActionNames
 					);
 
@@ -74,7 +75,11 @@ registerActionSheet("share", async (payload = {}, { utils }, onChange) => {
 
 	processData();
 
-	const shareActions = getShareActions(content, mainActionNames);
+	const shareActions = getShareActions(
+		content,
+		window.__crotchet.actions,
+		mainActionNames
+	);
 
 	const res = {
 		...content,

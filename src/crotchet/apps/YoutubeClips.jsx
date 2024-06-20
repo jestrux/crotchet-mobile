@@ -15,20 +15,59 @@ import {
 	objectToQueryParams,
 	onDesktop,
 	urlQueryParamsAsObject,
+	registerActionSheet,
+	getShareActions,
+	objectTake,
+	randomId,
 } from "@/crotchet";
+
+const openOnDesktop = (path) => {
+	window.__crotchet.socketEmit("app", {
+		scheme: "youtubeClips",
+		url: path.replace("/youtubeClips/desktop/", "/youtubeClips"),
+		window: {
+			fullScreen: true,
+		},
+	});
+};
+
+const YoutubePlayerStates = {
+	unstarted: -1,
+	ended: 0,
+	playing: 1,
+	paused: 2,
+	buffering: 3,
+	"video cued": 5,
+};
+
+const initYoutubePlayer = () => {
+	return new Promise((resolve) => {
+		const iframeId = "youtube-clips-player-iframe";
+		let script = document.querySelector(`#${iframeId}`);
+
+		if (!script) {
+			script = document.createElement("script");
+			script.id = iframeId;
+			script.src = "https://www.youtube.com/iframe_api";
+			document.body.appendChild(script);
+		}
+
+		if (!window.YT?.Player) {
+			window.onYouTubeIframeAPIReady = () => {
+				resolve(
+					(playerId, props) => new window.YT.Player(playerId, props)
+				);
+			};
+
+			return;
+		}
+
+		resolve((playerId, props) => new window.YT.Player(playerId, props));
+	});
+};
 
 const YoutubePlayer = ({ _id, crop, duration, width, height, ...props }) => {
 	const [loading, setLoading] = useState(true);
-
-	const YoutubePlayerStates = {
-		unstarted: -1,
-		ended: 0,
-		playing: 1,
-		paused: 2,
-		buffering: 3,
-		"video cued": 5,
-	};
-
 	const videoId = _id || props.id;
 	const [start, end] = (crop || [0, duration]).map(Number);
 	const player = useRef();
@@ -37,7 +76,7 @@ const YoutubePlayer = ({ _id, crop, duration, width, height, ...props }) => {
 		initPlayer();
 
 		return () => {
-			window.YT = null;
+			// window.YT = null;
 		};
 	}, []);
 
@@ -50,10 +89,14 @@ const YoutubePlayer = ({ _id, crop, duration, width, height, ...props }) => {
 	};
 
 	const initPlayer = () => {
-		const script = document.createElement("script");
-		script.id = "youtube-player-iframe";
-		script.src = "https://www.youtube.com/iframe_api";
-		document.body.appendChild(script);
+		let script = document.querySelector("#youtube-player-iframe");
+
+		if (!script) {
+			script = document.createElement("script");
+			script.id = "youtube-player-iframe";
+			script.src = "https://www.youtube.com/iframe_api";
+			document.body.appendChild(script);
+		}
 
 		window.onYouTubeIframeAPIReady = () => {
 			player.current = new window.YT.Player("youtube-player", {
@@ -115,6 +158,94 @@ const getYoutubeId = (url) => {
 	)?.[1];
 };
 
+const getYoutubeVideoDetails = async (url) => {
+	const videoId = getYoutubeId(url);
+	const playerId = `youtube-player${randomId()}`;
+	const playerEl = document.createElement("div");
+	playerEl.id = playerId;
+	// playerEl.innerHTML = `
+	// <iframe
+	// 		id="${playerId}"
+	// 		className="pointer-events-none size-full"
+	// 		src="https://www.youtube.com/embed/${videoId}?controls=0&autoplay=0&enablejsapi=1"
+	// 		allow="autoplay; encrypted-media"
+	// 		allowFullScreen
+	// 		onLoad={() => setLoading(false)}
+	// 	></iframe>
+	// `;
+	document.body.appendChild(playerEl);
+
+	return new Promise((resolve) => {
+		initYoutubePlayer().then((playMaker) => {
+			playMaker(playerId, {
+				videoId,
+				playerVars: {
+					playsinline: "1",
+					theme: "light",
+					color: "white",
+					modestbranding: 1,
+					rel: 0,
+				},
+				events: {
+					onReady: (e) => {
+						const player = e.target;
+						const duration = player.getDuration();
+						playerEl.remove();
+
+						if (!duration) {
+							showToast("Invalid youtube video");
+							return resolve(null);
+						}
+
+						resolve({
+							id: videoId,
+							name: player.videoTitle,
+							poster: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+							duration,
+							crop: [0, duration],
+							url: `https://www.youtube.com/watch?v=${videoId}`,
+						});
+					},
+					onStateChange: (e) => {
+						const player = e.target;
+					},
+				},
+			});
+		});
+	});
+};
+
+const getYoutubeVideoEditor = async (url, openPage, oldValues = {}) => {
+	return openPage({
+		title: "Add Youtube Clip",
+		content: async () => {
+			const payload = await getYoutubeVideoDetails(url);
+			Object.assign(payload, oldValues);
+
+			return [
+				{
+					type: "preview",
+					value: {
+						large: true,
+						video: `https://i.ytimg.com/vi/${payload.id}/hqdefault.jpg`,
+						title: payload.name,
+						subtitle: `${[payload.crop?.[0], payload.crop?.[1]]
+							?.map(toHms)
+							.join(", ")} - ${toHms(payload.duration)}`,
+					},
+				},
+				{
+					type: "action",
+					value: {
+						label: "Save Clip",
+						onClick: ({ dismiss }) => dismiss(payload),
+					},
+				},
+			];
+		},
+	});
+};
+
 // const getYoutubeClipUrl = ({ _id, crop, duration } = {}) => {
 // 	const [start] = (crop || [0, duration]).map(Number);
 // 	return `https://youtube.com/watch?v=${_id}&t=${start.toFixed(0)}`;
@@ -127,7 +258,7 @@ registerDataSource("db", "youtubeClips", {
 	table: "youtubeClips",
 	label: "Youtube Clips",
 	collection: "videos",
-	orderBy: "updatedAt,asc",
+	orderBy: "updatedAt,desc",
 	mapEntry: (entry) => ({
 		...entry,
 		video: `https://i.ytimg.com/vi/${entry._id}/hqdefault.jpg`,
@@ -136,10 +267,11 @@ registerDataSource("db", "youtubeClips", {
 			?.map(toHms)
 			.join(", ")} - ${toHms(entry.duration)}`,
 		share: getShareUrl({
+			sheet: "youtubeClips",
 			scheme: "youtubeClips",
 			state: entry,
 			url: entry.url,
-			preview: `https://i.ytimg.com/vi/${entry._id}/hqdefault.jpg`,
+			video: `https://i.ytimg.com/vi/${entry._id}/hqdefault.jpg`,
 			title: entry.name,
 		}),
 		url: getYoutubeClipUrl(entry),
@@ -170,22 +302,105 @@ registerAction("addToYoutubeClips", {
 	icon: appIcon,
 	match: ({ scheme, url }) =>
 		scheme != "youtubeClips" && url?.toString().length && getYoutubeId(url),
-	handler: async ({ url }, { showToast }) => {
-		showToast("Added youtube clip: " + url);
+	handler: async ({ url }, { openPage, showToast, dbInsert }) => {
+		const res = await getYoutubeVideoEditor(url, openPage);
+
+		if (!res) return;
+
+		try {
+			const video = await dbInsert("youtubeClips", {
+				...(res ?? {}),
+				_rowId: res.id,
+			});
+			showToast(`${res?.name || "Youtube Clip"} Added `);
+			return video;
+		} catch (error) {
+			showToast(`Failed to add ${res?.name || "Youtube Clip"}`);
+			console.log("Add youtube clip error: ", error);
+		}
 	},
 });
 
-registerAction("editClip", {
+registerAction("editYoutubeClip", {
 	context: "share",
 	icon: appIcon,
+	label: "Edit Video",
 	match: ({ scheme, state }) => scheme == "youtubeClips" && state._id,
-	handler: ({ state }) =>
-		openUrl(
-			getYoutubeClipUrl(state).replace(
-				"crotchet://app/youtubeClips",
-				"crotchet://app/youtubeClips/edit/"
-			)
-		),
+	handler: async (
+		{ state },
+		{ dataSources, openChoicePicker, openForm, openPage }
+	) => {
+		const action = await openChoicePicker({
+			// title: "Edit Youtube ",
+			choices: ["Edit Video Details", "Edit Video Source"],
+		});
+
+		if (!action) return;
+
+		if (action == "Edit Video Source") {
+			const url = await openForm({
+				title: "Edit Youtube Clip",
+				field: {
+					label: "URL",
+					url: "text",
+					defaultValue: state.url,
+				},
+			});
+
+			if (!url) return;
+
+			const res = await getYoutubeVideoEditor(url, openPage, {
+				crop: state.crop,
+			});
+
+			await dataSources.youtubeClips.deleteRow(state._id);
+
+			const video = await dataSources.youtubeClips.insertRow({
+				...(res ?? {}),
+				_rowId: res.id,
+			});
+
+			showToast("Clip Source Updated");
+
+			return video;
+		}
+
+		const res = await openForm({
+			title: "Edit Youtube Clip",
+			data: state,
+			fields: {
+				name: "text",
+				poster: "text",
+			},
+		});
+
+		if (!res) return;
+
+		return dataSources.youtubeClips.updateRow(state._id, res);
+	},
+});
+
+registerAction("deleteYoutubeClip", {
+	context: "share",
+	icon: appIcon,
+	label: "Delete Video",
+	match: ({ scheme, state }) => scheme == "youtubeClips" && state._id,
+	handler: async (
+		{ state },
+		{ dataSources, showToast, confirmDangerousAction }
+	) => {
+		const confirmed = await confirmDangerousAction();
+
+		if (!confirmed) return;
+
+		try {
+			await dataSources.youtubeClips.deleteRow(state._id);
+			showToast("Clip deleted");
+		} catch (error) {
+			showToast("Failed to delete clip");
+			console.log(error);
+		}
+	},
 });
 
 registerAction("playOnDesktop", {
@@ -216,27 +431,15 @@ registerApp("youtubeClips", () => {
 			);
 		},
 		async load(path, { socket, openPage }) {
-			const openOnDesktop = () => {
-				window.__crotchet.socketEmit("app", {
-					scheme: "youtubeClips",
-					url: path.replace(
-						"/youtubeClips/desktop/",
-						"/youtubeClips"
-					),
-					window: {
-						fullScreen: true,
-					},
-				});
-			};
+			if (onDesktop()) return openOnDesktop(path);
 
-			if (onDesktop()) return openOnDesktop();
-
-			if (path.startsWith("/youtubeClips/edit/")) {
+			if (path.startsWith("/youtubeClips/edit/"))
 				return showToast("Edit youtube clip");
-			}
 
-			const _socket = await socket({ retry: true });
-			if (_socket) return openOnDesktop();
+			if (path.indexOf("desktop") != -1) {
+				const _socket = await socket({ retry: true });
+				if (_socket) return openOnDesktop(path);
+			}
 
 			const props = urlQueryParamsAsObject(path);
 
@@ -258,5 +461,31 @@ registerApp("youtubeClips", () => {
 				/>
 			);
 		},
+	};
+});
+
+registerActionSheet("youtubeClips", async (payload = {}, { actions }) => {
+	const clipUrl = getYoutubeClipUrl(payload.state);
+	console.log("Path: ", payload);
+
+	return {
+		...payload,
+		actions: getShareActions(payload, {
+			playVideo: {
+				icon: appIcon,
+				label: "Play Video",
+				context: "share",
+				handler: (_, { openUrl }) => openUrl(clipUrl),
+			},
+			playOnDesktop: actions.playOnDesktop,
+			shareVideo: {
+				icon: appIcon,
+				label: "Share Video",
+				context: "share",
+				handler: (_, { openUrl }) =>
+					openUrl(`crotchet://broadcast/url/${payload.url})}`),
+			},
+			...objectTake(actions, ["editYoutubeClip", "deleteYoutubeClip"]),
+		}),
 	};
 });
