@@ -147,11 +147,13 @@ export default function GenericPage({
 						<Button
 							onClick={() => {
 								let onClick =
-									section.value.onClick || (() => {});
+									section.value?.onClick || (() => {});
 								onClick({ dismiss });
 							}}
 						>
-							Submit
+							<span className="uppercase font-semibold">
+								{section.value?.label || "Submit"}
+							</span>
 						</Button>
 						// </div>
 					);
