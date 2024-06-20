@@ -14,26 +14,35 @@ export const getterFields = [
 	"orderBy",
 	"searchable",
 	"searchFields",
+	"searchQuery",
 ];
 
 export const sourceGet = async (source, props = {}) => {
 	if (typeof source == "function") source = { handler: source };
 
 	const payload = objectExcept(props, getterFields);
-	let { limit, single, first, random, orderBy, mapEntry } = objectTake(
-		{ ...source, ...props },
-		getterFields
-	);
-
-	console.log("Order by: ", orderBy);
+	let {
+		limit,
+		single,
+		first,
+		random,
+		orderBy,
+		mapEntry,
+		searchable,
+		searchFields = ["title", "subtitle", "tags"],
+		searchQuery,
+	} = objectTake({ ...source, ...props }, getterFields);
 
 	let handler;
 
 	if ([typeof source?.get, typeof source?.handler].includes("function")) {
 		handler = typeof source.get == "function" ? source.get : source.handler;
-		random = random || source.random;
-		single = single || source.single;
-		first = first || source.first;
+		// random = random || source.random;
+		// single = single || source.single;
+		// first = first || source.first;
+		// searchable = searchable || source.searchable;
+		// searchFields = searchFields || source.searchFields;
+		// searchQuery = searchQuery || source.searchQuery;
 	}
 
 	if (typeof handler != "function") return null;
@@ -43,6 +52,12 @@ export const sourceGet = async (source, props = {}) => {
 	if (!Array.isArray(res)) return res;
 
 	res = typeof mapEntry == "function" ? res.map(mapEntry) : res;
+
+	if (searchable !== false && res?.length && searchQuery?.length) {
+		res = matchSorter(res, searchQuery, {
+			keys: searchFields,
+		});
+	}
 
 	if (orderBy) res = _.orderBy(res, ...orderBy.split(","));
 
@@ -64,6 +79,7 @@ export function useSourceGet(
 		loading: false,
 		data: null,
 		error: null,
+		refetch: () => doFetch(),
 	});
 
 	const onChange = (newState) => {
@@ -75,6 +91,8 @@ export function useSourceGet(
 
 	const doFetch = async () => {
 		if (!source) return;
+
+		// if (res.loading) return null;
 
 		onChange({
 			error: null,
@@ -109,13 +127,7 @@ export function useSourceGet(
 
 	useOnInit(doFetch);
 
-	return {
-		...res,
-		refetch: () => {
-			if (res.loading) return null;
-			doFetch();
-		},
-	};
+	return res;
 }
 
 export function useDataFetch({
