@@ -1,4 +1,4 @@
-import { randomId } from "@/utils";
+import { cleanObject, randomId } from "@/utils";
 import { initializeApp } from "firebase/app";
 import {
 	Timestamp,
@@ -72,8 +72,13 @@ export const dbInsert = async (table, data, { rowId, merge = true } = {}) => {
 		};
 	}
 
-	data.createdAt = Timestamp.fromDate(new Date());
-	data.updatedAt = Timestamp.fromDate(new Date());
+	data = cleanObject({
+		...((data ?? {}) || {}),
+		createdAt: Timestamp.fromDate(new Date()),
+		updatedAt: Timestamp.fromDate(new Date()),
+	});
+
+	rowId = rowId || data._rowId;
 
 	const tablePath = ["__db", table, "data"];
 	const modelRef = doc(db, "__db", table, "dbModel", table);
