@@ -101,7 +101,10 @@ export default function Form({ onClose = () => {}, onSubmit, ...props }) {
 		const timeout = setTimeout(() => {
 			const firstInput =
 				formRef.current?.querySelector("input, textarea");
-			if (firstInput) firstInput.focus();
+			if (firstInput) {
+				firstInput.focus();
+				if (Object.keys(allFields).length == 1) firstInput.select();
+			}
 		}, 20);
 
 		return () => clearTimeout(timeout);
