@@ -8,6 +8,32 @@ import {
 	registerActionSheet,
 } from "@/crotchet";
 
+const appIcon = (
+	<svg
+		fill="none"
+		viewBox="0 0 24 24"
+		strokeWidth={1.5}
+		stroke="currentColor"
+	>
+		<path
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"
+		/>
+	</svg>
+);
+
+const formFields = {
+	group: {
+		type: "radio",
+		choices: ["📺 Watch", "🧪 Learn", "🎧 Listen", "🌎 General"],
+	},
+	image: "text",
+	title: "text",
+	description: "text",
+	url: "text",
+};
+
 registerDataSource("db", "reader", {
 	table: "reader",
 	orderBy: "_index,desc",
@@ -41,26 +67,63 @@ registerDataSource("db", "reader", {
 	},
 });
 
+registerAction("editReadingListItem", {
+	context: "share",
+	icon: appIcon,
+	match: ({ scheme, state }) => scheme == "reader" && state._id,
+	handler: async (
+		{ state, previewImage },
+		{ showToast, openForm, dataSources }
+	) => {
+		if (!state.image && previewImage) state.image = previewImage;
+
+		var res = await openForm({
+			title: "Edit reading list item",
+			data: state,
+			fields: formFields,
+		});
+
+		if (!res) return;
+
+		try {
+			await dataSources.reader.updateRow(state._id, res);
+			showToast(`${res.title || "Entry"} Updated `);
+		} catch (error) {
+			showToast(`Failed to update ${res.title}`);
+			console.log(error);
+		}
+	},
+});
+
+registerAction("removeFromReadingList", {
+	context: "share",
+	icon: appIcon,
+	match: ({ scheme, state }) => scheme == "reader" && state._id,
+	handler: async (
+		{ state },
+		{ dataSources, showToast, confirmDangerousAction }
+	) => {
+		const confirmed = await confirmDangerousAction();
+
+		if (!confirmed) return;
+
+		try {
+			await dataSources.reader.deleteRow(state._id);
+			showToast(`${state.title || "Entry"} Deleted`);
+		} catch (error) {
+			showToast(`Failed to delete ${state.title}`);
+			console.log(error);
+		}
+	},
+});
+
 registerAction("addToReadingList", {
 	context: "share",
-	match: "url",
-	icon: (
-		<svg
-			fill="none"
-			viewBox="0 0 24 24"
-			strokeWidth={1.5}
-			stroke="currentColor"
-		>
-			<path
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"
-			/>
-		</svg>
-	),
+	icon: appIcon,
+	match: ({ scheme, url }) => scheme != "reader" && url?.toString().length,
 	handler: async (
 		{ previewImage, title, subtitle, url },
-		{ utils, openUrl, showToast, dbInsert, openForm }
+		{ utils, openUrl, showToast, openForm, dataSources }
 	) => {
 		var payload = await openUrl(
 			`crotchet://action/crawlUrl?${utils.objectToQueryParams({
@@ -82,39 +145,16 @@ registerAction("addToReadingList", {
 				description: payload.description || payload.subtitle,
 				url: payload.url,
 			},
-			fields: {
-				group: {
-					type: "radio",
-					choices: [
-						"📺 Watch",
-						"🧪 Learn",
-						"🎧 Listen",
-						"🌎 General",
-					],
-				},
-				image: "text",
-				title: "text",
-				description: "text",
-				url: "text",
-			},
+			fields: formFields,
 		});
 
 		if (!res) return;
 
-		payload = res;
-
 		try {
-			await dbInsert(
-				"reader",
-				utils.cleanObject({
-					...(payload ?? {}),
-					createdAt: new Date(),
-				})
-			);
-
-			showToast(`${payload.title || "Entry"} Added `);
+			await dataSources.reader.insertRow(utils.cleanObject(res));
+			showToast(`${res.title || "Entry"} Added `);
 		} catch (error) {
-			showToast(`Failed to add ${payload.title}`);
+			showToast(`Failed to add ${res.title}`);
 			console.log(error);
 		}
 	},
