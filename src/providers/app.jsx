@@ -30,6 +30,7 @@ import DesktopApp from "@/DesktopApp";
 import BackgroundApp from "@/DesktopApp/BackgroundApp";
 import DataPreviewer from "@/components/DataPreviewer";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import AlertsWrapper from "@/components/Alerts";
 
 const AppContext = createContext({
 	dataSources: {},
@@ -79,6 +80,12 @@ const AppContext = createContext({
 	},
 	// eslint-disable-next-line no-unused-vars
 	showToast: (message) => {},
+	// eslint-disable-next-line no-unused-vars
+	showAlert: ({ title, message, okayText, cancelText, size } = {}) => {},
+	// eslint-disable-next-line no-unused-vars
+	confirmAction: ({ title, message, okayText, cancelText, size } = {}) => {},
+	// eslint-disable-next-line no-unused-vars
+	openActionDialog: ({ title, message, okayText, cancelText } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
 	copyToClipboard: (content) => {},
 	// eslint-disable-next-line no-unused-vars
@@ -415,6 +422,9 @@ export default function AppProvider({ children }) {
 			},
 		},
 		showToast,
+		showAlert: (...args) => window.showAlert(...args),
+		confirmAction: (...args) => window.confirmAction(...args),
+		openActionDialog: (...args) => window.openActionDialog(...args),
 		copyToClipboard,
 		readClipboard,
 		copyImage,
@@ -591,6 +601,8 @@ export default function AppProvider({ children }) {
 						))}
 					</>
 				)}
+
+				<AlertsWrapper />
 			</ErrorBoundary>
 		</AppContext.Provider>
 	);
