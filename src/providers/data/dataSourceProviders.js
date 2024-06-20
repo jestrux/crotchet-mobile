@@ -6,7 +6,7 @@ import CrotchetSQL from "./sql";
 import unsplashFetcher from "./unsplash";
 import { objectExcept } from "@/utils";
 import CrotchetLibSQL, { CrotchetLibSQLCache } from "./sql/lib-sql";
-import { queryDb } from "../firebaseApp";
+import { dbDelete, dbInsert, dbUpdate, queryDb } from "../firebaseApp";
 
 export const getCrotchetDataSourceProvider = (parent, name, props) => {
 	const parentSource = window.__crotchet.dataSources?.[parent];
@@ -44,9 +44,25 @@ export default function dataSourceProviders(provider, props = {}) {
 	return {
 		airtable: (payload) =>
 			airtableFetcher({ ...props, ...payload, appContext: { user: {} } }),
-		db: (payload = {}) => {
-			const { table } = { ...props, ...payload };
-			return queryDb(table);
+		db: {
+			fetch: () => queryDb(props.table),
+			insertRow: (data) => dbInsert(props.table, data),
+			updateRow: (rowId, data) => dbUpdate(props.table, rowId, data),
+			deleteRow: (rowId) => dbDelete(props.table, rowId),
+			listenForUpdates: (callback = () => {}) => {
+				window.addEventListener(
+					`firebase-table-updated:${props.table}`,
+					callback,
+					false
+				);
+
+				return () =>
+					window.removeEventListener(
+						`firebase-table-updated:${props.table}`,
+						callback,
+						false
+					);
+			},
 		},
 		firebase: (payload = {}) => firebaseFetcher({ ...props, ...payload }),
 		unsplash: ({ searchQuery, ...payload }) =>

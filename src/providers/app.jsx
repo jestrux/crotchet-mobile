@@ -4,6 +4,8 @@ import {
 	dbInsert,
 	queryDb,
 	getDbTables,
+	dbUpdate,
+	dbDelete,
 } from "@/providers/firebaseApp";
 import BottomSheet from "@/components/BottomSheet";
 import {
@@ -85,6 +87,8 @@ const AppContext = createContext({
 	// eslint-disable-next-line no-unused-vars
 	confirmAction: ({ title, message, okayText, cancelText, size } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
+	confirmDangerousAction: () => {},
+	// eslint-disable-next-line no-unused-vars
 	openActionDialog: ({ title, message, okayText, cancelText } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
 	copyToClipboard: (content) => {},
@@ -103,6 +107,10 @@ const AppContext = createContext({
 	queryDb: (table, { orderBy, rowId } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
 	dbInsert: (table, data, { rowId, merge = true }) => {},
+	// eslint-disable-next-line no-unused-vars
+	dbUpdate: (table, rowId, data, { merge = true }) => {},
+	// eslint-disable-next-line no-unused-vars
+	dbDelete: (table, rowId) => {},
 	// eslint-disable-next-line no-unused-vars
 	socketEmit: (event, data) => {},
 	// eslint-disable-next-line no-unused-vars
@@ -424,6 +432,8 @@ export default function AppProvider({ children }) {
 		showToast,
 		showAlert: (...args) => window.showAlert(...args),
 		confirmAction: (...args) => window.confirmAction(...args),
+		confirmDangerousAction: (...args) =>
+			window.confirmDangerousAction(...args),
 		openActionDialog: (...args) => window.openActionDialog(...args),
 		copyToClipboard,
 		readClipboard,
@@ -433,6 +443,8 @@ export default function AppProvider({ children }) {
 		getDbTables,
 		queryDb,
 		dbInsert,
+		dbUpdate,
+		dbDelete,
 		utils,
 		socket: ({ retry = false, silent = true } = {}) => {
 			if (!socket.current?.connected && retry) {

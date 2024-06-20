@@ -5,6 +5,7 @@ import {
 	addDoc,
 	collection,
 	collectionGroup,
+	deleteDoc,
 	doc,
 	getCountFromServer,
 	getDoc,
@@ -36,6 +37,11 @@ const firebaseConfig = {
 	appId: import.meta.env.VITE_appId,
 };
 
+const dbTablePath = (table) => ["__db", table, "data"];
+
+const notifyListeners = (table) =>
+	window.dispatchEvent(new CustomEvent(`firebase-table-updated:${table}`));
+
 export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const storage = getStorage();
@@ -48,7 +54,7 @@ export const queryDb = async (table, { orderBy: _orderBy, filter } = {}) => {
 	if (filter && _.isObject(filter)) filter = _.first(Object.entries(filter));
 
 	const params = [
-		collection(db, "__db", table, "data"),
+		collection(db, ...dbTablePath(table)),
 		...(filter
 			? [where(filter[0], "==", filter[1]), orderBy(filter[0])]
 			: []),
@@ -80,7 +86,7 @@ export const dbInsert = async (table, data, { rowId, merge = true } = {}) => {
 
 	rowId = rowId || data._rowId;
 
-	const tablePath = ["__db", table, "data"];
+	const tablePath = dbTablePath(table);
 	const modelRef = doc(db, "__db", table, "dbModel", table);
 	getDoc(modelRef).then((doc) => {
 		if (!doc.exists()) {
@@ -99,6 +105,8 @@ export const dbInsert = async (table, data, { rowId, merge = true } = {}) => {
 
 	const res = await getDoc(rowRef);
 
+	notifyListeners(table);
+
 	getCountFromServer(tableRef).then((snapshot) => {
 		setDoc(rowRef, { _index: snapshot.data().count }, { merge: true });
 	});
@@ -115,11 +123,19 @@ export const dbUpdate = async (table, rowId, data, { merge = true } = {}) => {
 
 	data.updatedAt = Timestamp.fromDate(new Date());
 
-	const rowRef = doc(db, "__crotchet", "__db", table, rowId);
+	const rowRef = doc(db, ...dbTablePath(table), rowId);
 
 	await setDoc(rowRef, data, { merge });
 
+	notifyListeners(table);
+
 	return await getDoc(rowRef);
+};
+
+export const dbDelete = async (table, rowId) => {
+	await deleteDoc(doc(db, ...dbTablePath(table), rowId));
+	notifyListeners(table);
+	return;
 };
 
 export const uploadDataUrl = async (content) => {

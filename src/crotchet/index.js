@@ -246,12 +246,23 @@ export const registerDataSource = (provider, name, props = {}) => {
 	const label = camelCaseToSentenceCase(
 		name.replace("-", " ").replace("_", " ")
 	);
-	const _handler = dataSourceProviders(provider, props) || props.handler;
 
-	if (typeof _handler != "function")
-		return console.error(`Unkown data provider: ${provider}`);
+	let getter, insertRow, updateRow, deleteRow, listenForUpdates;
+	const sourceProvider = dataSourceProviders(provider, props);
 
-	const handler = async (payload) => _handler(payload, window.__crotchet);
+	if (typeof sourceProvider == "function") getter = sourceProvider;
+	else {
+		if (typeof props.handler == "function") getter = props.handler;
+		else if (typeof sourceProvider.fetch == "function") {
+			getter = sourceProvider.fetch;
+			insertRow = sourceProvider.insertRow;
+			updateRow = sourceProvider.updateRow;
+			deleteRow = sourceProvider.deleteRow;
+			listenForUpdates = sourceProvider.listenForUpdates;
+		} else return console.error(`Unkown data provider: ${provider}`);
+	}
+
+	const handler = async (payload) => getter(payload, window.__crotchet);
 
 	const get = ({ shuffle, limit, first, single, ...payload } = {}) =>
 		sourceGet(
@@ -286,6 +297,10 @@ export const registerDataSource = (provider, name, props = {}) => {
 		handler,
 		get,
 		random,
+		insertRow,
+		updateRow,
+		deleteRow,
+		listenForUpdates,
 	};
 
 	setTimeout(() => {
