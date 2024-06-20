@@ -217,8 +217,6 @@ export const crawlUrl = {
 
 			if (!open || open == "false") return payload;
 
-			console.log("Data: ", payload);
-
 			return openPage({
 				title: "Crawl Url",
 				subtitle: url,

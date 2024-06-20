@@ -59,12 +59,12 @@ registerAction("addToReadingList", {
 		</svg>
 	),
 	handler: async (
-		{ preview, title, subtitle, url },
+		{ previewImage, title, subtitle, url },
 		{ utils, openUrl, showToast, dbInsert, openForm }
 	) => {
 		var payload = await openUrl(
 			`crotchet://action/crawlUrl?${utils.objectToQueryParams({
-				preview,
+				preview: previewImage,
 				title,
 				subtitle,
 				url,
@@ -77,7 +77,7 @@ registerAction("addToReadingList", {
 			data: {
 				// group: (await Preferences.get({ key: "groupFilter" })).value ?? "",
 				group: "🌎 General",
-				image: payload.preview,
+				image: payload.image,
 				title: payload.title,
 				description: payload.description || payload.subtitle,
 				url: payload.url,

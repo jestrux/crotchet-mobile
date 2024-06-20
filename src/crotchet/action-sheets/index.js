@@ -58,6 +58,7 @@ registerActionSheet("share", async (payload = {}, { utils }, onChange) => {
 					onChange({
 						...content,
 						actions: shareActions,
+						previewImage: content.preview,
 						preview: {
 							image: content.preview,
 							title: content.title,
@@ -78,6 +79,7 @@ registerActionSheet("share", async (payload = {}, { utils }, onChange) => {
 	const res = {
 		...content,
 		actions: shareActions,
+		previewImage: content.preview,
 		preview: {
 			image: content.preview,
 			title: content.title,
