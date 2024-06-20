@@ -1,5 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
-import { shuffle as doShuffle, objectExcept, objectTake } from "@/utils";
+import {
+	shuffle as doShuffle,
+	objectExcept,
+	objectTake,
+	randomId,
+} from "@/utils";
 import { useEffect, useRef, useState } from "react";
 import { matchSorter } from "match-sorter";
 import { useOnInit } from "@/crotchet";
@@ -164,12 +169,17 @@ export function useDataFetch({
 		).toString();
 	};
 
+	const cacheRef = useRef(randomId());
 	const paramsRef = useRef(getParams({ _searchQuery, _filters }));
 	const [searchQuery, setSearchQuery] = useState(_searchQuery);
 	const [filters, setFilters] = useState(_filters);
 	const [data, setData] = useState(null);
 	const query = useMutation({
-		mutationKey: [source?._id, getParams({ searchQuery, filters })],
+		mutationKey: [
+			source?._id,
+			getParams({ searchQuery, filters }),
+			cacheRef.current,
+		],
 		mutationFn: source?.handler ?? (() => {}),
 	});
 
@@ -254,6 +264,9 @@ export function useDataFetch({
 	};
 
 	const handleRefetch = (newProps) => {
+		cacheRef.current = randomId();
+		
+		// query.variables.
 		if (newProps) {
 			if (newProps.searchQuery != undefined)
 				setSearchQuery(newProps.searchQuery);

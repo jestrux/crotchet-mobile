@@ -33,6 +33,21 @@ export default function DataFetcher({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [searchQuery, filters]);
 
+	useEffect(() => {
+		let clearUpdateWatcher;
+
+		if (typeof source.listenForUpdates == "function") {
+			clearUpdateWatcher = source.listenForUpdates(() =>
+				refetch({ searchQuery, filters })
+			);
+		}
+
+		return () => {
+			if (typeof clearUpdateWatcher == "function") clearUpdateWatcher();
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
 	if (contentOnly) {
 		if (isLoading && showLoader) {
 			return (
