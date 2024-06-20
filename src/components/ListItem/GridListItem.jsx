@@ -19,13 +19,17 @@ export default function GridListItem({
 	height,
 	onClick,
 	onHold,
+	share,
 	onDoubleClick,
 }) {
 	const gestures = useLongPress(() => {
-		if (_.isFunction(onHold)) {
-			Haptics.impact({ style: ImpactStyle.Medium });
-			onHold();
-		}
+		if (!_.isFunction(onHold) && !share) return;
+
+		Haptics.impact({ style: ImpactStyle.Medium });
+
+		if (_.isFunction(onHold)) return onHold();
+
+		openUrl(share);
 	});
 
 	const [actionLoading, setActionLoading] = useState(false);

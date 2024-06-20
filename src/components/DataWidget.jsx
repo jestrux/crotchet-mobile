@@ -54,6 +54,9 @@ function DataWidgetContent({
 				progress: entry.progress,
 				status: entry.status,
 				url: entry.url,
+				share: entry.share,
+				onHold: entry.onHold,
+				onDoubleClick: entry.onDoubleClick,
 			}));
 
 			content = (
@@ -80,6 +83,7 @@ function DataWidgetContent({
 					progress: entry.progress,
 					status: entry.status,
 					url: entry.url,
+					share: entry.share,
 					onHold: entry.onHold,
 					onDoubleClick: entry.onDoubleClick,
 				};

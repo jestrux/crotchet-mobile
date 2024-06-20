@@ -185,14 +185,18 @@ export default function RegularListItem({
 	onRemove = () => {},
 	onClick,
 	onHold,
+	share,
 	onDoubleClick,
 	meta = {},
 }) {
 	const gestures = useLongPress(() => {
-		if (_.isFunction(onHold)) {
-			Haptics.impact({ style: ImpactStyle.Medium });
-			onHold();
-		}
+		if (!_.isFunction(onHold) && !share) return;
+
+		Haptics.impact({ style: ImpactStyle.Medium });
+
+		if (_.isFunction(onHold)) return onHold();
+
+		openUrl(share);
 	});
 	const [actionLoading, setActionLoading] = useState(false);
 	const [removed, setRemoved] = useState(false);
