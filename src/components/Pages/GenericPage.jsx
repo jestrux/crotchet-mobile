@@ -6,6 +6,8 @@ import PreviewCard from "../PreviewCard";
 import { cloneElement, isValidElement } from "react";
 import { openUrl } from "@/utils";
 import useLoadableView from "@/hooks/useLoadableView";
+import DataPreviewer from "../DataPreviewer";
+import Button from "../Button";
 
 export default function GenericPage({
 	noPadding = false,
@@ -127,11 +129,31 @@ export default function GenericPage({
 								}}
 							/>
 						);
+				} else if (["json", "jsonObject", "jsonArray"].includes(type)) {
+					content = (
+						<div className="relative p-1 bg-content/5 border border-content/10 rounded-md overflow-hidden">
+							<DataPreviewer type={type} data={section.value} />
+						</div>
+					);
 				} else if (type == "preview") {
 					content = (
 						<div className="relative p-1 bg-content/5 border border-content/10 rounded-md overflow-hidden">
 							<PreviewCard {...section.value} />
 						</div>
+					);
+				} else if (type == "action") {
+					content = (
+						// <div className="mt-4">
+						<Button
+							onClick={() => {
+								let onClick =
+									section.value.onClick || (() => {});
+								onClick({ dismiss });
+							}}
+						>
+							Submit
+						</Button>
+						// </div>
 					);
 				} else if (type == "custom") {
 					content = cloneElement(section.value, {
