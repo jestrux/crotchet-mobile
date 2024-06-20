@@ -202,7 +202,8 @@ const App = () => {
 				<div
 					key={app + index}
 					className={clsx("fixed inset-0 overflow-auto", {
-						"opacity-0 pointer-events-none": currentPage != app,
+						hidden: currentPage != app,
+						// "opacity-0 pointer-events-none": currentPage != app,
 					})}
 				>
 					<AppScreen scheme={app} />
