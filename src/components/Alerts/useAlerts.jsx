@@ -80,9 +80,14 @@ export default function useAlerts() {
 		return showAlert(alert);
 	}
 
+	function confirmDangerousAction() {
+		return confirmAction({ dangerous: true });
+	}
+
 	return {
 		alerts,
 		confirmAction,
+		confirmDangerousAction,
 		showAlert,
 		hideAlert,
 		openActionDialog,

@@ -4,11 +4,18 @@ import Modal, { MessageModal } from "../Modal";
 import useAlerts from "./useAlerts";
 
 export default function AlertsWrapper() {
-	const { alerts, showAlert, confirmAction, openActionDialog } = useAlerts();
+	const {
+		alerts,
+		showAlert,
+		confirmAction,
+		confirmDangerousAction,
+		openActionDialog,
+	} = useAlerts();
 
 	Object.assign(window, {
 		showAlert,
 		confirmAction,
+		confirmDangerousAction,
 		openActionDialog,
 	});
 
@@ -20,26 +27,19 @@ export default function AlertsWrapper() {
 				<Button
 					variant="outline"
 					className="flex-1"
-					// rounded="md"
 					size="sm"
 					onClick={() => alert.close(alert.actions[0])}
 				>
-					<span className="opacity-60">{alert.actions[0]}</span>
+					{alert.actions[0]}
 				</Button>
 
 				<Button
 					className="flex-1"
-					// rounded="md"
 					size="sm"
+					color={alert.dangerous ? "danger" : null}
 					onClick={() => alert.close(alert.actions[1])}
 				>
-					<span
-						className={
-							alert.actionType === "danger" ? "text-red-500" : ""
-						}
-					>
-						{alert.actions[1]}
-					</span>
+					{alert.actions[1]}
 				</Button>
 			</div>
 		);

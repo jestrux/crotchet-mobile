@@ -24,24 +24,24 @@ export default forwardRef(function Button(
 	const getColor = () => {
 		const colorMap = {
 			danger: [
-				"bg-red-500 border-red-500 text-white",
-				"text-red-500 border-current hover:bg-red-500/5",
+				"bg-red-700 border-red-700 text-white hover:opacity-90",
+				"bg-transparent text-red-700 border-current hover:bg-red-700/5",
 			],
 			success: [
-				"bg-green-500 border-green-500 text-white",
-				"text-green-500 hover:bg-green-500/5",
+				"bg-green-500 border-green-500 text-white hover:opacity-90",
+				"bg-transparent text-green-500 hover:bg-green-500/5",
 			],
 			primary: [
-				"bg-primary border-primary text-white",
-				"text-primary border-current hover:bg-primary/5",
+				"bg-primary border-primary text-white hover:opacity-90",
+				"bg-transparent text-primary border-current hover:bg-primary/5",
 			],
 			secondary: [
-				"bg-gray-500 border-gray-500 text-white",
-				"text-gray-500 border-current hover:bg-gray-500/5",
+				"bg-gray-500 border-gray-500 text-white hover:opacity-90",
+				"bg-transparent text-gray-500 border-current hover:bg-gray-500/5",
 			],
 			black: [
-				"bg-black border-black text-white",
-				"text-black border-current hover:bg-black/5",
+				"bg-black border-black text-white hover:opacity-90",
+				"bg-transparent text-black border-black/50 hover:bg-black/5",
 			],
 		};
 
@@ -56,12 +56,9 @@ export default forwardRef(function Button(
 			ref={ref}
 			type={type}
 			className={clsx(
-				"Button border w-full flex items-center justify-center px-3.5 leading-none relative",
+				"Button font-semibold border w-full flex items-center justify-center px-3.5 leading-none relative",
 				(disabled || loading) && "pointer-events-none",
 				disabled && "opacity-25",
-				outlined
-					? "bg-transparent hover:bg-gray-500/5"
-					: "bg-primary text-white hover:opacity-90",
 				getColor(),
 				size == "xs"
 					? "text-[0.6rem] h-6 px-[0.6rem]"
