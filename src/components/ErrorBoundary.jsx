@@ -1,8 +1,16 @@
+import clsx from "clsx";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 
-function fallbackRender({ error, resetErrorBoundary }) {
+function FallbackRender({ error, resetErrorBoundary, style, className }) {
 	return (
-		<div role="alert" className="pointer-events-auto text-content z-[999]">
+		<div
+			role="alert"
+			className={clsx(
+				"pointer-events-auto text-content z-[999]",
+				className
+			)}
+			style={style}
+		>
 			<p>Something went wrong:</p>
 			<div className="w-full overflow-auto">
 				<pre style={{ color: "red" }}>{error.message}</pre>
@@ -14,9 +22,24 @@ function fallbackRender({ error, resetErrorBoundary }) {
 	);
 }
 
-export default function ErrorBoundary({ children, onReset = () => {} }) {
+export default function ErrorBoundary({
+	children,
+	onReset = () => {},
+	style,
+	className,
+}) {
 	return (
-		<ReactErrorBoundary fallbackRender={fallbackRender} onReset={onReset}>
+		<ReactErrorBoundary
+			fallbackRender={({ error, resetErrorBoundary }) => (
+				<FallbackRender
+					error={error}
+					resetErrorBoundary={resetErrorBoundary}
+					style={style}
+					className={className}
+				/>
+			)}
+			onReset={onReset}
+		>
 			{children}
 		</ReactErrorBoundary>
 	);

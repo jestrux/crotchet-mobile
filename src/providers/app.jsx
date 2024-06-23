@@ -566,7 +566,11 @@ export default function AppProvider({ children }) {
 				}
 			</style>
 
-			<ErrorBoundary onReset={() => window.location.reload()}>
+			<ErrorBoundary
+				className="p-6"
+				style={{ marginTop: "env(safe-area-inset-top)" }}
+				onReset={() => window.location.reload()}
+			>
 				{App ? (
 					<App {...(window.__crotchet.app?.props || {})} />
 				) : (
