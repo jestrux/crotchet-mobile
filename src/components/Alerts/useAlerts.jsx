@@ -72,6 +72,7 @@ export default function useAlerts() {
 			cancelText: "Cancel",
 			okayText: "Yes, Continue",
 			...(userProps || {}),
+			hideCloseButton: true,
 		};
 
 		alert.actions = [alert.cancelText, alert.okayText];
