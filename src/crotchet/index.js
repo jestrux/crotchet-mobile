@@ -330,6 +330,8 @@ export const registerAction = (name, action) => {
 		global = false,
 		context,
 		match,
+		scheme,
+		sheet,
 		shortcut,
 		mobileOnly = false;
 
@@ -339,6 +341,8 @@ export const registerAction = (name, action) => {
 		global = action.global;
 		context = action.context;
 		match = action.match;
+		scheme = action.scheme;
+		sheet = action.sheet;
 		shortcut = action.shortcut;
 		mobileOnly = action.mobileOnly;
 		_label = action.label;
@@ -366,6 +370,8 @@ export const registerAction = (name, action) => {
 		global,
 		context,
 		match,
+		scheme,
+		sheet,
 		shortcut,
 		mobileOnly,
 		handler,

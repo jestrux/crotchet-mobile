@@ -782,8 +782,11 @@ export const getShareActions = (
 			)
 				return agg;
 
+			if (scheme?.length && action.scheme != scheme) return agg;
+
 			let matches =
-				Object.keys(cleanObject({ image, url, file, text })).length > 0;
+				!objectIsEmpty({ image, url, file, text }) ||
+				(scheme?.length && !objectIsEmpty(state));
 
 			const match = action.match;
 
