@@ -20,7 +20,7 @@ function DataWidgetContent({
 	const {
 		layout,
 		columns = 2,
-		iconOnly,
+		previewOnly,
 	} = {
 		...(source?.layoutProps || {}),
 		...props,
@@ -73,7 +73,7 @@ function DataWidgetContent({
 				const _id = entry._id || randomId();
 				const entryProps = {
 					_id,
-					iconOnly,
+					previewOnly,
 					icon: entry.icon,
 					image: entry.image,
 					video: entry.video,

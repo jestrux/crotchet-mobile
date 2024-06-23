@@ -415,7 +415,7 @@ export default function HeroIconsWidget() {
 		<DataWidget
 			layout="grid"
 			columns={8}
-			iconOnly
+			previewOnly
 			source={dataSources.heroIcons}
 			widgetProps={{
 				icon: (

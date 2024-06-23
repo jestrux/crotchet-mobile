@@ -7,7 +7,7 @@ import { Haptics, ImpactStyle } from "@capacitor/haptics";
 export default function GridListItem({
 	grid,
 	masonry,
-	iconOnly,
+	previewOnly,
 	icon,
 	image,
 	video,
@@ -110,13 +110,31 @@ export default function GridListItem({
 					<div className="relative flex-shrink-0 bg-content/10 border border-stroke rounded overflow-hidden w-full aspect-[16/9]">
 						{(image?.length || video?.length) && (
 							<>
-								<img
-									className={
-										"absolute size-full object-cover"
-									}
-									src={image?.length ? image : video}
-									alt=""
-								/>
+								{image == "placeholder" ? (
+									<div className="h-full flex items-center justify-center">
+										<svg
+											className="size-8"
+											viewBox="0 0 24 24"
+											fill="none"
+											strokeWidth={1.5}
+											stroke="currentColor"
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+											/>
+										</svg>
+									</div>
+								) : (
+									<img
+										className={
+											"absolute size-full object-cover pointer-events-none"
+										}
+										src={image?.length ? image : video}
+										alt=""
+									/>
+								)}
 								{video?.length && (
 									<div className="absolute inset-0 bg-black/50 flex items-center justify-center">
 										<div className="relative w-8 h-8 flex items-center justify-center rounded-full overflow-hidden bg-card">
@@ -140,7 +158,7 @@ export default function GridListItem({
 					</div>
 				)}
 
-				{(!icon?.length || (icon?.length && !iconOnly)) && (
+				{!previewOnly && (
 					<div
 						className={clsx(
 							"flex-1 min-w-0 space-y-1",
