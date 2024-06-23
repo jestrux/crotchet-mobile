@@ -248,7 +248,7 @@ export const registerDataSource = (provider, name, props = {}) => {
 	);
 
 	let getter, insertRow, updateRow, deleteRow, listenForUpdates;
-	const sourceProvider = dataSourceProviders(provider, props);
+	const sourceProvider = dataSourceProviders(provider, { name, ...props });
 
 	if (typeof sourceProvider == "function") getter = sourceProvider;
 	else {

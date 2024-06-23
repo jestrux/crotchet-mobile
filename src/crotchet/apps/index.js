@@ -1,5 +1,7 @@
 import "./Automate";
 
+import "./PinnedItems";
+
 import "./AudioPlayer";
 import "./Remote";
 import "./FloatingHead";

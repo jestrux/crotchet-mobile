@@ -45,20 +45,21 @@ export default function dataSourceProviders(provider, props = {}) {
 		airtable: (payload) =>
 			airtableFetcher({ ...props, ...payload, appContext: { user: {} } }),
 		db: {
-			fetch: () => queryDb(props.table),
-			insertRow: (data) => dbInsert(props.table, data),
-			updateRow: (rowId, data) => dbUpdate(props.table, rowId, data),
-			deleteRow: (rowId) => dbDelete(props.table, rowId),
+			fetch: () => queryDb(props.table || props.name),
+			insertRow: (data) => dbInsert(props.table || props.name, data),
+			updateRow: (rowId, data) =>
+				dbUpdate(props.table || props.name, rowId, data),
+			deleteRow: (rowId) => dbDelete(props.table || props.name, rowId),
 			listenForUpdates: (callback = () => {}) => {
 				window.addEventListener(
-					`firebase-table-updated:${props.table}`,
+					`firebase-table-updated:${props.table || props.name}`,
 					callback,
 					false
 				);
 
 				return () =>
 					window.removeEventListener(
-						`firebase-table-updated:${props.table}`,
+						`firebase-table-updated:${props.table || props.name}`,
 						callback,
 						false
 					);
