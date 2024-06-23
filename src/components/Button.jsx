@@ -19,7 +19,7 @@ export default forwardRef(function Button(
 	ref
 ) {
 	const outlined = variant == "outline";
-	color = color || (outlined ? "black" : "primary");
+	color = color || (outlined ? "content" : "primary");
 
 	const getColor = () => {
 		const colorMap = {
@@ -39,9 +39,9 @@ export default forwardRef(function Button(
 				"bg-gray-500 border-gray-500 text-white hover:opacity-90",
 				"bg-transparent text-gray-500 border-current hover:bg-gray-500/5",
 			],
-			black: [
-				"bg-black border-black text-white hover:opacity-90",
-				"bg-transparent text-black border-black/50 hover:bg-black/5",
+			content: [
+				"bg-content border-content text-white hover:opacity-90",
+				"bg-transparent text-content border-content/30 hover:bg-content/5",
 			],
 		};
 
