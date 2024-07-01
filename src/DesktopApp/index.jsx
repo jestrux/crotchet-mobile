@@ -184,8 +184,7 @@ export default function DesktopApp() {
 	const [pages, setPages] = useState([rootPage]);
 	const page = pages.at(-1);
 	const [app, _setApp] = useState(null);
-	const { apps, actions, dataSources, openUrl, toggleAppWindow } =
-		useAppContext();
+	const { apps, actions, dataSources, openUrl } = useAppContext();
 
 	const setApp = (app) => {
 		window.__crotchet.desktop.app;
@@ -243,7 +242,7 @@ export default function DesktopApp() {
 
 	const hideAppWindow = () => {
 		if (app) closeApp();
-		toggleAppWindow(false);
+		dispatch("toggle-app", false);
 		window.__crotchet.desktop.visible = false;
 	};
 
