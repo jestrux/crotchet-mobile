@@ -57,7 +57,8 @@ export default class CrotchetCrawler {
 				children.forEach((child) => {
 					const [key, matcher, attribute = "innerText"] =
 						child.split("::");
-					const childNode = node.querySelector(matcher);
+					const childNode =
+						matcher == "$this" ? node : node.querySelector(matcher);
 					row[key.trim()] =
 						childNode[attribute] ||
 						childNode.getAttribute(attribute) ||

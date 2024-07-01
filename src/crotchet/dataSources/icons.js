@@ -31,3 +31,31 @@ registerDataSource("crawler", "simpleIcons", {
 	// 		<path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
 	// 	</svg>`,
 });
+
+registerDataSource("crawler", "bootstrapIcons", {
+	url: "https://icons.getbootstrap.com/",
+	matcher: "#icons-list li => name::$this::data-name|tags::$this::data-tags",
+	limit: 5,
+	mapEntry: (entry) => {
+		const icon = `
+			<div class="size-6 flex items-center justify-center">
+				<img class="size-6" src="https://raw.githubusercontent.com/twbs/icons/main/icons/${entry.name}.svg" />
+			</div>
+		`;
+
+		return {
+			...entry,
+			icon,
+			subtitle: entry.name?.replaceAll("-", " ").replaceAll("_", " "),
+			tags: entry.tags.split(" "),
+			url: `crotchet://copy/bi-${entry.name}`,
+		};
+	},
+	layoutProps: {
+		layout: "grid",
+		columns: "xs:3,md:5",
+	},
+	icon: `<svg viewBox="0 0 24 24" fill="currentColor">
+			<path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
+		</svg>`,
+});
