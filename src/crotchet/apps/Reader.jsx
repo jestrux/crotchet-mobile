@@ -70,6 +70,7 @@ registerDataSource("db", "reader", {
 registerAction("editReadingListItem", {
 	context: "share",
 	icon: appIcon,
+	scheme: "reader",
 	match: ({ scheme, state }) => scheme == "reader" && state._id,
 	handler: async (
 		{ state, previewImage },
@@ -98,6 +99,7 @@ registerAction("editReadingListItem", {
 registerAction("removeFromReadingList", {
 	context: "share",
 	icon: appIcon,
+	scheme: "reader",
 	match: ({ scheme, state }) => scheme == "reader" && state._id,
 	handler: async (
 		{ state },
@@ -120,7 +122,7 @@ registerAction("removeFromReadingList", {
 registerAction("addToReadingList", {
 	context: "share",
 	icon: appIcon,
-	match: ({ scheme, url }) => scheme != "reader" && url?.toString().length,
+	match: ({ url }) => url?.toString().length,
 	handler: async (
 		{ previewImage, title, subtitle, url },
 		{ utils, openUrl, showToast, openForm, dataSources }

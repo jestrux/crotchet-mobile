@@ -206,8 +206,8 @@ const getYoutubeVideoDetails = async (url) => {
 							url: `https://www.youtube.com/watch?v=${videoId}`,
 						});
 					},
-					onStateChange: (e) => {
-						const player = e.target;
+					onStateChange: () => {
+						// const player = e.target;
 					},
 				},
 			});
@@ -300,8 +300,8 @@ registerAction("searchYoutubeClips", {
 registerAction("addToYoutubeClips", {
 	context: "share",
 	icon: appIcon,
-	match: ({ scheme, url }) =>
-		scheme != "youtubeClips" && url?.toString().length && getYoutubeId(url),
+	scheme: "youtubeClips",
+	match: ({ url }) => url?.toString().length && getYoutubeId(url),
 	handler: async ({ url }, { openPage, showToast, dbInsert }) => {
 		const res = await getYoutubeVideoEditor(url, openPage);
 
@@ -325,6 +325,7 @@ registerAction("editYoutubeClip", {
 	context: "share",
 	icon: appIcon,
 	label: "Edit Video",
+	scheme: "youtubeClips",
 	match: ({ scheme, state }) => scheme == "youtubeClips" && state._id,
 	handler: async (
 		{ state },
@@ -384,6 +385,7 @@ registerAction("deleteYoutubeClip", {
 	context: "share",
 	icon: appIcon,
 	label: "Delete Video",
+	scheme: "youtubeClips",
 	match: ({ scheme, state }) => scheme == "youtubeClips" && state._id,
 	handler: async (
 		{ state },
@@ -407,6 +409,7 @@ registerAction("playOnDesktop", {
 	context: "share",
 	icon: appIcon,
 	mobileOnly: true,
+	scheme: "youtubeClips",
 	match: ({ scheme, state }) => scheme == "youtubeClips" && state._id,
 	handler: ({ state }) =>
 		openUrl(
@@ -466,7 +469,6 @@ registerApp("youtubeClips", () => {
 
 registerActionSheet("youtubeClips", async (payload = {}, { actions }) => {
 	const clipUrl = getYoutubeClipUrl(payload.state);
-	console.log("Path: ", payload);
 
 	return {
 		...payload,
@@ -475,6 +477,7 @@ registerActionSheet("youtubeClips", async (payload = {}, { actions }) => {
 				icon: appIcon,
 				label: "Play Video",
 				context: "share",
+				scheme: "youtubeClips",
 				handler: (_, { openUrl }) => openUrl(clipUrl),
 			},
 			playOnDesktop: actions.playOnDesktop,
@@ -482,6 +485,7 @@ registerActionSheet("youtubeClips", async (payload = {}, { actions }) => {
 				icon: appIcon,
 				label: "Share Video",
 				context: "share",
+				scheme: "youtubeClips",
 				handler: (_, { openUrl }) =>
 					openUrl(`crotchet://broadcast/url/${payload.url})}`),
 			},
