@@ -240,7 +240,8 @@ export function useDataFetch({
 
 		if (first) return data[0];
 
-		return data.slice(0, limit);
+		// return data.slice(0, limit);
+		return data.slice(0, 50);
 	};
 
 	const handleFetch = async ({ searchQuery } = {}, paramsChanged = true) => {
