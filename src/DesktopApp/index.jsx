@@ -222,19 +222,29 @@ export default function DesktopApp() {
 		if (!push) popToRoot();
 
 		setPages((pages) => [...pages, cleanObject(props)]);
+
+		return new Promise((res) => {
+			__crotchet._promiseResolvers[props._id] = res;
+		});
 	};
 
-	const closePage = () => {
+	const closePage = (data) => {
 		if (page.root) {
 			if (!app) hideAppWindow();
-
 			return;
 		}
 
-		setPages((pages) => pages.filter((p, i) => i != pages.length - 1));
+		setPages((pages) => {
+			var resolver = __crotchet._promiseResolvers?.[pages.at(-1)?._id];
+
+			if (typeof resolver == "function") resolver(data);
+
+			return pages.filter((_, i) => i != pages.length - 1);
+		});
 	};
 
-	window.__crotchet.desktop.closePage = () => dispatch("close-page");
+	window.__crotchet.desktop.closePage = (data) =>
+		dispatch("close-page", data);
 
 	const popToRoot = () => {
 		setPages((pages) => [pages[0]]);
@@ -297,8 +307,8 @@ export default function DesktopApp() {
 
 	useEventListener("open-page", (_, payload) => handleOpenPage(payload));
 
-	useEventListener("close-page", () => {
-		closePage();
+	useEventListener("close-page", (_, data) => {
+		closePage(data);
 	});
 
 	useEventListener("blur", () => {
