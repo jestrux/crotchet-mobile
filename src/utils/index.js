@@ -770,6 +770,7 @@ export const getShareActions = (
 		incoming,
 		fromClipboard,
 		scheme,
+		sheet,
 		state = {},
 	} = content;
 
@@ -782,7 +783,11 @@ export const getShareActions = (
 			)
 				return agg;
 
-			if (scheme?.length && action.scheme != scheme) return agg;
+			if (
+				scheme?.length &&
+				![action.scheme, action.sheet].includes(scheme)
+			)
+				return agg;
 
 			let matches =
 				!objectIsEmpty({ image, url, file, text }) ||
@@ -798,6 +803,7 @@ export const getShareActions = (
 					text,
 					download,
 					scheme,
+					sheet,
 					state,
 					fromClipboard,
 				});
