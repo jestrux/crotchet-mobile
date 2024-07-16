@@ -38,8 +38,8 @@ registerDataSource("crawler", "bootstrapIcons", {
 	limit: 5,
 	mapEntry: (entry) => {
 		const icon = `
-			<div class="size-6 flex items-center justify-center">
-				<img class="size-6" src="https://raw.githubusercontent.com/twbs/icons/main/icons/${entry.name}.svg" />
+			<div class="size-7 flex items-center justify-center bg-white/50 rounded-full">
+				<img class="size-5" src="https://raw.githubusercontent.com/twbs/icons/main/icons/${entry.name}.svg" />
 			</div>
 		`;
 
