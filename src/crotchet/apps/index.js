@@ -12,6 +12,7 @@ import "./Reader";
 import "./LaCroix";
 import "./YoutubeClips";
 import "./Unsplash";
+import "./Brandy";
 
 import "./Search";
 import "./ColorViewer";
