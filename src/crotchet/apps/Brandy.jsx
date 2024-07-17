@@ -9,21 +9,17 @@ registerAction("brandySearchUser", {
 		{
 			isValidEmail,
 			openForm,
+			copyToClipboard,
+			exportContent,
 			readClipboard,
-			showToast,
 			openPage,
 			networkRequest,
+			getMarkdownTable,
 		}
 	) => {
-		var copiedEmail;
-		try {
-			copiedEmail = (await readClipboard())?.value?.replace(
-				"mailto:",
-				""
-			);
-		} catch (error) {
-			showToast("Error: " + error);
-		}
+		var copiedEmail = (copiedEmail = (
+			await readClipboard()
+		)?.value?.replace("mailto:", ""));
 
 		var email = await openForm({
 			title: "Brandy - Search User",
@@ -36,21 +32,75 @@ registerAction("brandySearchUser", {
 
 		if (!email?.length) return;
 
-		const user = await networkRequest(
-			`https://app.brandyhq.com/brandy-admin/user/${email}`,
-			{
-				secretToken: "X-BRANDY-ADMIN-CODE",
-			}
-		);
-
-		if (!user) return null;
-
 		return openPage({
-			title: "User Details",
+			title: "Brandy - Search User",
 			fullHeight: true,
-			content: {
-				type: "jsonObject",
-				value: user,
+			content: async () => {
+				return await networkRequest(
+					`https://app.brandyhq.com/brandy-admin/user/${email}`,
+					{
+						secretToken: "X-BRANDY-ADMIN-CODE",
+					}
+				).then((user) =>
+					!user
+						? null
+						: [
+								{
+									type: "markdown",
+									value: [
+										`## ${[
+											user.first_name,
+											user.last_name,
+										].join(" ")} ( ${user.email} )`,
+										`### Orgs:`,
+										getMarkdownTable(
+											user.organisation.map((org) => ({
+												Name: `<button class="underline font-semibold" onclick="window.__crotchet.openUrl('https://app.brandyhq.com/${org.name}')">${org.company_name}</button>`,
+												Plan: org.admin?.plan?.name,
+												"Total Assets(Mbs)":
+													org.totalAssetSizeInMb?.toFixed(
+														2
+													),
+												Admin: org.admin?.email,
+											}))
+										),
+										`### Stripe:`,
+										getMarkdownTable([
+											{
+												"Customer ID":
+													user.stripe_customer_id,
+												Subscription: `${user.stripe_subscription_id} ( ${user.stripe_subscription_type} )`,
+												Coupon:
+													user.stripe_coupon_id ||
+													"None",
+											},
+										]),
+									].join("\n"),
+								},
+								{
+									type: "action",
+									value: {
+										label: "Copy user data as JSON",
+										onClick: () =>
+											copyToClipboard(
+												JSON.stringify(user, null, 4)
+											),
+									},
+								},
+								{
+									type: "action",
+									value: {
+										label: "Download user data",
+										onClick: () =>
+											exportContent(
+												JSON.stringify(user, null, 4),
+												`brandy-user-${user._first_name}-${user.last_name}`,
+												"json"
+											),
+									},
+								},
+						  ]
+				);
 			},
 		});
 	},
@@ -60,7 +110,10 @@ registerAction("brandySearchOrg", {
 	label: "Brandy - Search Organisation",
 	global: true,
 	icon: "🥃",
-	handler: async (_, { openForm, openPage, networkRequest }) => {
+	handler: async (
+		_,
+		{ openForm, openPage, networkRequest, getMarkdownTable }
+	) => {
 		const name = await openForm({
 			title: "Brandy - Search Organisation",
 			field: {
@@ -71,22 +124,49 @@ registerAction("brandySearchOrg", {
 
 		if (!name?.length) return;
 
-		const organisation = await networkRequest(
-			`https://app.brandyhq.com/brandy-admin/user/${name}`,
-			{
-				secretToken: "X-BRANDY-ADMIN-CODE",
-			}
-		);
-
-		if (!organisation) return null;
-
 		return openPage({
 			title: "Organisation Details",
 			fullHeight: true,
-			content: {
-				type: "jsonObject",
-				value: organisation,
-			},
+			content: async () =>
+				await networkRequest(
+					`https://app.brandyhq.com/brandy-admin/org/${name}`,
+					{
+						secretToken: "X-BRANDY-ADMIN-CODE",
+					}
+				).then((org) =>
+					!org
+						? null
+						: [
+								{
+									type: "markdown",
+									value: [
+										`## <button class="underline font-semibold" onclick="window.__crotchet.openUrl('https://app.brandyhq.com/${org.name}')">${org.company_name}</button>`,
+										getMarkdownTable([
+											{
+												Public: !org.is_private,
+												Plan: org.admin?.plan?.name,
+												"Total Assets":
+													org.totalAssetSizeInMb?.toFixed(
+														2
+													) + "Mbs",
+												Admin: org.admin?.email,
+											},
+										]),
+										"### Users",
+										getMarkdownTable(
+											org.users.map(({ user, role }) => ({
+												Name: [
+													user.first_name,
+													user.last_name,
+												].join(" "),
+												Email: user.email,
+												Role: role,
+											}))
+										),
+									].join("\n"),
+								},
+						  ]
+				),
 		});
 	},
 });
