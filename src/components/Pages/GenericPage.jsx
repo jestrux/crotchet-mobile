@@ -19,6 +19,7 @@ export default function GenericPage({
 	title,
 	subtitle,
 	source,
+	pageData,
 	content,
 	fullHeight,
 	maxHeight,
@@ -28,6 +29,7 @@ export default function GenericPage({
 	let { data: contentData, pendingView } = useLoadableView({
 		data: content,
 		dismiss,
+		pageData,
 	});
 
 	const renderContent = () => {
@@ -155,7 +157,7 @@ export default function GenericPage({
 						<Button
 							onClick={() => {
 								let onClick =
-									section.value?.onClick || (() => {});
+									section.value?.handler || (() => {});
 								onClick({ dismiss });
 							}}
 						>

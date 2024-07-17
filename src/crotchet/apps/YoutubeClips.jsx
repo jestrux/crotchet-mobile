@@ -238,7 +238,7 @@ const getYoutubeVideoEditor = async (url, openPage, oldValues = {}) => {
 					type: "action",
 					value: {
 						label: "Save Clip",
-						onClick: ({ dismiss }) => dismiss(payload),
+						handler: ({ dismiss }) => dismiss(payload),
 					},
 				},
 			];

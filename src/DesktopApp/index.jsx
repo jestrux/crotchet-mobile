@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { Children, cloneElement, useRef, useState } from "react";
 import {
 	DataWidget,
 	Input,
@@ -14,6 +14,162 @@ import {
 import useEventListener from "../hooks/useEventListener";
 import clsx from "clsx";
 import GlobalSearch from "../components/GlobalSearch";
+import CommandKey from "./CommandKey";
+import useKeyDetector from "@/hooks/useKeyDetector";
+import useLoadableView from "@/hooks/useLoadableView";
+
+const Button = ({
+	type = "button",
+	className = "",
+	processing,
+	children,
+	onClick,
+}) => {
+	return (
+		<button
+			type={type}
+			className={
+				`inline-flex items-center px-2 h-8 dark:bg-content/5 hover:bg-content/5 dark:hover:bg-content/10 border border-content/10 rounded-md font-semibold text-xs transition-colors duration-150 focus:outline-none focus:bg-content/5 dark:focus:bg-content/[0.08] focus:border-content/20 ${
+					processing && "opacity-25"
+				} ` + className
+			}
+			disabled={processing}
+			onClick={onClick ? onClick : null}
+		>
+			{children}
+		</button>
+	);
+};
+
+const AppPageContent = ({ pageData, page, pageContentRef }) => {
+	const { apps } = useAppContext();
+	const Home = apps.home.main;
+	const secondaryActionShortCut = page.secondaryAction?.shortcut || "Cmd + K";
+	const submitHandler = useRef(
+		page.action?.handler ? page.action.handler : null
+	);
+	const secondaryActionHandler = useRef(
+		page.secondaryAction?.handler ? page.secondaryAction.handler : null
+	);
+
+	const handleSecondaryAction = () => {
+		if (typeof secondaryActionHandler.current == "function")
+			secondaryActionHandler.current({ pageData });
+	};
+
+	const handleSubmit = () => {
+		if (typeof submitHandler.current == "function")
+			submitHandler.current({ pageData });
+	};
+
+	useKeyDetector({
+		key: "Cmd + Enter",
+		action: handleSubmit,
+	});
+
+	useKeyDetector({
+		key: "Cmd + k",
+		action: handleSecondaryAction,
+	});
+
+	return (
+		<>
+			<div ref={pageContentRef} className="flex-1 overflow-auto">
+				{page?.root && (
+					<>
+						<div
+							className={
+								page.searchQuery
+									? "absolute opacity-0 pointer-events-none"
+									: ""
+							}
+						>
+							<Home />
+						</div>
+
+						{page.searchQuery && (
+							<GlobalSearch searchQuery={page.searchQuery} />
+						)}
+					</>
+				)}
+
+				{!page?.root &&
+					(page?.source ? (
+						<div className="p-4">
+							<DataWidget
+								{...page}
+								searchQuery={page.searchQuery}
+								widgetProps={{ noPadding: true }}
+							/>
+						</div>
+					) : (
+						Children.map(page.content, (child) => {
+							if (!child?.type) return null;
+
+							return cloneElement(child, {
+								pageData,
+							});
+						})
+					))}
+			</div>
+
+			{(page?.secondaryAction ||
+				typeof submitHandler.current == "function") && (
+				<div className="bg-card sticky bottom-0 h-11 px-3 flex gap-1 items-center justify-between border-t z-10">
+					<div
+						className={
+							typeof submitHandler.current != "function"
+								? "ml-auto -mr-2"
+								: "-ml-2"
+						}
+					>
+						{page?.secondaryAction && (
+							<Button
+								className="gap-1"
+								rounded="md"
+								size="sm"
+								variant="ghost"
+								colorScheme={
+									{ danger: "red", warning: "yellow" }[
+										page.secondaryActionType
+									]
+								}
+								onClick={handleSecondaryAction}
+							>
+								<span className="mr-0.5 capitalize">
+									{page.secondaryAction.label}
+								</span>
+								{secondaryActionShortCut
+									.split(" + ")
+									.map((key) => (
+										<CommandKey key={key} label={key} />
+									))}
+							</Button>
+						)}
+					</div>
+
+					{typeof submitHandler.current == "function" && (
+						<Button
+							className="gap-1 -mr-2"
+							onClick={handleSubmit}
+							rounded="md"
+							size="sm"
+							variant="ghost"
+						>
+							<span className="mr-0.5 capitalize">
+								{page?.action?.label || "Submit"}
+							</span>
+
+							<CommandKey label="Cmd" />
+
+							<CommandKey label="Enter" />
+						</Button>
+					)}
+				</div>
+			)}
+		</>
+	);
+};
 
 const AppPage = ({ page: _page, focused, onClose }) => {
 	const pageContent = useRef(null);
@@ -32,11 +188,12 @@ const AppPage = ({ page: _page, focused, onClose }) => {
 
 	const searchbar = useRef();
 
-	const { apps } = useAppContext();
-
-	const Home = apps.home.main;
-
 	const [page, setPage] = useState(_page);
+	let { data: pageData, pendingView: pagePendingView } = useLoadableView({
+		data: page.resolve || (() => true),
+		resolver: true,
+		dismiss: page.dismiss,
+	});
 
 	const updatePage = (newProps) => {
 		setPage((page) => ({
@@ -132,38 +289,15 @@ const AppPage = ({ page: _page, focused, onClose }) => {
 				)}
 			</div>
 
-			<div ref={pageContent} className="flex-1 overflow-auto">
-				{page?.root && (
-					<>
-						<div
-							className={
-								page.searchQuery
-									? "absolute opacity-0 pointer-events-none"
-									: ""
-							}
-						>
-							<Home />
-						</div>
-
-						{page.searchQuery && (
-							<GlobalSearch searchQuery={page.searchQuery} />
-						)}
-					</>
-				)}
-
-				{!page?.root &&
-					(page?.source ? (
-						<div className="p-4">
-							<DataWidget
-								{...page}
-								searchQuery={page.searchQuery}
-								widgetProps={{ noPadding: true }}
-							/>
-						</div>
-					) : (
-						page.content
-					))}
-			</div>
+			{pagePendingView != true ? (
+				pagePendingView
+			) : (
+				<AppPageContent
+					pageContentRef={pageContent}
+					page={page}
+					pageData={pageData}
+				/>
+			)}
 		</div>
 	);
 };

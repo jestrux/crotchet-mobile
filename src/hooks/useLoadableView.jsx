@@ -5,10 +5,11 @@ export default function useLoadableView({
 	dismiss,
 	delayLoader = false,
 	onSuccess,
+	pageData,
 }) {
 	const { data, error, loading, refetch } = useSourceGet(
 		async () => {
-			const res = _.isFunction(_data) ? await _data() : _data;
+			const res = _.isFunction(_data) ? await _data(pageData) : _data;
 
 			if (_.isFunction(onSuccess)) onSuccess(res);
 
