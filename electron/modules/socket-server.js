@@ -151,12 +151,18 @@ module.exports = function socketServer(server) {
 
 	ipcMain.handle(
 		"write-file",
-		async (_, { name, content }) =>
+		async (_, { name, content, folder = "userData", open }) =>
 			new Promise((res) =>
 				fs.writeFile(
-					`${app.getPath("userData")}/${name}`,
+					`${app.getPath(folder)}/${name}`,
 					content,
-					(err) => res(!err)
+					(err) => {
+						if (!err && open)
+							shell.showItemInFolder(
+								`${app.getPath(folder)}/${name}`
+							);
+						res(!err);
+					}
 				)
 			)
 	);

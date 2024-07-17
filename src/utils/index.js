@@ -158,6 +158,22 @@ export const appendScript = (filepath) => {
 	});
 };
 
+export const exportContent = async function (
+	content,
+	fileName = "download",
+	type = "txt"
+) {
+	if (onDesktop())
+		return writeFile(`${fileName}.${type}`, content, {
+			folder: "downloads",
+			open: true,
+		});
+
+	return clickToDownload(
+		encodeURI(`data:text/${type};charset=utf-8,${content}`)
+	);
+};
+
 export const clickToDownload = async function (url, fileName = "download") {
 	let newUrl;
 
@@ -473,6 +489,21 @@ export const openUrl = async (path) => {
 export const randomId = () => Math.random().toString(36).slice(2);
 
 export const isEmptyObj = (obj) => Object.keys(obj).length === 0;
+
+export const getMarkdownTable = (rows) => {
+	const fields = Object.keys(rows[0]);
+	return [
+		"| ",
+		fields.map((field) => `${field}`).join(" | "),
+		" |\n|",
+		fields.map(() => `:--|`).join(""),
+		"\n| ",
+		rows
+			.map((row) => fields.map((field) => row[field]).join(" | "))
+			.join("\n\n"),
+		" |",
+	].join("");
+};
 
 export const getGradient = (name = "Butterbeer") => {
 	name = name == true ? "Butterbeer" : name;
@@ -887,11 +918,13 @@ export const parseFields = (fields, data) => {
 	});
 };
 
-const writeFile = async (fileName, content) => {
+const writeFile = async (fileName, content, { folder, open } = {}) => {
 	if (onDesktop()) {
 		return dispatch("write-file", {
 			name: fileName,
 			content,
+			folder,
+			open,
 		});
 	}
 
