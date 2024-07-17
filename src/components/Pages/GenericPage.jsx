@@ -8,6 +8,7 @@ import { openUrl } from "@/utils";
 import useLoadableView from "@/hooks/useLoadableView";
 import DataPreviewer from "../DataPreviewer";
 import Button from "../Button";
+import { marked } from "marked";
 
 export default function GenericPage({
 	noPadding = false,
@@ -131,15 +132,22 @@ export default function GenericPage({
 						);
 				} else if (["json", "jsonObject", "jsonArray"].includes(type)) {
 					content = (
-						<div className="relative p-1 bg-content/5 border border-content/10 rounded-md overflow-hidden">
-							<DataPreviewer type={type} data={section.value} />
-						</div>
+						<DataPreviewer type={type} data={section.value} />
 					);
 				} else if (type == "preview") {
 					content = (
 						<div className="relative p-1 bg-content/5 border border-content/10 rounded-md overflow-hidden">
 							<PreviewCard {...section.value} />
 						</div>
+					);
+				} else if (type == "markdown") {
+					content = (
+						<div
+							className="prose"
+							dangerouslySetInnerHTML={{
+								__html: marked.parse(section.value),
+							}}
+						></div>
 					);
 				} else if (type == "action") {
 					content = (
