@@ -75,7 +75,7 @@ const AppPage = ({ page: _page, focused, onClose }) => {
 					<button
 						type="button"
 						className="window-no-drag flex-shrink-0 -ml-1.5 mr-2.5 bg-content/10 rounded flex items-center justify-center w-7 h-7"
-						onClick={onClose}
+						onClick={() => onClose()}
 					>
 						<svg
 							className="w-3"
@@ -415,7 +415,7 @@ export default function DesktopApp() {
 						<button
 							className="window-no-drag opacity-0 group-hover:opacity-100 transition-opacity ml-auto mr-3 bg-white text-black shadow border border-content/5 size-7 flex items-center justify-center rounded-full"
 							style={{ display: "none" }}
-							onClick={closeApp}
+							onClick={() => closeApp()}
 						>
 							<svg
 								className="size-5"
