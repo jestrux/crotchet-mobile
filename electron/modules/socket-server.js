@@ -1,4 +1,5 @@
-const { ipcMain, shell, clipboard, nativeImage } = require("electron");
+const fs = require("fs");
+const { ipcMain, app, shell, clipboard, nativeImage } = require("electron");
 
 const {
 	keyboard,
@@ -135,6 +136,30 @@ module.exports = function socketServer(server) {
 	ipcMain.on("socket-emit", (_, { event, payload }) => {
 		events[event](payload);
 	});
+
+	ipcMain.handle(
+		"read-file",
+		async (_, name) =>
+			new Promise((res) =>
+				fs.readFile(
+					`${app.getPath("userData")}/${name}`,
+					"utf8",
+					(err, data) => res(err ? null : data)
+				)
+			)
+	);
+
+	ipcMain.handle(
+		"write-file",
+		async (_, { name, content }) =>
+			new Promise((res) =>
+				fs.writeFile(
+					`${app.getPath("userData")}/${name}`,
+					content,
+					(err) => res(!err)
+				)
+			)
+	);
 
 	ipcMain.on("toggle-app-window", (_, show = false) =>
 		crotchetApp.toggleWindow(show)

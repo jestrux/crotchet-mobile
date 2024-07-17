@@ -10,6 +10,20 @@ window.addEventListener("socket-emit", (e) => {
 	ipcRenderer.send("socket-emit", { event, payload });
 });
 
+window.addEventListener("read-file", (e) =>
+	ipcRenderer
+		.invoke("read-file", e.detail)
+		.then((result) =>
+			window.dispatchEvent(
+				new CustomEvent(`read-file:${e.detail}`, { detail: result })
+			)
+		)
+);
+
+window.addEventListener("write-file", (e) =>
+	ipcRenderer.invoke("write-file", e.detail)
+);
+
 window.addEventListener("restore", () => ipcRenderer.send("restore"));
 
 window.addEventListener("toggle-app", (e) => {

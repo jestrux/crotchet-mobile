@@ -2,6 +2,7 @@ import { gradients } from "@/constants";
 import { Clipboard } from "@capacitor/clipboard";
 import { Toast } from "@capacitor/toast";
 import { Share } from "@capacitor/share";
+import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 
 export { default as tinyColor } from "./tinycolor";
 export { default as getColorName } from "./get-color-name";
@@ -218,6 +219,9 @@ export const isValidUrl = (urlString) => {
 
 	return !!urlPattern.test(urlString);
 };
+
+export const isValidEmail = (email) =>
+	email.length < 256 && /^[^@]+@[^@]{2,}\.[^@]{2,}$/.test(email);
 
 export const socketEmit = (event, payload) =>
 	dispatch("socket-emit", {
@@ -881,4 +885,124 @@ export const parseFields = (fields, data) => {
 			...fieldProps,
 		};
 	});
+};
+
+const writeFile = async (fileName, content) => {
+	if (onDesktop()) {
+		return dispatch("write-file", {
+			name: fileName,
+			content,
+		});
+	}
+
+	return await Filesystem.writeFile({
+		path: fileName,
+		data: content,
+		directory: Directory.Documents,
+		encoding: Encoding.UTF8,
+	});
+};
+
+const readFile = async (fileName) => {
+	if (onDesktop()) {
+		return new Promise((res) => {
+			var handler = async (e) => {
+				window.removeEventListener(`read-file:${fileName}`, handler);
+				res(e.detail);
+			};
+
+			window.addEventListener(`read-file:${fileName}`, handler);
+
+			dispatch("read-file", fileName);
+		});
+	}
+
+	try {
+		var res = await Filesystem.readFile({
+			path: fileName,
+			directory: Directory.Documents,
+			encoding: Encoding.UTF8,
+		});
+
+		if (res) return res?.data;
+	} catch (error) {
+		//
+	}
+};
+
+export const getToken = async (key) => {
+	let token = await readFile(`token-${key}.json`);
+
+	if (!token?.length) {
+		token = await window.__crotchet.openForm({
+			title: "Enter Token",
+			field: {
+				label: key,
+			},
+		});
+
+		if (token) token = await saveToken(key, token);
+	}
+
+	if (token?.length) {
+		try {
+			token = JSON.parse(token);
+		} catch (_) {
+			//
+		}
+	}
+
+	return token;
+};
+
+export const saveToken = async (key, value, expiresAt) => {
+	const token = JSON.stringify({ value, expiresAt }, null, 4);
+	await writeFile(`token-${key}.json`, token);
+	return token;
+};
+
+export const networkRequest = async (
+	url,
+	{
+		bearerToken,
+		secretToken,
+		responseType = "json",
+		responseField,
+		searchParam = "q",
+		q,
+		filters = {},
+		headers = {},
+		params = {},
+	} = {}
+) => {
+	const fetchHeaders = {
+		Accept: "application/json",
+		"Content-Type": "application/json",
+		Authorization: `Bearer ${bearerToken}`,
+		...headers,
+	};
+
+	if (secretToken) {
+		const token = await getToken(secretToken);
+		if (!token?.value?.length) return null;
+
+		fetchHeaders[secretToken] = token.value;
+	}
+
+	let fullUrl = new URL(url);
+	try {
+		Object.entries({ ...params, [searchParam]: q, ...filters }).forEach(
+			([key, value]) => {
+				if (value != undefined) fullUrl.searchParams.append(key, value);
+			}
+		);
+	} catch (error) {
+		console.log("Error: ", error);
+	}
+
+	return fetch(fullUrl.href, {
+		headers: fetchHeaders,
+	})
+		.then((response) => response[responseType]())
+		.then((res) => res?.[responseField] || res);
 };
