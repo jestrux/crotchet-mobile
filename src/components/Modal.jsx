@@ -127,7 +127,7 @@ const Modal = ({
 			onDismiss={dismissible ? onClose : () => {}}
 			isOpen={isOpen}
 			leastDestructiveRef={cancelRef}
-			className={`fixed overflow-y-auto inset-0 z-[999] flex items-start justify-center py-16
+			className={`fixed overflow-y-auto inset-0 z-[999] flex items-center justify-center py-16
                 ${showOverlayBg && "bg-black/20 dark:bg-black/70"}
                 ${invisible && "opacity-0 pointer-events-none"}
             `}
