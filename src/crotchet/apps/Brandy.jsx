@@ -58,6 +58,10 @@ registerAction("brandySearchUser", {
 					copyToClipboard(JSON.stringify(user, null, 4));
 				},
 			},
+			actions: [
+				{ label: "Copy user data", handler: () => {} },
+				{ label: "Download user data", handler: () => {} },
+			],
 			content: (user) => {
 				if (!user) return true;
 

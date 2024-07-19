@@ -12,7 +12,12 @@ const fieldIsVisible = (field, data) => {
 	return !hiddenByData && !invisibleField;
 };
 
-export default function Form({ onClose = () => {}, onSubmit, ...props }) {
+export default function Form({
+	onClose = () => {},
+	submitButtonRef: _submitButtonRefProp,
+	onSubmit,
+	...props
+}) {
 	const allData = props.data
 		? props.data
 		: props.field && props.field.value
@@ -110,9 +115,15 @@ export default function Form({ onClose = () => {}, onSubmit, ...props }) {
 		return () => clearTimeout(timeout);
 	}, []);
 
+	const inSpotlight = !!_submitButtonRefProp;
+
 	return (
 		<form ref={formRef} id="theForm" onSubmit={handleSubmit}>
-			<div className="grid grid-cols-12 gap-3 items-start">
+			<div
+				className={`grid grid-cols-12 items-start ${
+					inSpotlight ? "gap-6" : "gap-3"
+				}`}
+			>
 				{fields.map((field, index) => {
 					if (typeof field.show == "function" && !field.show(data))
 						return null;
@@ -148,6 +159,7 @@ export default function Form({ onClose = () => {}, onSubmit, ...props }) {
 									</div>
 								)}
 							<FormField
+								horizontal={inSpotlight}
 								{...(key ? { key } : {})}
 								className={` ${widthClass} ${
 									field.noMargin && "-mt-3"
@@ -171,7 +183,11 @@ export default function Form({ onClose = () => {}, onSubmit, ...props }) {
 			</div>
 
 			<div className="mt-4">
-				<Button ref={submitButtonRef} type="submit">
+				<Button
+					ref={_submitButtonRefProp || submitButtonRef}
+					className={_submitButtonRefProp ? "hidden" : ""}
+					type="submit"
+				>
 					Submit
 				</Button>
 			</div>

@@ -139,6 +139,11 @@
 				}
 			}
 
+			.center-center {
+				align-items: center;
+				justify-content: center;
+			}
+
 			[data-reach-combobox-option][data-selected],
 			[data-reach-combobox-option][data-highlighted],
 			[data-reach-combobox-option]:hover,
@@ -146,9 +151,13 @@
 				position: relative;
 			}
 
-			[data-reach-combobox-option][data-selected]:before,
-			[data-reach-combobox-option][data-highlighted]:before,
-			[data-reach-combobox-option]:hover:before,
+			[data-reach-combobox-option]:not(
+					.spotlight-grid-item
+				)[data-selected]:before,
+			[data-reach-combobox-option]:not(
+					.spotlight-grid-item
+				)[data-highlighted]:before,
+			[data-reach-combobox-option]:not(.spotlight-grid-item):hover:before,
 			.data-reach-combobox-selected:before {
 				content: "";
 				position: absolute;
@@ -158,6 +167,40 @@
 				height: 100%;
 				background: currentColor;
 				opacity: 0.08;
+			}
+
+			.spotlight-grid-item-preview {
+				position: relative;
+			}
+
+			.spotlight-grid-item[data-selected]
+				.spotlight-grid-item-preview:before,
+			.spotlight-grid-item[data-highlighted]
+				.spotlight-grid-item-preview:before,
+			.spotlight-grid-item:hover .spotlight-grid-item-preview:before,
+			.spotlight-grid-item.data-reach-combobox-selected
+				.spotlight-grid-item-preview:before {
+				inset: 0;
+				width: auto;
+				height: auto;
+				border-radius: 4px;
+				border: 3px solid rgb(var(--primary-color));
+				z-index: 10;
+			}
+
+			.spotlight-grid-item[data-selected]
+				.spotlight-grid-item-preview:after,
+			.spotlight-grid-item[data-highlighted]
+				.spotlight-grid-item-preview:after,
+			.spotlight-grid-item:hover .spotlight-grid-item-preview:after,
+			.spotlight-grid-item.data-reach-combobox-selected
+				.spotlight-grid-item-preview:after {
+				content: "";
+				position: absolute;
+				inset: 0;
+				border-radius: 4px;
+				border: 3px solid rgb(var(--primary-color));
+				z-index: 10;
 			}
 
 			.window-drag-handle {

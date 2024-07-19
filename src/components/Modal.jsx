@@ -1,18 +1,19 @@
-import { AlertDialog, AlertDialogLabel } from "@reach/alert-dialog";
 import { useRef } from "react";
+import { AlertDialog, AlertDialogLabel } from "@reach/alert-dialog";
+import { DragHandle } from "./DraggableElement";
 
-const Button = ({
+function Button({
 	type = "button",
 	className = "",
 	processing,
 	children,
 	onClick,
-}) => {
+}) {
 	return (
 		<button
 			type={type}
 			className={
-				`inline-flex items-center px-4 py-2 bg-content/5 border border-content/10 rounded-md font-semibold text-xs transition-colors duration-150 hover:opacity-70 ${
+				`inline-flex items-center px-4 py-2 bg-gray-900 border border-transparent rounded-md font-semibold text-xs text-white active:bg-gray-900 transition ease-in-out duration-150 hover:opacity-70 ${
 					processing && "opacity-25"
 				} ` + className
 			}
@@ -22,7 +23,7 @@ const Button = ({
 			{children}
 		</button>
 	);
-};
+}
 
 export const MessageModal = ({
 	isOpen,
@@ -36,7 +37,6 @@ export const MessageModal = ({
 	actions,
 	children,
 	hideCloseButton = false,
-	invisible,
 	onOkay,
 	onClose,
 }) => {
@@ -53,8 +53,6 @@ export const MessageModal = ({
 		<Modal
 			dismissible
 			isOpen={isOpen}
-			hideCloseButton={hideCloseButton}
-			invisible={invisible}
 			onClose={handleClose}
 			noPadding
 			size={size}
@@ -69,6 +67,30 @@ export const MessageModal = ({
 				}
                 `}
 			>
+				{onClose && !hideCloseButton && (
+					<button
+						type="button"
+						className="absolute right-2.5 top-1 bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+						onClick={handleClose}
+					>
+						<span className="sr-only">Close</span>
+						<svg
+							className="h-5 w-5"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+							aria-hidden="true"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth="2"
+								d="M6 18L18 6M6 6l12 12"
+							/>
+						</svg>
+					</button>
+				)}
+
 				<div className="mt-4">
 					<div className="text-center md:mt-5">
 						<h3
@@ -91,11 +113,11 @@ export const MessageModal = ({
 						actions
 					) : (
 						<Button
-							{...(actionStyle === "outline"
+							{...(actionStyle == "outline"
 								? { outline: true }
 								: { color: "primary" })}
 							style={{
-								minWidth: size === "md" ? "100px" : "130px",
+								minWidth: size == "md" ? "100px" : "130px",
 							}}
 							onClick={handleClose}
 						>
@@ -112,24 +134,23 @@ const Modal = ({
 	children,
 	className = "",
 	label = "Content",
-	size = "md",
+	size = "xl",
 	dismissible = false,
-	hideCloseButton = true,
 	showOverlayBg = true,
-	invisible = false,
 	isOpen,
 	onClose,
+	dragProps,
 }) => {
 	const cancelRef = useRef();
+	const { listeners, attributes, setNodeRef, style, reset } = dragProps || {};
 
 	return (
 		<AlertDialog
 			onDismiss={dismissible ? onClose : () => {}}
 			isOpen={isOpen}
 			leastDestructiveRef={cancelRef}
-			className={`fixed overflow-y-auto inset-0 z-[999] flex items-center justify-center py-16
+			className={`fixed overflow-y-auto inset-0 z-10 flex items-center justify-center py-16
                 ${showOverlayBg && "bg-black/20 dark:bg-black/70"}
-                ${invisible && "opacity-0 pointer-events-none"}
             `}
 		>
 			<div ref={cancelRef} className="fixed inset-0" onClick={onClose}>
@@ -139,43 +160,25 @@ const Modal = ({
 			<div
 				className={`group bg-card border shadow-2xl rounded-lg overflow-hidden w-full relative
                     ${className}
-                    ${size === "xs" && "max-w-xs"}
-                    ${size === "sm" && "max-w-sm"}
-                    ${size === "md" && "max-w-md"}
-                    ${size === "lg" && "max-w-lg"}
-                    ${size === "xl" && "max-w-xl"}
+                    ${size == "xs" && "max-w-xs"}
+                    ${size == "sm" && "max-w-sm"}
+                    ${size == "md" && "max-w-md"}
+                    ${size == "lg" && "max-w-lg"}
+                    ${size == "xl" && "max-w-xl"}
                 `}
+				{...attributes}
+				ref={setNodeRef}
 				style={{
+					...(style || {}),
 					boxShadow: showOverlayBg
 						? ""
 						: "0px 10px 30px -2px var(--shadow-color)",
 				}}
 			>
-				{onClose && !hideCloseButton && (
-					<button
-						type="button"
-						className="z-10 absolute right-2 top-2 rounded-full hover:bg-content/5 text-content/30 hover:text-content/50 p-1 focus:outline-none border border-transparent focus:border-content/20"
-						onClick={onClose}
-					>
-						<span className="sr-only">Close</span>
-						<svg
-							className="h-4 w-4"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							aria-hidden="true"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth="2.7"
-								d="M6 18L18 6M6 6l12 12"
-							/>
-						</svg>
-					</button>
-				)}
-
 				{children}
+				{dragProps && (
+					<DragHandle listeners={listeners} reset={reset} />
+				)}
 			</div>
 		</AlertDialog>
 	);

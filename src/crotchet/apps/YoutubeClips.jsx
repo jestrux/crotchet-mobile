@@ -26,7 +26,8 @@ const openOnDesktop = (path) => {
 		scheme: "youtubeClips",
 		url: path.replace("/youtubeClips/desktop/", "/youtubeClips"),
 		window: {
-			fullScreen: true,
+			// maximize: true,
+			// fullScreen: true,
 		},
 	});
 };
@@ -279,6 +280,7 @@ registerDataSource("db", "youtubeClips", {
 	searchFields: ["title"],
 	layoutProps: {
 		layout: "grid",
+		aspectRatio: "16/9",
 		columns: "sm:2,2xl:3,4xl:4",
 	},
 });

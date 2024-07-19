@@ -1,328 +1,27 @@
-import { Children, cloneElement, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
-	DataWidget,
-	Input,
 	camelCaseToSentenceCase,
-	cleanObject,
 	dispatch,
-	objectIsEmpty,
-	randomId,
 	showToast,
 	urlQueryParamsAsObject,
 	useAppContext,
 } from "@/crotchet";
 import useEventListener from "../hooks/useEventListener";
 import clsx from "clsx";
-import GlobalSearch from "../components/GlobalSearch";
-import CommandKey from "./CommandKey";
 import useKeyDetector from "@/hooks/useKeyDetector";
-import useLoadableView from "@/hooks/useLoadableView";
-
-const Button = ({
-	type = "button",
-	className = "",
-	processing,
-	children,
-	onClick,
-}) => {
-	return (
-		<button
-			type={type}
-			className={
-				`inline-flex items-center px-2 h-8 dark:bg-content/5 hover:bg-content/5 dark:hover:bg-content/10 border border-content/10 rounded-md font-semibold text-xs transition-colors duration-150 focus:outline-none focus:bg-content/5 dark:focus:bg-content/[0.08] focus:border-content/20 ${
-					processing && "opacity-25"
-				} ` + className
-			}
-			disabled={processing}
-			onClick={onClick ? onClick : null}
-		>
-			{children}
-		</button>
-	);
-};
-
-const AppPageContent = ({ pageData, page, pageContentRef }) => {
-	const { apps } = useAppContext();
-	const Home = apps.home.main;
-	const secondaryActionShortCut = page.secondaryAction?.shortcut || "Cmd + K";
-	const submitHandler = useRef(
-		page.action?.handler ? page.action.handler : null
-	);
-	const secondaryActionHandler = useRef(
-		page.secondaryAction?.handler ? page.secondaryAction.handler : null
-	);
-
-	const handleSecondaryAction = () => {
-		if (typeof secondaryActionHandler.current == "function")
-			secondaryActionHandler.current({ pageData });
-	};
-
-	const handleSubmit = () => {
-		if (typeof submitHandler.current == "function")
-			submitHandler.current({ pageData });
-	};
-
-	useKeyDetector({
-		key: "Cmd + Enter",
-		action: handleSubmit,
-	});
-
-	useKeyDetector({
-		key: "Cmd + k",
-		action: handleSecondaryAction,
-	});
-
-	return (
-		<>
-			<div ref={pageContentRef} className="flex-1 overflow-auto">
-				{page?.root && (
-					<>
-						<div
-							className={
-								page.searchQuery
-									? "absolute opacity-0 pointer-events-none"
-									: ""
-							}
-						>
-							<Home />
-						</div>
-
-						{page.searchQuery && (
-							<GlobalSearch searchQuery={page.searchQuery} />
-						)}
-					</>
-				)}
-
-				{!page?.root &&
-					(page?.source ? (
-						<div className="p-4">
-							<DataWidget
-								{...page}
-								searchQuery={page.searchQuery}
-								widgetProps={{ noPadding: true }}
-							/>
-						</div>
-					) : (
-						Children.map(page.content, (child) => {
-							if (!child?.type) return null;
-
-							return cloneElement(child, {
-								pageData,
-							});
-						})
-					))}
-			</div>
-
-			{(page?.secondaryAction ||
-				typeof submitHandler.current == "function") && (
-				<div className="bg-card sticky bottom-0 h-11 px-3 flex gap-1 items-center justify-between border-t z-10">
-					<div
-						className={
-							typeof submitHandler.current != "function"
-								? "ml-auto -mr-2"
-								: "-ml-2"
-						}
-					>
-						{page?.secondaryAction && (
-							<Button
-								className="gap-1"
-								rounded="md"
-								size="sm"
-								variant="ghost"
-								colorScheme={
-									{ danger: "red", warning: "yellow" }[
-										page.secondaryActionType
-									]
-								}
-								onClick={handleSecondaryAction}
-							>
-								<span className="mr-0.5 capitalize">
-									{page.secondaryAction.label}
-								</span>
-								{secondaryActionShortCut
-									.split(" + ")
-									.map((key) => (
-										<CommandKey key={key} label={key} />
-									))}
-							</Button>
-						)}
-					</div>
-
-					{typeof submitHandler.current == "function" && (
-						<Button
-							className="gap-1 -mr-2"
-							onClick={handleSubmit}
-							rounded="md"
-							size="sm"
-							variant="ghost"
-						>
-							<span className="mr-0.5 capitalize">
-								{page?.action?.label || "Submit"}
-							</span>
-
-							<CommandKey label="Cmd" />
-
-							<CommandKey label="Enter" />
-						</Button>
-					)}
-				</div>
-			)}
-		</>
-	);
-};
-
-const AppPage = ({ page: _page, focused, onClose }) => {
-	const pageContent = useRef(null);
-	const [inputCache, setInputCache] = useState(randomId());
-
-	const focusInput = () => {
-		if (searchbar.current) {
-			searchbar.current.classList.add("manual-focus");
-			searchbar.current.focus();
-		}
-	};
-
-	const handleMouseMove = () => {
-		focusInput();
-	};
-
-	const searchbar = useRef();
-
-	const [page, setPage] = useState(_page);
-	let { data: pageData, pendingView: pagePendingView } = useLoadableView({
-		data: page.resolve || (() => true),
-		resolver: true,
-		dismiss: page.dismiss,
-	});
-
-	const updatePage = (newProps) => {
-		setPage((page) => ({
-			...page,
-			...newProps,
-		}));
-	};
-
-	const setSearchQuery = (searchQuery) => {
-		pageContent.current.scrollTop = 0;
-		updatePage({ searchQuery });
-	};
-
-	const handleEscape = () => {
-		if (page.searchQuery) {
-			setInputCache(randomId());
-			return setSearchQuery("");
-		}
-
-		return onClose();
-	};
-
-	return (
-		<div
-			className="relative border border-transparent dark:border-content/30 rounded-xl bg-canvas/[0.985] size-full overflow-hidden flex flex-col"
-			onMouseMove={handleMouseMove}
-		>
-			<div className="pointer-events-none fixed inset-0 bg-purple-500 opacity-[0.03]"></div>
-
-			<div
-				className={
-					"window-drag-handle h-14 px-5 flex items-center z-10 relative border-b border-content/10"
-				}
-			>
-				{!page.root && (
-					<button
-						type="button"
-						className="window-no-drag flex-shrink-0 -ml-1.5 mr-2.5 bg-content/10 rounded flex items-center justify-center w-7 h-7"
-						onClick={() => onClose()}
-					>
-						<svg
-							className="w-3"
-							fill="none"
-							viewBox="0 0 24 24"
-							strokeWidth={3}
-							stroke="currentColor"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
-							/>
-						</svg>
-					</button>
-				)}
-
-				{page?.type != "search" && page?.title && (
-					<span className="w-full text-base font-bold">
-						{page?.title || "Create Quicklink"}
-					</span>
-				)}
-
-				{focused && (
-					<Input
-						key={inputCache}
-						ref={searchbar}
-						autoFocus
-						className={clsx(
-							"command-prompt-input bg-transparent backdrop-blur-sm size-full text-lg outline-none placeholder:text-content/25",
-							page?.type != "search" && "opacity-0"
-						)}
-						type="custom"
-						placeholder={page.placeholder || "Type to search..."}
-						value={page.searchQuery}
-						onChange={setSearchQuery}
-						debounce={page.debounce}
-						onEscape={handleEscape}
-						onFocus={(e) => {
-							const el = e.target;
-
-							if (
-								_page.searchQuery &&
-								!el.classList.contains("initial-render")
-							)
-								return el.classList.add("initial-render");
-
-							if (el.classList.contains("manual-focus"))
-								return el.classList.remove("manual-focus");
-
-							if (page.searchQuery) el.select();
-						}}
-					/>
-				)}
-			</div>
-
-			{pagePendingView != true ? (
-				pagePendingView
-			) : (
-				<AppPageContent
-					pageContentRef={pageContent}
-					page={page}
-					pageData={pageData}
-				/>
-			)}
-		</div>
-	);
-};
+import SpotlightSearch from "@/components/SpotlightSearch";
+import SpotlightListSection from "@/components/SpotlightSearch/SpotlightComponents/SpotlightListSection";
+import SpotlightListItem from "@/components/SpotlightSearch/SpotlightComponents/SpotlightListItem";
 
 export default function DesktopApp() {
-	const rootPage = {
-		_id: randomId(),
-		root: true,
-		liveSearch: true,
-		type: "search",
-		title: "",
-		placeholder: "Search for apps, commands and automations...",
-		searchQuery: "",
-	};
-
 	const toastTimerRef = useRef();
 	const [toast, setToast] = useState(null);
-	const [pages, setPages] = useState([rootPage]);
-	const page = pages.at(-1);
 	const [app, _setApp] = useState(null);
-	const { apps, actions, dataSources, openUrl } = useAppContext();
+	const { apps, actions, globalActions, dataSources, openUrl } =
+		useAppContext();
 
 	const setApp = (app) => {
-		window.__crotchet.desktop.app;
-
+		window.__crotchet.desktop.app = app;
 		_setApp(app);
 	};
 
@@ -346,57 +45,25 @@ export default function DesktopApp() {
 		});
 	};
 
-	window.__crotchet.desktop.openPage = (props, push) => {
-		props._id = randomId();
-
-		if (objectIsEmpty(props)) return;
-
-		if (app) closeApp();
-
-		if (!push) popToRoot();
-
-		setPages((pages) => [...pages, cleanObject(props)]);
-
-		return new Promise((res) => {
-			__crotchet._promiseResolvers[props._id] = res;
-		});
-	};
-
-	const closePage = (data) => {
-		if (page.root) {
-			if (!app) hideAppWindow();
-			return;
-		}
-
-		setPages((pages) => {
-			var resolver = __crotchet._promiseResolvers?.[pages.at(-1)?._id];
-
-			if (typeof resolver == "function") resolver(data);
-
-			return pages.filter((_, i) => i != pages.length - 1);
-		});
-	};
-
-	window.__crotchet.desktop.closePage = (data) =>
-		dispatch("close-page", data);
-
-	const popToRoot = () => {
-		setPages((pages) => [pages[0]]);
-	};
-
 	const hideAppWindow = () => {
-		if (app) closeApp();
 		dispatch("toggle-app", false);
 		window.__crotchet.desktop.visible = false;
 	};
 
 	const closeApp = () => {
-		setApp(null);
-		dispatch("restore");
+		if (window.__crotchet.desktop.app) {
+			setApp(null);
+			dispatch("restore");
+		}
 	};
 
 	const handleMouseMove = () => {
 		if (app) return;
+	};
+
+	const handleHideApp = () => {
+		if (window.hideAppTimeout) clearTimeout(window.hideAppTimeout);
+		if (!app) window.hideAppTimeout = setTimeout(hideAppWindow, 10);
 	};
 
 	const handleOpenPage = (payload) => {
@@ -433,22 +100,10 @@ export default function DesktopApp() {
 	useEventListener("focus", () => {
 		window.__crotchet.desktop.visible = true;
 		if (window.hideAppTimeout) clearTimeout(window.hideAppTimeout);
-
-		// setTimeout(() => {
-		// 	if (!app) dispatch("restore");
-		// }, 500);
-	});
-
-	useEventListener("open-page", (_, payload) => handleOpenPage(payload));
-
-	useEventListener("close-page", (_, data) => {
-		closePage(data);
 	});
 
 	useEventListener("blur", () => {
-		if (window.hideAppTimeout) clearTimeout(window.hideAppTimeout);
-
-		if (!app) window.hideAppTimeout = setTimeout(hideAppWindow, 10);
+		handleHideApp();
 	});
 
 	useEventListener("socket", (_, { event, payload } = {}) => {
@@ -473,7 +128,6 @@ export default function DesktopApp() {
 
 		if (event == "open-url") {
 			try {
-				// showToast("Open: " + payload.substring(0, 25) + "...");
 				setTimeout(() => {
 					openUrl(payload);
 				}, 20);
@@ -490,11 +144,11 @@ export default function DesktopApp() {
 		}
 	});
 
-	useEventListener("keydown:Escape", (e) => {
-		if (app) closeApp();
-		else if (e.shiftKey) {
-			if (!page.root) popToRoot();
-		}
+	useKeyDetector({
+		key: "Escape",
+		action: () => {
+			closeApp();
+		},
 	});
 
 	const AppScreen = () => {
@@ -523,24 +177,46 @@ export default function DesktopApp() {
 					"opacity-0": app?.scheme,
 				})}
 			>
-				{pages.map((page) => {
-					const focused = page._id == pages.at(-1)._id;
+				<div
+					className="relative border border-transparent dark:border-content/30 rounded-xl bg-canvas/[0.985] size-full overflow-hidden"
+					onMouseMove={handleMouseMove}
+				>
+					<div className="pointer-events-none fixed inset-0 bg-purple-500 opacity-[0.03]"></div>
 
-					return (
-						<div
-							key={page._id}
-							className={clsx("absolute inset-0", {
-								"opacity-0 pointer-events-none": !focused,
-							})}
-						>
-							<AppPage
-								page={page}
-								focused={focused && !app}
-								onClose={closePage}
-							/>
-						</div>
-					);
-				})}
+					<SpotlightSearch open={!app?.scheme}>
+						<SpotlightListSection title="Actions">
+							{globalActions().map((action) => (
+								<SpotlightListItem
+									key={action._id}
+									value={action.label}
+									onSelect={() => action.handler()}
+									trailing={SpotlightListItem.NavIcon}
+								/>
+							))}
+						</SpotlightListSection>
+						<SpotlightListSection title="Data sources">
+							{_.sortBy(
+								_.filter(
+									Object.values(dataSources),
+									({ searchable }) => !searchable
+								),
+								"label"
+							).map((source) => (
+								<SpotlightListItem
+									key={source._id}
+									value={source.label}
+									onSelect={() =>
+										handleOpenPage({
+											page: "search",
+											source: source.name,
+										})
+									}
+									trailing={SpotlightListItem.NavIcon}
+								/>
+							))}
+						</SpotlightListSection>
+					</SpotlightSearch>
+				</div>
 			</div>
 
 			{app?.scheme && (

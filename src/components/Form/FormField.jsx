@@ -639,6 +639,7 @@ export default function FormField({
 	className,
 	__data,
 	field,
+	horizontal,
 	onChange = () => {},
 }) {
 	field.optional = field.optional ?? !(field.required ?? false);
@@ -670,22 +671,34 @@ export default function FormField({
 
 	return (
 		<div className={`${className}`}>
-			<div>
+			<div
+				className={`${
+					horizontal
+						? "grid grid-cols-12 gap-3 items-center"
+						: "flex flex-col gap-1"
+				}`}
+			>
+				{horizontal && <div className="col-span-1"></div>}
 				{field.type !== "boolean" && !field.hideLabel && (
 					<label
-						className="inline-block first-letter:capitalize mb-1"
+						className={`inline-block first-letter:capitalize ${
+							horizontal ? "col-span-3 text-right text-sm leading-tight" : ""
+						}`}
 						htmlFor={field.label}
 					>
 						{field.label}
 					</label>
 				)}
 
-				<Field
-					__data={__data}
-					field={field}
-					value={value}
-					onChange={handleChange}
-				/>
+				<div className="col-span-6">
+					<Field
+						__data={__data}
+						field={field}
+						value={value}
+						onChange={handleChange}
+					/>
+				</div>
+				{horizontal && <div className="col-span-2"></div>}
 			</div>
 
 			{field.hint && field.hint.length && (
