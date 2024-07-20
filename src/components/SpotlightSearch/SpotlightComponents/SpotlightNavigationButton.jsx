@@ -16,6 +16,7 @@ export default function SpotlightNavigationButton({
 			// secondaryActionType: "danger",
 			// confirmText: "Delete",
 			// title: "Edit Links",
+			title: label,
 			type: "detail",
 			// content,
 			...(page || {}),

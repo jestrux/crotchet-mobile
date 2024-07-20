@@ -12,6 +12,7 @@ import useKeyDetector from "@/hooks/useKeyDetector";
 import SpotlightSearch from "@/components/SpotlightSearch";
 import SpotlightListSection from "@/components/SpotlightSearch/SpotlightComponents/SpotlightListSection";
 import SpotlightListItem from "@/components/SpotlightSearch/SpotlightComponents/SpotlightListItem";
+import SpotlightNavigationButton from "@/components/SpotlightSearch/SpotlightComponents/SpotlightNavigationButton";
 
 export default function DesktopApp() {
 	const toastTimerRef = useRef();
@@ -70,27 +71,21 @@ export default function DesktopApp() {
 		const { page, ...pageProps } = payload || {};
 
 		if (page == "search") {
-			const { q, query, source } = pageProps;
+			const { q, query, source, ...otherPageProps } = pageProps;
 			const actualSource = dataSources[source];
 
-			if (!actualSource) {
-				console.log(payload, dataSources);
+			if (!actualSource)
 				return showToast(`Invalid data source ${source}`);
-			}
-
-			const searchProps = actualSource.searchProps
-				? actualSource.searchProps
-				: {};
 
 			window.__crotchet.desktop.openPage({
+				...otherPageProps,
+				layoutProps: actualSource.layoutProps,
 				type: "search",
-				...searchProps,
-				placeholder: source
-					? `Search ${camelCaseToSentenceCase(source)}...`
+				placeholder: actualSource.name
+					? `Search ${camelCaseToSentenceCase(actualSource.name)}...`
 					: "",
 				searchQuery: q ?? query,
-				...payload,
-				source: actualSource,
+				resolve: actualSource.get,
 			});
 
 			return;
@@ -181,10 +176,18 @@ export default function DesktopApp() {
 					className="relative border border-transparent dark:border-content/30 rounded-xl bg-canvas/[0.985] size-full overflow-hidden"
 					onMouseMove={handleMouseMove}
 				>
-					<div className="pointer-events-none fixed inset-0 bg-purple-500 opacity-[0.03]"></div>
+					{/* <div className="pointer-events-none fixed inset-0 bg-stone-50/0.05 blur-3xl"></div> */}
 
 					<SpotlightSearch open={!app?.scheme}>
 						<SpotlightListSection title="Actions">
+							<SpotlightNavigationButton
+								label="Run an Automation"
+								page={{
+									type: "search",
+									resolve: actions.getAutomations.handler,
+								}}
+								trailing={SpotlightListItem.NavIcon}
+							/>
 							{globalActions().map((action) => (
 								<SpotlightListItem
 									key={action._id}

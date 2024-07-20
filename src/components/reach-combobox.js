@@ -546,7 +546,7 @@ var ComboboxOption = React.forwardRef(({ as: Comp = "li", children, index: index
   let ref = useComposedRefs(forwardedRef, handleRefSet);
   let isActive = navigationValue === value;
   let handleClick = () => {
-    onSelect && onSelect(value);
+    onSelect && onSelect(value, true);
     transition(SELECT_WITH_CLICK, {
       value,
       isControlled: isControlledRef.current

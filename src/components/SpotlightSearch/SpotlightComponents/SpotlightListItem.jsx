@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ComboboxOption } from "@/components/reach-combobox"; //"@reach/combobox";
+import { ComboboxOption } from "@/components/reach-combobox";
 import { useSpotlightPageContext } from "../SpotlightSearchPage/SpotlightPageContext";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 
@@ -68,11 +68,22 @@ function SpotlightListItem({
 		hoverObserverRef.current = new MutationObserver((mutations) => {
 			const mutation = mutations.find(({ type }) => type == "attributes");
 			if (mutation) {
-				const selected = [true, "true"].includes(
-					mutation.target.ariaSelected
-				);
+				if (
+					mutation.attributeName == "data-on-click" &&
+					mutation.target.getAttribute("data-on-click")
+				) {
+					mutation.target.removeAttribute("data-on-click");
+					handleSelect();
+				}
 
-				if (mutation.attributeName == "aria-selected") {
+				if (
+					[typeof onFocus, typeof onBlur].includes("function") &&
+					mutation.attributeName == "aria-selected"
+				) {
+					const selected = [true, "true"].includes(
+						mutation.target.ariaSelected
+					);
+
 					if (selected)
 						onFocus(mutation.target.getAttribute("data-value"));
 					else onBlur(mutation.target.getAttribute("data-value"));
@@ -88,14 +99,9 @@ function SpotlightListItem({
 	useEffect(() => {
 		const ref = optionRef.current;
 
-		if (ref) {
-			ref.addEventListener("on-select", handleSelect, false);
-			if ([typeof onFocus, typeof onBlur].includes("function"))
-				observeForHover(ref);
-		}
+		if (ref) observeForHover(ref);
 
 		return () => {
-			if (ref) ref.removeEventListener("on-select", handleSelect, false);
 			if (hoverObserverRef.current) hoverObserverRef.current.disconnect();
 		};
 	}, []);
@@ -124,6 +130,7 @@ function SpotlightListItem({
 			} list-none sfocus:outline-none`}
 			data-value={value}
 			value={value}
+			onClick={handleSelect}
 		>
 			{content}
 		</ComboboxOption>

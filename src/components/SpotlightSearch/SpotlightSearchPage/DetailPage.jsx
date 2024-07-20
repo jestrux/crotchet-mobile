@@ -1,54 +1,27 @@
-import { useEffect, useRef } from "react";
-import useKeyDetector from "@/hooks/useKeyDetector";
-
+import { useRef } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import SpotlightPageActions from "./SpotlightPageActions";
 import ActionPage from "./ActionPage";
 import FormPage from "./FormPage";
 
 export default function DetailPage({
-	open,
 	page = { type: "detail" },
-	// pageData,
 	children,
-	onClose,
+	onOpen,
 	onPop,
-	onPopAll,
 }) {
 	const popoverTitleRef = useRef(null);
 	const containerRef = useRef(null);
 
-	useEffect(() => {
-		if (open) {
-			setTimeout(() => {
-				if (page?.type == "form") {
-					const firstInput = document.querySelector(
-						"#popoverContent input, #popoverContent textarea"
-					);
-					if (firstInput) firstInput.focus();
-				}
-			}, 20);
-		}
-	}, [open]);
-
-	const handleEscape = ({ close, popAll } = {}) => {
-		const combobox = popoverTitleRef.current.closest(
-			"#spotlightSearchWrapper"
-		);
-		if (document.querySelector(".pier-message-modal")) return;
-		if (combobox.className.indexOf("pier-menu-open") != -1)
-			return containerRef.current.focus();
-
-		if (close) onClose();
-		else if (!popAll && typeof onPop == "function") onPop();
-		else if (typeof onPopAll == "function") onPopAll();
-		else onClose();
-	};
-
-	useKeyDetector({
-		key: "Escape",
-		delayBy: 50,
-		action: (e) => handleEscape({ popAll: e.shiftKey }),
+	onOpen(() => {
+		setTimeout(() => {
+			if (page?.type == "form") {
+				const firstInput = document.querySelector(
+					"#popoverContent input, #popoverContent textarea"
+				);
+				if (firstInput) firstInput.focus();
+			}
+		}, 20);
 	});
 
 	const renderPage = () => {

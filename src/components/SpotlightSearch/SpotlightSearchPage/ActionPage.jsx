@@ -1,24 +1,20 @@
 import { Button } from "@chakra-ui/react";
 import { Children, cloneElement, useRef } from "react";
 import CommandKey from "@/components/CommandKey";
-import useKeyDetector from "@/hooks/useKeyDetector";
 import useAlerts from "@/components/Alerts/useAlerts";
 import { useSpotlightContext } from "../SpotlightContext";
+import { useSpotlightPageContext } from "./SpotlightPageContext";
 import Menu from "@/components/Menu";
+import { showToast } from "@/utils";
+import { onActionClick } from "@/crotchet";
 
-const getFallbackSecondaryActionHandler = ({
-	page,
-	confirm,
-	popCurrentSpotlightPage,
-}) => {
-	let handler = () => popCurrentSpotlightPage(page.secondaryAction?.label);
+const getFallbackSecondaryActionHandler = ({ page, confirm }) => {
+	let handler = () => {};
 
 	if (typeof page.secondaryAction?.handler == "function") {
 		const pageSecondaryActionHandler = page.secondaryAction.handler;
 
-		handler = async () => {
-			let newData;
-
+		handler = async (payload) => {
 			if (page.secondaryAction?.destructive) {
 				const res = await confirm({
 					title: page.secondaryAction.label + "?",
@@ -30,23 +26,27 @@ const getFallbackSecondaryActionHandler = ({
 				if (!res) return;
 			}
 
-			newData = await pageSecondaryActionHandler(page);
-
-			popCurrentSpotlightPage({
-				fromSecondaryAction: true,
-				data: newData,
-			});
+			return await pageSecondaryActionHandler(payload);
 		};
 	}
 
 	return handler;
 };
 
-const getFallbackActionHandler = ({ page, popCurrentSpotlightPage }) => {
+const getFallbackActionHandler = ({ page }) => {
 	if (typeof page.action?.handler == "function") {
-		return async () => {
-			const newData = await page.action?.handler(page);
-			popCurrentSpotlightPage(newData);
+		return async (payload) => {
+			if (page.action?.destructive) {
+				const res = await confirm({
+					title: page.action.label + "?",
+					actionType: "danger",
+					okayText: page.action.confirmText || "Yes, Continue",
+				});
+
+				if (!res) return;
+			}
+
+			return page.action?.handler(payload);
 		};
 	}
 
@@ -55,6 +55,13 @@ const getFallbackActionHandler = ({ page, popCurrentSpotlightPage }) => {
 
 export default function ActionPage({ page, children }) {
 	const { popCurrentSpotlightPage } = useSpotlightContext();
+	const {
+		pageData,
+		onContextMenuClick,
+		onActionMenuClick,
+		onSecondaryActionClick,
+		onMainActionClick,
+	} = useSpotlightPageContext();
 	const { confirm } = useAlerts();
 	const actionsButtonRef = useRef();
 	const secondaryActionButtonRef = useRef();
@@ -68,41 +75,36 @@ export default function ActionPage({ page, children }) {
 		getFallbackSecondaryActionHandler({
 			page,
 			confirm,
-			popCurrentSpotlightPage,
 		})
 	);
 	const onSubmit = (callback) => {
 		submitHandler.current = callback;
 	};
-	const handleSubmit = () => {
-		if (typeof submitHandler.current == "function") submitHandler.current();
+	const handleSubmit = (payload) => {
+		if (typeof submitHandler.current == "function")
+			submitHandler.current(payload);
 	};
-	const onSecondaryAction = (callback) => {
-		secondaryActionHandler.current = callback;
-	};
-	const handleSecondaryAction = () => {
+
+	const handleSecondaryAction = (payload) => {
 		if (typeof secondaryActionHandler.current == "function")
-			secondaryActionHandler.current();
+			secondaryActionHandler.current(payload);
+		else showToast("Secondary action");
 	};
 
-	useKeyDetector({
-		key: "Cmd + Enter",
-		action: handleSubmit,
+	onContextMenuClick(() => {
+		showToast("Context menu shortcut clicked");
 	});
 
-	useKeyDetector({
-		key: "Cmd + T",
-		action: () => {
-			onSecondaryAction();
-		},
+	onActionMenuClick(() => {
+		if (actionsButtonRef.current) actionsButtonRef.current.click();
 	});
 
-	useKeyDetector({
-		// key: secondaryActionShortCut,
-		key: "Cmd + K",
-		action: () => {
-			if (actionsButtonRef.current) actionsButtonRef.current.click();
-		},
+	onSecondaryActionClick(() => {
+		handleSecondaryAction({ page, pageData });
+	});
+
+	onMainActionClick(() => {
+		handleSubmit({ page, pageData });
 	});
 
 	const renderSecondaryContent = () => {
@@ -125,7 +127,9 @@ export default function ActionPage({ page, children }) {
 							colorScheme={
 								page.secondaryAction.destructive && "red"
 							}
-							onClick={handleSecondaryAction}
+							onClick={() =>
+								handleSecondaryAction({ page, pageData })
+							}
 						>
 							<span className="mr-0.5 capitalize text-sm">
 								{page.secondaryAction.label}
@@ -189,7 +193,7 @@ export default function ActionPage({ page, children }) {
 				{typeof submitHandler.current == "function" && (
 					<Button
 						className="gap-1"
-						onClick={handleSubmit}
+						onClick={() => handleSubmit({ page, pageData })}
 						rounded="md"
 						size="sm"
 						variant="ghost"
@@ -210,14 +214,17 @@ export default function ActionPage({ page, children }) {
 				{page?.actions?.length && (
 					<Menu
 						plain
-						choices={page.actions || ["Go back"]}
-						onChange={(data) => {
-							if (!data) return;
+						choices={page.actions}
+						onChange={(value) => {
+							if (!value) return;
 
-							popCurrentSpotlightPage({
-								fromSecondaryAction: true,
-								data,
-							});
+							const action = page.actions.find((action) =>
+								[action, action?.label, action?.value].includes(
+									value
+								)
+							);
+
+							if (action) onActionClick(action)({ pageData });
 						}}
 						trigger={
 							<Button

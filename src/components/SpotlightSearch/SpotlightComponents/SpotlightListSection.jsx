@@ -6,7 +6,7 @@ export default function SpotlightListSection({ title, children }) {
 	const sectionRef = useRef(null);
 
 	return (
-		<div className="border-b border-content/5">
+		<div className="border-b border-content/5 spotlight-section">
 			{title && (
 				<Text className="mt-5 mb-1 uppercase tracking-wide text-xs font-semibold opacity-50 px-4 flex items-center">
 					{title}

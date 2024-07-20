@@ -7,6 +7,18 @@ const SpotlightPageContext = createContext({
 	page: null,
 	lastStateUpdate: null,
 	searchTerm: null,
+	pageData: null,
+	// open,
+	onPop: () => {},
+	onPopAll: () => {},
+	onOpen: () => {},
+	onReady: () => {},
+	onEscape: () => {},
+	onClose: () => {},
+	onMainActionClick: () => {},
+	onActionMenuClick: () => {},
+	onContextMenuClick: () => {},
+	onSecondaryActionClick: () => {},
 });
 
 export function SpotlightPageProvider({ value, children }) {
@@ -68,42 +80,15 @@ export function useSpotlightPageEffect(callback, key) {
 export function useSpotlightPageContext() {
 	const context = useContext(SpotlightPageContext);
 	const changeHandler = useRef();
-	const selectHandler = useRef();
 	const onChange = (callback) => (changeHandler.current = callback);
-	const onSelect = (callback) => (selectHandler.current = callback);
-
-	const handleSelect = ({ detail }) => {
-		const { page, value } = detail || {};
-		if (page?.id != context.page?.id) return;
-
-		if (typeof selectHandler.current == "function")
-			selectHandler.current(value);
-	};
 
 	useEffect(() => {
 		if (typeof changeHandler.current == "function")
 			changeHandler.current(context.navigationValue);
 	}, [context.navigationValue]);
 
-	useEffect(() => {
-		document.addEventListener(
-			"spotlight-search-value-changed",
-			handleSelect,
-			false
-		);
-
-		return () => {
-			document.removeEventListener(
-				"spotlight-search-value-changed",
-				handleSelect,
-				false
-			);
-		};
-	}, []);
-
 	return {
 		...context,
 		onChange,
-		onSelect,
 	};
 }

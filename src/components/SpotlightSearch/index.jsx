@@ -19,7 +19,7 @@ export function SpotlightSearchWrapper({ open, children }) {
 					<SpotlightSearchPage
 						key={spotlightRef}
 						{...props}
-						page={{ type: "search" }}
+						page={{ id: "root", _id: "root", type: "search" }}
 						open={open && !spotlightInnerPages.length}
 						onClose={() => hideSpotlightSearch()}
 						dragProps={dragProps}

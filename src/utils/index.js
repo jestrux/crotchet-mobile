@@ -237,7 +237,7 @@ export const isValidUrl = (urlString) => {
 };
 
 export const isValidEmail = (email) =>
-	email.length < 256 && /^[^@]+@[^@]{2,}\.[^@]{2,}$/.test(email);
+	email && email.length < 256 && /^[^@]+@[^@]{2,}\.[^@]{2,}$/.test(email);
 
 export const socketEmit = (event, payload) =>
 	dispatch("socket-emit", {
@@ -586,6 +586,8 @@ export const copyToClipboard = (
 	content,
 	{ withToast = true, message } = {}
 ) => {
+	if (!content?.length) return console.log("Nothing to copy: ", content);
+
 	message = message || (content.length < 10 ? `${content} copied` : "Copied");
 
 	if (onDesktop()) {

@@ -2,6 +2,8 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { dispatch, randomId } from "@/utils";
 import useEventListener from "@/hooks/useEventListener";
+import useKeyDetector from "@/hooks/useKeyDetector";
+import { useOnInit } from "@/crotchet";
 
 export const SpotlightContext = createContext({
 	pierAppData: {},
@@ -42,13 +44,15 @@ export function SpotlightProvider({ pages, open, children }) {
 		const promise = new Promise((resolve) => {
 			pageResolver = resolve;
 		});
+		const id = randomId();
 
 		return [
 			{
 				...page,
 				resolver: pageResolver,
 				type: page.type || "search",
-				id: randomId(),
+				id,
+				_id: id,
 			},
 			promise,
 		];
@@ -58,6 +62,12 @@ export function SpotlightProvider({ pages, open, children }) {
 		const [newPage, resolver] = getNewPage(page);
 
 		setSpotlightInnerPages([...spotlightInnerPages, newPage]);
+
+		window.__crotchet.desktop.currentPageId = newPage._id;
+
+		setTimeout(() => {
+			dispatch(`open-${window.__crotchet.desktop.currentPageId}`);
+		}, 200);
 
 		return resolver;
 	};
@@ -75,9 +85,17 @@ export function SpotlightProvider({ pages, open, children }) {
 
 		if (typeof poppedPage.resolver == "function") poppedPage.resolver(data);
 
-		setSpotlightInnerPages(
-			spotlightInnerPages.filter((p) => p.id != poppedPage.id)
-		);
+		setSpotlightInnerPages(() => {
+			var newPages = spotlightInnerPages.filter(
+				(p) => p.id != poppedPage.id
+			);
+			window.__crotchet.desktop.currentPageId =
+				newPages.at(-1)?.id || "root";
+
+			dispatch(`open-${newPages.at(-2)?.id || "root"}`);
+
+			return newPages;
+		});
 
 		updateAppData();
 	};
@@ -124,6 +142,68 @@ export function SpotlightProvider({ pages, open, children }) {
 			);
 	}, []);
 
+	useKeyDetector({
+		key: "Escape",
+		action: (e) => {
+			dispatch(
+				`escape-${window.__crotchet.desktop.currentPageId ?? "root"}`,
+				{
+					popAll: e.shiftKey,
+				}
+			);
+		},
+	});
+
+	useKeyDetector({
+		key: "Cmd + Enter",
+		action: () => {
+			dispatch(
+				`main-action-${
+					window.__crotchet.desktop.currentPageId ?? "root"
+				}`
+			);
+		},
+	});
+
+	useKeyDetector({
+		key: "Cmd + t",
+		action: () => {
+			dispatch(
+				`secondary-action-${
+					window.__crotchet.desktop.currentPageId ?? "root"
+				}`
+			);
+		},
+	});
+
+	useKeyDetector({
+		key: "Cmd + k",
+		action: () => {
+			dispatch(
+				`action-menu-${
+					window.__crotchet.desktop.currentPageId ?? "root"
+				}`
+			);
+		},
+	});
+
+	useKeyDetector({
+		key: "Cmd + l",
+		action: () => {
+			dispatch(
+				`context-menu-${
+					window.__crotchet.desktop.currentPageId ?? "root"
+				}`
+			);
+		},
+	});
+
+	useOnInit(() => {
+		setTimeout(() => {
+			dispatch("open-root");
+		}, 300);
+	});
+
 	const value = {
 		pierAppData,
 		spotlightRef,
@@ -138,7 +218,8 @@ export function SpotlightProvider({ pages, open, children }) {
 		replaceCurrentSpotlightPage,
 		popSpotlightToRoot: () => {
 			setSpotlightInnerPages([]);
-			updateAppData();
+			dispatch("open-root");
+			window.__crotchet.desktop.currentPageId = "root";
 		},
 	};
 

@@ -64,15 +64,15 @@ export const onActionClick = (
 
 		try {
 			if (typeof action.handler == "function")
-				return await Promise.resolve(action.handler());
+				return await Promise.resolve(action.handler(e));
 			else if (typeof action.onClick == "function")
-				return await Promise.resolve(action.onClick());
+				return await Promise.resolve(action.onClick(e));
 			else if (typeof actionTypeMap[action?.type] == "function")
 				return await Promise.resolve(actionTypeMap[action?.type]());
 			else if (action.url)
 				return await Promise.resolve(openUrl(action.url));
 			else if (typeof action == "function")
-				return await Promise.resolve(action());
+				return await Promise.resolve(action(e));
 			else if (typeof action == "string")
 				return await Promise.resolve(openUrl(action));
 		} catch (error) {

@@ -1,130 +1,68 @@
 import { useRef } from "react";
-import useKeyDetector from "@/hooks/useKeyDetector";
-import { useComboboxContext } from "@/components/reach-combobox";
 import SpotlightListItem from "./SpotlightListItem";
 import { useSpotlightPageContext } from "../SpotlightSearchPage/SpotlightPageContext";
 import clsx from "clsx";
 
-const chunkArray = (a, perChunk) =>
-	a.reduce((all, _, i) => {
-		const chunk = Math.floor(i % perChunk);
-		all[chunk] = [...all[chunk], all[chunk].length + 1];
-		return all;
-	}, Array(perChunk).fill([]));
-
 export default function SpotlightGrid({
 	aspectRatio,
 	choices = [],
-	columns: chunks = 4,
+	columns = 4,
 	previewOnly,
 	onSelect,
 	onChange,
 }) {
-	const { transition } = useComboboxContext();
 	const gridRef = useRef(null);
-	const currentColumnRef = useRef(0);
 	const navValue = useRef(1);
-	const columns = chunkArray(choices, chunks);
-	const _choices = choices.map((choice, index) => ({
-		...choice,
-		__index: index + 1,
-	}));
 	const { onChange: onItemFocused } = useSpotlightPageContext();
-	const rows = Math.max(...columns.map((col) => col.length));
 
 	onItemFocused((value) => {
 		navValue.current = value;
 		if (typeof onChange == "function") onChange(choices[value]);
 	});
 
-	const handleNavigate = (dir) => {
-		const options = _choices;
-		const index = options.findIndex(
-			({ __index }) => __index === navValue.current
-		);
-		let nextIndex = 0;
+	// const handleNavigate = (dir) => {
+	// 	const options = choices;
+	// 	const index = options.findIndex(
+	// 		({ __index }) => __index === navValue.current
+	// 	);
+	// 	let nextIndex = 0;
 
-		if (index != -1) {
-			let column = Math.floor(index % chunks);
-			let row = Math.floor(index / chunks);
-			console.log("Column: ", column, "Row: ", row);
+	// 	if (index != -1) {
+	// 		let column = Math.floor(index % chunks);
+	// 		let row = Math.floor(index / chunks);
+	// 		console.log("Column: ", column, "Row: ", row);
 
-			if (dir == "right") {
-				if (index == options.length - 1) nextIndex = 0;
-				else nextIndex = index + 1;
-			}
-			if (dir == "left") {
-				if (index == 0) nextIndex = options.length - 1;
-				else nextIndex = index - 1;
-			}
-			if (dir == "down") {
-				if (rows > 1 && row < rows - 1) {
-					nextIndex = (row + 1) * chunks + column;
-					while (nextIndex > options.length - 1) nextIndex -= 1;
-				} else nextIndex = column;
-			}
-			if (dir == "up") {
-				if (row > 0) nextIndex = (row - 1) * chunks + column;
-			}
-		}
-
-		transition("NAVIGATE", {
-			value: options[nextIndex].__index,
-		});
-	};
-
-	// useKeyDetector({
-	// 	key: "ArrowDown",
-	// 	action: () => {
-	// 		handleNavigate("down");
-	// 	},
-	// });
-
-	// useKeyDetector({
-	// 	key: "ArrowUp",
-	// 	action: () => {
-	// 		handleNavigate("up");
-	// 	},
-	// });
-
-	useKeyDetector({
-		key: "ArrowLeft",
-		action: () => {
-			handleNavigate("left");
-		},
-	});
-
-	useKeyDetector({
-		key: "ArrowRight",
-		action: () => {
-			handleNavigate("right");
-		},
-	});
-
-	useKeyDetector({
-		key: "Enter",
-		action: () => {
-			if (typeof onSelect == "function") {
-				onSelect(
-					choices[
-						currentColumnRef.current * rows + navValue.current - 1
-					]
-				);
-			}
-		},
-	});
+	// 		if (dir == "right") {
+	// 			if (index == options.length - 1) nextIndex = 0;
+	// 			else nextIndex = index + 1;
+	// 		}
+	// 		if (dir == "left") {
+	// 			if (index == 0) nextIndex = options.length - 1;
+	// 			else nextIndex = index - 1;
+	// 		}
+	// 		if (dir == "down") {
+	// 			if (rows > 1 && row < rows - 1) {
+	// 				nextIndex = (row + 1) * chunks + column;
+	// 				while (nextIndex > options.length - 1) nextIndex -= 1;
+	// 			} else nextIndex = column;
+	// 		}
+	// 		if (dir == "up") {
+	// 			if (row > 0) nextIndex = (row - 1) * chunks + column;
+	// 		}
+	// 	}
+	// };
 
 	const handleSelect = (value) => {
-		if (typeof onSelect == "function") onSelect(choices[value]);
+		if (typeof onSelect == "function") onSelect(value);
 	};
 
 	return (
 		<div
 			ref={gridRef}
 			className="grid mt-0.5 pt-2 pr-2"
-			style={{ gridTemplateColumns: `repeat(${columns.length}, 1fr)` }}
+			style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
 		>
-			{_choices.map((entry) => (
+			{choices.map((entry) => (
 				<SpotlightListItem
 					className={clsx(
 						"w-full",
@@ -132,15 +70,14 @@ export default function SpotlightGrid({
 							? "p-3"
 							: "pl-2 pb-2 spotlight-grid-item"
 					)}
-					key={entry.__index}
-					value={entry.__index}
-					onSelect={handleSelect}
+					key={entry.value}
+					value={entry.value}
+					onSelect={() => handleSelect(entry.value)}
 					leading={null}
 					trailing={null}
 				>
 					{() => {
-						const { icon, image, video, title, subtitle } =
-							choices[entry.__index - 1];
+						const { icon, image, video, title, subtitle } = entry;
 
 						return (
 							<div

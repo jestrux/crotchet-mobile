@@ -1,11 +1,20 @@
-import { registerAction } from "@/crotchet";
+import { registerAction, isValidEmail } from "@/crotchet";
+
+registerAction("brandySearchUserShareAction", {
+	icon: "🥃",
+	label: "Brandy - Search User",
+	context: "share",
+	match: ({ text }) => isValidEmail(text),
+	handler: ({ text }, { actions }) =>
+		actions.brandySearchUser.handler({ email: text }),
+});
 
 registerAction("brandySearchUser", {
 	label: "Brandy - Search User",
 	global: true,
 	icon: "🥃",
 	handler: async (
-		_,
+		{ email: copiedEmail },
 		{
 			isValidEmail,
 			openForm,
@@ -17,20 +26,38 @@ registerAction("brandySearchUser", {
 			getMarkdownTable,
 		}
 	) => {
-		var copiedEmail = (copiedEmail = (
-			await readClipboard()
-		)?.value?.replace("mailto:", ""));
+		var email = copiedEmail;
+		if (!copiedEmail) {
+			copiedEmail = (await readClipboard())?.value?.replace(
+				"mailto:",
+				""
+			);
 
-		var email = await openForm({
-			title: "Brandy - Search User",
-			field: {
-				label: "User's email address",
-				placeholder: "E.g. james@example.com",
-				defaultValue: isValidEmail(copiedEmail) ? copiedEmail : "",
-			},
-		});
+			email = await openForm({
+				title: "Brandy - Search User",
+				field: {
+					label: "User's email address",
+					placeholder: "E.g. james@example.com",
+					defaultValue: isValidEmail(copiedEmail) ? copiedEmail : "",
+				},
+			});
+		}
 
 		if (!email?.length) return;
+
+		const downloadData = ({ pageData: user }) => {
+			exportContent(
+				JSON.stringify(user, null, 4),
+				`brandy-user-${user.first_name}-${user.last_name}`,
+				"json"
+			);
+		};
+
+		const copyData = ({ pageData: user }) => {
+			copyToClipboard(JSON.stringify(user, null, 4), {
+				message: "User data copied",
+			});
+		};
 
 		return openPage({
 			title: "Brandy - Search User",
@@ -44,23 +71,15 @@ registerAction("brandySearchUser", {
 				),
 			action: {
 				label: "Download user data",
-				handler: ({ pageData: user }) => {
-					exportContent(
-						JSON.stringify(user, null, 4),
-						`brandy-user-${user._first_name}-${user.last_name}`,
-						"json"
-					);
-				},
+				handler: downloadData,
 			},
 			secondaryAction: {
 				label: "Copy user data",
-				handler: ({ pageData: user }) => {
-					copyToClipboard(JSON.stringify(user, null, 4));
-				},
+				handler: copyData,
 			},
 			actions: [
-				{ label: "Copy user data", handler: () => {} },
-				{ label: "Download user data", handler: () => {} },
+				{ label: "Copy user data", handler: copyData },
+				{ label: "Download user data", handler: downloadData },
 			],
 			content: (user) => {
 				if (!user) return true;

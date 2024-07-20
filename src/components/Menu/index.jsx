@@ -53,7 +53,12 @@ export default forwardRef(function Menu(
 		if (!open) {
 			setTimeout(() => {
 				spotlightParent.classList.remove(idRef.current);
-				spotlightParent.querySelector("input").focus();
+				var input = spotlightParent.querySelector("input");
+				if (input) input.focus();
+				else
+					wrapperRef.current
+						.querySelector(`#menuTriggerButton`)
+						.blur();
 			});
 		}
 	}, []);
@@ -87,7 +92,7 @@ export default forwardRef(function Menu(
 			ref={wrapperRef}
 			// style={{ width }}
 		>
-			<Listbox value={selected} onChange={handleSelect}>
+			<Listbox value={trigger ? null : selected} onChange={handleSelect}>
 				{({ open }) => {
 					// doProcess(open);
 
@@ -170,7 +175,7 @@ export default forwardRef(function Menu(
 																className={`block truncate text-xs font-semibold ${
 																	selected ||
 																	active
-																		? ""
+																		? "text-content/80"
 																		: "text-content/50"
 																}`}
 															>

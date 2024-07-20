@@ -4,6 +4,25 @@ import { registerAction, registerApp, showToast } from "@/crotchet";
 
 import Automate from "./Automate";
 
+registerAction("getAutomations", {
+	handler: (_, { queryDb, actions }) =>
+		queryDb("automations").then((res) =>
+			res.map((automation) => {
+				return {
+					_id: automation._id,
+					name: automation.name,
+					label: automation.name,
+					value: automation.name,
+					title: automation.name,
+					handler: () =>
+						actions.runAutomation.handler({
+							actions: automation.actions,
+						}),
+				};
+			})
+		),
+});
+
 registerAction("runAutomation", {
 	icon: (
 		<svg viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
