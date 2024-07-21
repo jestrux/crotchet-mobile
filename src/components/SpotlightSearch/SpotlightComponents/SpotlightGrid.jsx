@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import SpotlightListItem from "./SpotlightListItem";
-import { useSpotlightPageContext } from "../SpotlightSearchPage/SpotlightPageContext";
 import clsx from "clsx";
 
 export default function SpotlightGrid({
@@ -9,17 +8,9 @@ export default function SpotlightGrid({
 	columns = 4,
 	previewOnly,
 	onSelect,
-	onChange,
+	onItemFocused,
 }) {
 	const gridRef = useRef(null);
-	const navValue = useRef(1);
-	const { onChange: onItemFocused } = useSpotlightPageContext();
-
-	onItemFocused((value) => {
-		navValue.current = value;
-		if (typeof onChange == "function") onChange(choices[value]);
-	});
-
 	// const handleNavigate = (dir) => {
 	// 	const options = choices;
 	// 	const index = options.findIndex(
@@ -56,6 +47,10 @@ export default function SpotlightGrid({
 		if (typeof onSelect == "function") onSelect(value);
 	};
 
+	const handleFocus = (item) => {
+		if (typeof onItemFocused == "function") onItemFocused(item);
+	};
+
 	return (
 		<div
 			ref={gridRef}
@@ -73,6 +68,7 @@ export default function SpotlightGrid({
 					key={entry.value}
 					value={entry.value}
 					onSelect={() => handleSelect(entry.value)}
+					onFocus={() => handleFocus(entry)}
 					leading={null}
 					trailing={null}
 				>

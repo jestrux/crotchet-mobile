@@ -144,64 +144,87 @@ export function SpotlightProvider({ pages, open, children }) {
 
 	useKeyDetector({
 		key: "Escape",
-		action: (e) => {
+		action: (e) =>
 			dispatch(
 				`escape-${window.__crotchet.desktop.currentPageId ?? "root"}`,
 				{
 					popAll: e.shiftKey,
 				}
-			);
-		},
+			),
+	});
+
+	useKeyDetector({
+		key: "Enter",
+		action: () =>
+			dispatch(
+				`enter-click-${
+					window.__crotchet.desktop.currentPageId ?? "root"
+				}`
+			),
 	});
 
 	useKeyDetector({
 		key: "Cmd + Enter",
-		action: () => {
+		action: () =>
 			dispatch(
-				`main-action-${
+				`cmd-enter-click-${
 					window.__crotchet.desktop.currentPageId ?? "root"
 				}`
-			);
-		},
+			),
 	});
 
 	useKeyDetector({
 		key: "Cmd + t",
-		action: () => {
+		action: () =>
 			dispatch(
 				`secondary-action-${
 					window.__crotchet.desktop.currentPageId ?? "root"
 				}`
-			);
-		},
+			),
 	});
 
 	useKeyDetector({
 		key: "Cmd + k",
-		action: () => {
+		action: () =>
 			dispatch(
 				`action-menu-${
 					window.__crotchet.desktop.currentPageId ?? "root"
 				}`
-			);
-		},
+			),
 	});
 
 	useKeyDetector({
-		key: "Cmd + l",
-		action: () => {
+		key: "Cmd + P",
+		action: () =>
 			dispatch(
 				`context-menu-${
 					window.__crotchet.desktop.currentPageId ?? "root"
 				}`
-			);
-		},
+			),
+	});
+
+	useKeyDetector({
+		key: "ArrowDown",
+		action: () =>
+			dispatch(
+				`navigate-down-${
+					window.__crotchet.desktop.currentPageId ?? "root"
+				}`
+			),
+	});
+
+	useKeyDetector({
+		key: "ArrowUp",
+		action: () =>
+			dispatch(
+				`navigate-up-${
+					window.__crotchet.desktop.currentPageId ?? "root"
+				}`
+			),
 	});
 
 	useOnInit(() => {
-		setTimeout(() => {
-			dispatch("open-root");
-		}, 300);
+		setTimeout(() => dispatch("open-root"), 300);
 	});
 
 	const value = {

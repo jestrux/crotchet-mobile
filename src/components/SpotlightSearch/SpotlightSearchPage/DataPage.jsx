@@ -2,8 +2,10 @@ import { onActionClick, randomId } from "@/crotchet";
 import SpotlightListSection from "../SpotlightComponents/SpotlightListSection";
 import SpotlightListItem from "../SpotlightComponents/SpotlightListItem";
 import SpotlightGrid from "../SpotlightComponents/SpotlightGrid";
+import { useSpotlightPageContext } from "../SpotlightSearchPage/SpotlightPageContext";
 
 export default function DataPage({ page, pageData }) {
+	const { setMainAction } = useSpotlightPageContext();
 	const {
 		layout,
 		columns: columnString = 3,
@@ -50,12 +52,12 @@ export default function DataPage({ page, pageData }) {
 				aspectRatio={aspectRatio}
 				columns={columns}
 				choices={content}
-				onSelect={(selectedValue) => {
-					const choice = content.find(
-						({ value }) => value == selectedValue
-					);
-					onActionClick(choice)();
-				}}
+				onItemFocused={(item) =>
+					setMainAction({
+						label: "Select",
+						handler: onActionClick(item),
+					})
+				}
 			/>
 		);
 	}
@@ -68,12 +70,12 @@ export default function DataPage({ page, pageData }) {
 					key={entry._id}
 					label={entry.title}
 					value={entry.value}
-					onSelect={(selectedValue) => {
-						const choice = content.find(
-							({ value }) => value == selectedValue
-						);
-						onActionClick(choice)();
-					}}
+					onFocus={() =>
+						setMainAction({
+							label: "Select",
+							handler: onActionClick(entry),
+						})
+					}
 				/>
 			))}
 		</SpotlightListSection>

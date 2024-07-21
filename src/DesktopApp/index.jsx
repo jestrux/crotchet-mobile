@@ -10,16 +10,82 @@ import useEventListener from "../hooks/useEventListener";
 import clsx from "clsx";
 import useKeyDetector from "@/hooks/useKeyDetector";
 import SpotlightSearch from "@/components/SpotlightSearch";
+import { useSpotlightPageContext } from "@/components/SpotlightSearch/SpotlightSearchPage/SpotlightPageContext";
 import SpotlightListSection from "@/components/SpotlightSearch/SpotlightComponents/SpotlightListSection";
 import SpotlightListItem from "@/components/SpotlightSearch/SpotlightComponents/SpotlightListItem";
 import SpotlightNavigationButton from "@/components/SpotlightSearch/SpotlightComponents/SpotlightNavigationButton";
+
+const HomePageActions = ({ onOpenPage }) => {
+	const { actions, globalActions, dataSources } = useAppContext();
+	const { setMainAction, setActions } = useSpotlightPageContext();
+
+	return (
+		<>
+			<SpotlightListSection title="Actions">
+				<SpotlightNavigationButton
+					label="Run an Automation"
+					onFocus={() =>
+						setMainAction({
+							label: "Select action",
+							handler: () =>
+								onOpenPage({
+									type: "search",
+									resolve: actions.getAutomations.handler,
+								}),
+						})
+					}
+					trailing="Action"
+				/>
+				{globalActions().map((action) => (
+					<SpotlightListItem
+						key={action._id}
+						value={action.label}
+						onFocus={() => {
+							setMainAction({
+								...action,
+								label: "Select action",
+							});
+
+							setActions(action.actions);
+						}}
+						trailing="Action"
+					/>
+				))}
+			</SpotlightListSection>
+			<SpotlightListSection title="Data sources">
+				{_.sortBy(
+					_.filter(
+						Object.values(dataSources),
+						({ searchable }) => !searchable
+					),
+					"label"
+				).map((source) => (
+					<SpotlightListItem
+						key={source._id}
+						value={source.label}
+						onFocus={() =>
+							setMainAction({
+								label: "View Data Source",
+								handler: () =>
+									onOpenPage({
+										page: "search",
+										source: source.name,
+									}),
+							})
+						}
+						trailing="Data Source"
+					/>
+				))}
+			</SpotlightListSection>
+		</>
+	);
+};
 
 export default function DesktopApp() {
 	const toastTimerRef = useRef();
 	const [toast, setToast] = useState(null);
 	const [app, _setApp] = useState(null);
-	const { apps, actions, globalActions, dataSources, openUrl } =
-		useAppContext();
+	const { apps, actions, dataSources, openUrl } = useAppContext();
 
 	const setApp = (app) => {
 		window.__crotchet.desktop.app = app;
@@ -179,45 +245,7 @@ export default function DesktopApp() {
 					{/* <div className="pointer-events-none fixed inset-0 bg-stone-50/0.05 blur-3xl"></div> */}
 
 					<SpotlightSearch open={!app?.scheme}>
-						<SpotlightListSection title="Actions">
-							<SpotlightNavigationButton
-								label="Run an Automation"
-								page={{
-									type: "search",
-									resolve: actions.getAutomations.handler,
-								}}
-								trailing={SpotlightListItem.NavIcon}
-							/>
-							{globalActions().map((action) => (
-								<SpotlightListItem
-									key={action._id}
-									value={action.label}
-									onSelect={() => action.handler()}
-									trailing={SpotlightListItem.NavIcon}
-								/>
-							))}
-						</SpotlightListSection>
-						<SpotlightListSection title="Data sources">
-							{_.sortBy(
-								_.filter(
-									Object.values(dataSources),
-									({ searchable }) => !searchable
-								),
-								"label"
-							).map((source) => (
-								<SpotlightListItem
-									key={source._id}
-									value={source.label}
-									onSelect={() =>
-										handleOpenPage({
-											page: "search",
-											source: source.name,
-										})
-									}
-									trailing={SpotlightListItem.NavIcon}
-								/>
-							))}
-						</SpotlightListSection>
+						<HomePageActions onOpenPage={handleOpenPage} />
 					</SpotlightSearch>
 				</div>
 			</div>

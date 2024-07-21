@@ -11,10 +11,124 @@ import {
 } from "@/crotchet";
 import { useState } from "react";
 
+const sizeButtonKeys = [
+	{
+		name: "size",
+		key: "regular",
+		modifier: true,
+		label: "Regular",
+		span: 2,
+	},
+	{
+		name: "size",
+		key: "large",
+		modifier: true,
+		label: "Large",
+		span: 2,
+	},
+	{
+		name: "size",
+		key: "full",
+		modifier: true,
+		label: "Full",
+		span: 2,
+	},
+];
+
+const positionButtonKeys = [
+	{
+		name: "position",
+		modifier: true,
+		key: "Top Left",
+		label: "↖️",
+		span: 2,
+	},
+	{
+		name: "position",
+		modifier: true,
+		key: "Top Center",
+		label: "⬆️",
+		span: 2,
+	},
+	{
+		name: "position",
+		modifier: true,
+		key: "Top Right",
+		label: "↗️",
+		span: 2,
+	},
+	{
+		name: "position",
+		modifier: true,
+		key: "Bottom Left",
+		label: "↙️",
+		span: 2,
+	},
+	{
+		name: "position",
+		modifier: true,
+		key: "Bottom Center",
+		label: "⬇️",
+		span: 2,
+	},
+	{
+		name: "position",
+		modifier: true,
+		key: "Bottom Right",
+		label: "↘️",
+		span: 2,
+	},
+];
+
+const filters = [
+	// "_1977",
+	// "aden",
+	// "brannan",
+	// "brooklyn",
+	// "clarendon",
+	// "earlybird",
+	// "gingham",
+	// "hudson",
+	// "inkwell",
+	// "kelvin",
+	// "lark",
+	// "lofi",
+	// "maven",
+	// "mayfair",
+	// "moon",
+	// "nashville",
+	// "perpetua",
+	// "reyes",
+	// "rise",
+	// "slumber",
+	// "stinson",
+	// "toaster",
+	// "valencia",
+	// "walden",
+	// "willow",
+	// "xpro2",
+
+	// Selected filters
+	"_1977",
+	"lofi",
+	"aden",
+	"brannan",
+	"inkwell",
+	"nashville",
+	"reyes",
+	"toaster",
+	"walden",
+];
+
 registerBackgroundAction(
 	"floatingHead",
 	async (actionProps = {}, { toggleBackgroundApp }) => {
 		const { action = "toggle", position, size, filter } = actionProps;
+
+		if (!["show", "hide", "toggle"].includes(action)) {
+			toggleBackgroundApp("floatingHead", true);
+			window.toggleFloatingHead(true);
+		}
 
 		if (action == "resize") return window.resizeFloatingHead(size);
 		if (action == "move") return window.moveFloatingHead(position);
@@ -44,6 +158,48 @@ registerAction("floatingHead", {
 			},
 		});
 	},
+	actions: [
+		{
+			label: "Toggle",
+			handler: (_, { backgroundAction }) =>
+				backgroundAction("floatingHead"),
+		},
+		...sizeButtonKeys
+			.filter(({ key }) => key != "full")
+			.map(({ key: size, label }) => {
+				return {
+					label,
+					group: "Size",
+					handler: (_, { backgroundAction }) =>
+						backgroundAction("floatingHead", {
+							action: "resize",
+							size,
+						}),
+				};
+			}),
+		...positionButtonKeys.map(({ key: position }) => {
+			return {
+				label: position,
+				group: "Position",
+				handler: (_, { backgroundAction }) =>
+					backgroundAction("floatingHead", {
+						action: "move",
+						position,
+					}),
+			};
+		}),
+		...filters.map((filter) => {
+			return {
+				label: filter,
+				group: "Filter",
+				handler: (_, { backgroundAction }) =>
+					backgroundAction("floatingHead", {
+						action: "filter",
+						filter,
+					}),
+			};
+		}),
+	],
 });
 
 registerRemoteAction("floatingHead", {
@@ -68,29 +224,7 @@ registerRemoteApp("floatingHead", () => {
 		main: function Open() {
 			const { backgroundAction } = useAppContext();
 			const { buttons: sizeButtons } = useRemoteButtons({
-				keys: [
-					{
-						name: "size",
-						key: "regular",
-						modifier: true,
-						label: "Regular",
-						span: 2,
-					},
-					{
-						name: "size",
-						key: "large",
-						modifier: true,
-						label: "Large",
-						span: 2,
-					},
-					{
-						name: "size",
-						key: "full",
-						modifier: true,
-						label: "Full",
-						span: 2,
-					},
-				],
+				keys: sizeButtonKeys,
 				modifiers: {
 					size: "regular",
 				},
@@ -102,50 +236,7 @@ registerRemoteApp("floatingHead", () => {
 				},
 			});
 			const { buttons: positionButtons } = useRemoteButtons({
-				keys: [
-					{
-						name: "position",
-						modifier: true,
-						key: "Top Left",
-						label: "↖️",
-						span: 2,
-					},
-					{
-						name: "position",
-						modifier: true,
-						key: "Top Center",
-						label: "⬆️",
-						span: 2,
-					},
-					{
-						name: "position",
-						modifier: true,
-						key: "Top Right",
-						label: "↗️",
-						span: 2,
-					},
-					{
-						name: "position",
-						modifier: true,
-						key: "Bottom Left",
-						label: "↙️",
-						span: 2,
-					},
-					{
-						name: "position",
-						modifier: true,
-						key: "Bottom Center",
-						label: "⬇️",
-						span: 2,
-					},
-					{
-						name: "position",
-						modifier: true,
-						key: "Bottom Right",
-						label: "↘️",
-						span: 2,
-					},
-				],
+				keys: positionButtonKeys,
 				modifiers: {
 					position: "Top Right",
 				},
@@ -156,45 +247,6 @@ registerRemoteApp("floatingHead", () => {
 					});
 				},
 			});
-			const filters = [
-				// "_1977",
-				// "aden",
-				// "brannan",
-				// "brooklyn",
-				// "clarendon",
-				// "earlybird",
-				// "gingham",
-				// "hudson",
-				// "inkwell",
-				// "kelvin",
-				// "lark",
-				// "lofi",
-				// "maven",
-				// "mayfair",
-				// "moon",
-				// "nashville",
-				// "perpetua",
-				// "reyes",
-				// "rise",
-				// "slumber",
-				// "stinson",
-				// "toaster",
-				// "valencia",
-				// "walden",
-				// "willow",
-				// "xpro2",
-
-				// Selected filters
-				"_1977",
-				"lofi",
-				"aden",
-				"brannan",
-				"inkwell",
-				"nashville",
-				"reyes",
-				"toaster",
-				"walden",
-			];
 			const { buttons: filterButtons } = useRemoteButtons({
 				keys: filters.map((filter) => ({
 					name: "filter",

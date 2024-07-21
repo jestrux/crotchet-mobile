@@ -11,6 +11,25 @@ import {
 	registerAction,
 } from "@/crotchet";
 
+const overflowActions = [
+	{ key: "Center Flowers", label: "Center", span: 2 },
+	{ key: "Left Flowers", label: "Left", span: 2 },
+	{ key: "Right Flowers", label: "Right", span: 2 },
+	{
+		key: "Left And Right Flowers",
+		label: "Left & Right",
+		span: 2,
+	},
+	{
+		key: "Left Flowers Then Right Flowers",
+		label: "Left > Right",
+		span: 2,
+	},
+	{ key: "Snow", label: "Snow", span: 2 },
+	{ key: "Fireworks", label: "Fireworks", span: 2 },
+	{ key: "Star Bust", label: "Star Bust", span: 2 },
+];
+
 registerBackgroundAction("confetti", async (actionProps) => {
 	const { effect = "Center Flowers", options = {} } = actionProps;
 
@@ -38,6 +57,15 @@ registerAction("confetti", {
 	shortcut: "Shift+Alt+T",
 	global: true,
 	handler: (_, { backgroundAction }) => backgroundAction("confetti"),
+	actions: overflowActions.map(({ key: effect, label }) => {
+		return {
+			label,
+			handler: (_, { backgroundAction }) =>
+				backgroundAction("confetti", {
+					effect,
+				}),
+		};
+	}),
 });
 
 registerRemoteApp("confetti", () => {
@@ -45,26 +73,8 @@ registerRemoteApp("confetti", () => {
 		icon: "🎉",
 		main: function Open() {
 			const { backgroundAction } = useAppContext();
-			const keys = [
-				{ key: "Center Flowers", label: "Center", span: 2 },
-				{ key: "Left Flowers", label: "Left", span: 2 },
-				{ key: "Right Flowers", label: "Left", span: 2 },
-				{
-					key: "Left And Right Flowers",
-					label: "Left & Right",
-					span: 2,
-				},
-				{
-					key: "Left Flowers Then Right Flowers",
-					label: "Left > Right",
-					span: 2,
-				},
-				{ key: "Snow", label: "Snow", span: 2 },
-				{ key: "Fireworks", label: "Fireworks", span: 2 },
-				{ key: "Star Bust", label: "Star Bust", span: 2 },
-			];
 			const { buttons } = useRemoteButtons({
-				keys,
+				keys: overflowActions,
 				onKeypress: ({ key: effect }) => {
 					return backgroundAction("confetti", {
 						effect,

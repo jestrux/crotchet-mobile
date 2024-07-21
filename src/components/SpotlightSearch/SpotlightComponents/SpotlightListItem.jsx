@@ -64,6 +64,10 @@ function SpotlightListItem({
 		if (typeof onSelect == "function") onSelect(value);
 	};
 
+	const handleFocus = () => {
+		if (typeof onFocus == "function") onFocus(value);
+	};
+
 	const observeForHover = (element) => {
 		hoverObserverRef.current = new MutationObserver((mutations) => {
 			const mutation = mutations.find(({ type }) => type == "attributes");
@@ -77,6 +81,14 @@ function SpotlightListItem({
 				}
 
 				if (
+					mutation.attributeName == "data-on-focus" &&
+					mutation.target.getAttribute("data-on-focus")
+				) {
+					mutation.target.removeAttribute("data-on-focus");
+					handleFocus();
+				}
+
+				if (
 					[typeof onFocus, typeof onBlur].includes("function") &&
 					mutation.attributeName == "aria-selected"
 				) {
@@ -84,9 +96,9 @@ function SpotlightListItem({
 						mutation.target.ariaSelected
 					);
 
-					if (selected)
-						onFocus(mutation.target.getAttribute("data-value"));
-					else onBlur(mutation.target.getAttribute("data-value"));
+					if (selected && typeof onFocus == "function") handleFocus();
+					else if (typeof onBlur == "function")
+						onBlur(mutation.target.getAttribute("data-value"));
 				}
 			}
 		});
@@ -131,6 +143,7 @@ function SpotlightListItem({
 			data-value={value}
 			value={value}
 			onClick={handleSelect}
+			onFocus={handleFocus}
 		>
 			{content}
 		</ComboboxOption>

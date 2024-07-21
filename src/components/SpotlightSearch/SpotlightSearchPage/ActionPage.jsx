@@ -1,94 +1,40 @@
 import { Button } from "@chakra-ui/react";
 import { Children, cloneElement, useRef } from "react";
-import CommandKey from "@/components/CommandKey";
 import useAlerts from "@/components/Alerts/useAlerts";
-import { useSpotlightContext } from "../SpotlightContext";
+import CommandKey from "@/components/CommandKey";
 import { useSpotlightPageContext } from "./SpotlightPageContext";
-import Menu from "@/components/Menu";
-import { showToast } from "@/utils";
+import { isValidAction, showToast } from "@/utils";
 import { onActionClick } from "@/crotchet";
-
-const getFallbackSecondaryActionHandler = ({ page, confirm }) => {
-	let handler = () => {};
-
-	if (typeof page.secondaryAction?.handler == "function") {
-		const pageSecondaryActionHandler = page.secondaryAction.handler;
-
-		handler = async (payload) => {
-			if (page.secondaryAction?.destructive) {
-				const res = await confirm({
-					title: page.secondaryAction.label + "?",
-					actionType: "danger",
-					okayText:
-						page.secondaryAction.confirmText || "Yes, Continue",
-				});
-
-				if (!res) return;
-			}
-
-			return await pageSecondaryActionHandler(payload);
-		};
-	}
-
-	return handler;
-};
-
-const getFallbackActionHandler = ({ page }) => {
-	if (typeof page.action?.handler == "function") {
-		return async (payload) => {
-			if (page.action?.destructive) {
-				const res = await confirm({
-					title: page.action.label + "?",
-					actionType: "danger",
-					okayText: page.action.confirmText || "Yes, Continue",
-				});
-
-				if (!res) return;
-			}
-
-			return page.action?.handler(payload);
-		};
-	}
-
-	return null;
-};
+import SpotLightPageMenu from "./SpotLightPageMenu";
 
 export default function ActionPage({ page, children }) {
-	const { popCurrentSpotlightPage } = useSpotlightContext();
 	const {
 		pageData,
+		pageLoading,
 		onContextMenuClick,
 		onActionMenuClick,
 		onSecondaryActionClick,
 		onMainActionClick,
+		setMainAction,
+		mainAction,
+		secondaryAction,
+		actions,
 	} = useSpotlightPageContext();
 	const { confirm } = useAlerts();
 	const actionsButtonRef = useRef();
-	const secondaryActionButtonRef = useRef();
-	const submitHandler = useRef(
-		getFallbackActionHandler({
-			page,
-			popCurrentSpotlightPage,
-		})
-	);
-	const secondaryActionHandler = useRef(
-		getFallbackSecondaryActionHandler({
-			page,
-			confirm,
-		})
-	);
+
 	const onSubmit = (callback) => {
-		submitHandler.current = callback;
-	};
-	const handleSubmit = (payload) => {
-		if (typeof submitHandler.current == "function")
-			submitHandler.current(payload);
+		setMainAction({
+			handler: callback,
+		});
 	};
 
 	const handleSecondaryAction = (payload) => {
-		if (typeof secondaryActionHandler.current == "function")
-			secondaryActionHandler.current(payload);
-		else showToast("Secondary action");
+		return onActionClick(secondaryAction, { confirm })(payload);
+	};
+
+	const handleMainAction = (payload) => {
+		return onActionClick(mainAction, { confirm })(payload);
 	};
 
 	onContextMenuClick(() => {
@@ -104,41 +50,30 @@ export default function ActionPage({ page, children }) {
 	});
 
 	onMainActionClick(() => {
-		handleSubmit({ page, pageData });
+		handleMainAction({ page, pageData });
 	});
 
+	const mainActionSet = () => {
+		return typeof isValidAction(mainAction);
+	};
+
 	const renderSecondaryContent = () => {
-		if (page?.secondaryAction) {
+		if (secondaryAction) {
 			return (
-				<div
-					className={
-						typeof submitHandler.current != "function"
-							? "ml-auto"
-							: ""
-					}
+				<Button
+					className="gap-1"
+					rounded="md"
+					size="sm"
+					variant="ghost"
+					colorScheme={secondaryAction.destructive && "red"}
+					onClick={() => handleSecondaryAction({ page, pageData })}
 				>
-					{page?.secondaryAction && (
-						<Button
-							ref={secondaryActionButtonRef}
-							className="gap-1"
-							rounded="md"
-							size="sm"
-							variant="ghost"
-							colorScheme={
-								page.secondaryAction.destructive && "red"
-							}
-							onClick={() =>
-								handleSecondaryAction({ page, pageData })
-							}
-						>
-							<span className="mr-0.5 capitalize text-sm">
-								{page.secondaryAction.label}
-							</span>
-							<CommandKey label="Cmd" />
-							<CommandKey label="T" />
-						</Button>
-					)}
-				</div>
+					<span className="mr-0.5 capitalize text-sm">
+						{secondaryAction.label}
+					</span>
+					<CommandKey label="Cmd" />
+					<CommandKey label="T" />
+				</Button>
 			);
 		}
 
@@ -177,72 +112,83 @@ export default function ActionPage({ page, children }) {
 				cloneElement(child, {
 					page,
 					onSubmit,
-					// onSecondaryAction,
 				})
 			)}
 
-			{/* {(typeof submitHandler.current == "function" ||
-				page?.secondaryAction?.label?.length) && (
-			)} */}
+			<div className="mx-0.5 mb-0.5 rounded-b-xl bg-card fixed bottom-0 inset-x-0 h-11 px-3 flex gap-4 items-center border-t z-10">
+				{!pageLoading && (
+					<>
+						<div className="flex-1 flex items-center gap-4">
+							{renderSecondaryContent()}
+						</div>
 
-			<div className="mx-0.5 rounded-b-xl bg-card fixed bottom-0 inset-x-0 h-11 px-3 flex gap-4 items-center border-t z-10">
-				<div className="flex-1 flex items-center gap-4">
-					{renderSecondaryContent()}
-				</div>
-
-				{typeof submitHandler.current == "function" && (
-					<Button
-						className="gap-1"
-						onClick={() => handleSubmit({ page, pageData })}
-						rounded="md"
-						size="sm"
-						variant="ghost"
-					>
-						<span className="mr-0.5 capitalize text-sm">
-							{page?.action?.label || page?.action || "Submit"}
-						</span>
-
-						<CommandKey label="Cmd" />
-						<CommandKey label="Enter" />
-					</Button>
-				)}
-
-				{typeof submitHandler.current == "function" && page.actions && (
-					<div className="h-full border-l-2 border-content/15 max-h-5"></div>
-				)}
-
-				{page?.actions?.length && (
-					<Menu
-						plain
-						choices={page.actions}
-						onChange={(value) => {
-							if (!value) return;
-
-							const action = page.actions.find((action) =>
-								[action, action?.label, action?.value].includes(
-									value
-								)
-							);
-
-							if (action) onActionClick(action)({ pageData });
-						}}
-						trigger={
+						{mainActionSet() && (
 							<Button
-								as="div"
-								ref={actionsButtonRef}
-								className="gap-1 w-auto"
+								className="gap-1"
+								onClick={() =>
+									handleMainAction({ page, pageData })
+								}
 								rounded="md"
 								size="sm"
 								variant="ghost"
 							>
 								<span className="mr-0.5 capitalize text-sm">
-									Actions
+									{mainAction?.label || "Submit"}
 								</span>
-								<CommandKey label="Cmd" />
-								<CommandKey label="K" />
+								<CommandKey label={mainAction.shortcut} />
 							</Button>
-						}
-					/>
+						)}
+
+						{mainActionSet() && actions?.length > 0 && (
+							<div className="h-full border-l-2 border-content/15 max-h-5"></div>
+						)}
+
+						{actions?.length > 0 && (
+							<SpotLightPageMenu
+								width="250px"
+								plain
+								choices={actions}
+								onChange={(value) => {
+									if (!value) return;
+
+									const action = actions.find((action) =>
+										[
+											action,
+											action?.label,
+											action?.value,
+										].includes(value)
+									);
+
+									if (action) {
+										console.log(
+											"On menu action click: ",
+											action
+										);
+										onActionClick(action)(
+											{ pageData },
+											window.__crotchet
+										);
+									}
+								}}
+								trigger={
+									<Button
+										as="div"
+										ref={actionsButtonRef}
+										className="gap-1 w-auto"
+										rounded="md"
+										size="sm"
+										variant="ghost"
+									>
+										<span className="mr-0.5 capitalize text-sm">
+											Actions
+										</span>
+										<CommandKey label="Cmd" />
+										<CommandKey label="K" />
+									</Button>
+								}
+							/>
+						)}
+					</>
 				)}
 			</div>
 		</>

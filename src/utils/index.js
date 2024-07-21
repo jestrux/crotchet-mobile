@@ -239,6 +239,17 @@ export const isValidUrl = (urlString) => {
 export const isValidEmail = (email) =>
 	email && email.length < 256 && /^[^@]+@[^@]{2,}\.[^@]{2,}$/.test(email);
 
+export const isValidAction = (action) => {
+	if (!action) return false;
+
+	if (typeof action.handler == "function") return true;
+	else if (typeof action.onClick == "function") return true;
+	else if (action.url) return true;
+	else if (typeof action == "function") return true;
+
+	return false;
+};
+
 export const socketEmit = (event, payload) =>
 	dispatch("socket-emit", {
 		event,
@@ -682,6 +693,7 @@ export const objectFieldChoices = (choices) =>
 		else if (!label && value) label = value;
 
 		return {
+			__id: randomId(),
 			tempId: label,
 			label,
 			value,

@@ -5,7 +5,6 @@ import {
 	ComboboxPopover,
 	useComboboxContext,
 } from "@/components/reach-combobox";
-import useKeyDetector from "@/hooks/useKeyDetector";
 import useEventListener from "@/hooks/useEventListener";
 
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
@@ -20,13 +19,12 @@ function SearchPageContent({
 	searchTerm,
 	setSearchTerm,
 	page = { type: "search" },
-	onPopAll,
-	onPop,
-	onClose,
-	onOpen,
-	onReady,
+	// onPopAll,
+	// onPop,
+	// onOpen,
+	// onReady,
+	// onEscape,
 	onSelect,
-	onEscape,
 	children,
 }) {
 	const navValue = useRef();
@@ -34,6 +32,16 @@ function SearchPageContent({
 	const containerRef = useRef(null);
 	const inputRef = useRef(null);
 	const comboboxData = useComboboxContext();
+	const {
+		onClose,
+		onPop,
+		onPopAll,
+		onOpen,
+		onReady,
+		onEscape,
+		onNavigateDown,
+		onNavigateUp,
+	} = useSpotlightPageContext();
 
 	const onKeyDown = (event) => {
 		if (!event.isDefaultPrevented()) {
@@ -62,15 +70,8 @@ function SearchPageContent({
 		}
 	};
 
-	const handleEscape = ({ close, popAll } = {}) => {
+	const handleEscape = ({ popAll } = {}) => {
 		if (!open) return;
-
-		const combobox = popoverTitleRef.current.closest(
-			"#spotlightSearchWrapper"
-		);
-		if (document.querySelector(".pier-message-modal")) return;
-		if (combobox.className.indexOf("pier-menu-open") != -1)
-			return containerRef.current.focus();
 
 		if (inputRef.current.value.length) {
 			setSearchTerm("");
@@ -81,9 +82,9 @@ function SearchPageContent({
 			return;
 		}
 
-		if (close) return onClose();
-		if (!popAll && typeof onPop == "function") return onPop();
 		if (popAll && typeof onPopAll == "function") return onPopAll();
+
+		if (typeof onPop == "function") return onPop();
 
 		onClose();
 	};
@@ -123,21 +124,17 @@ function SearchPageContent({
 		comboboxData.transition("NAVIGATE", {
 			value,
 		});
+
+		onNavigate(value);
 	};
 
 	useEventListener("click", () => {
 		if (open) inputRef.current.focus();
 	});
 
-	useKeyDetector({
-		key: "ArrowDown",
-		action: () => handleNavigate("down"),
-	});
+	onNavigateDown(() => handleNavigate("down"));
 
-	useKeyDetector({
-		key: "ArrowUp",
-		action: () => handleNavigate("up"),
-	});
+	onNavigateUp(() => handleNavigate("up"));
 
 	onEscape((payload) => {
 		handleEscape(payload);
@@ -172,6 +169,27 @@ function SearchPageContent({
 			}, 10);
 		}
 	});
+
+	const onNavigate = (value) => {
+		const selected = getChoices().find(
+			(item) => item.getAttribute("data-value") == value
+		);
+
+		if (selected) {
+			selected.setAttribute("data-on-focus", true);
+			setTimeout(() => {
+				if (selected.getAttribute("data-on-focus")) {
+					selected.removeAttribute("data-on-focus");
+					selected.focus();
+
+					setTimeout(() => {
+						selected.blur();
+						inputRef.current.focus();
+					}, 5);
+				}
+			}, 10);
+		}
+	};
 
 	const handleSearchTermChange = (event) => {
 		if (event.target.value === inputRef.current.value)
@@ -260,7 +278,6 @@ export default function SearchPageWrapper({
 }) {
 	const { searchTerm, setSearchTerm, navigationValue, setNavigationValue } =
 		useSpotlightPageContext();
-	const spotlightPageWrapperRef = useRef(null);
 	const selectHandler = useRef(() => {});
 	const onSelect = (callback) => (selectHandler.current = callback);
 
@@ -289,16 +306,14 @@ export default function SearchPageWrapper({
 	};
 
 	return (
-		<div id="spotlightSearchWrapper" ref={spotlightPageWrapperRef}>
-			<Combobox
-				className="w-full text-content is-grid"
-				openOnFocus
-				onSelect={selectHandler.current}
-			>
-				<SearchPageContent {...comboProps}>
-					{getChildren()}
-				</SearchPageContent>
-			</Combobox>
-		</div>
+		<Combobox
+			className="w-full text-content is-grid"
+			openOnFocus
+			onSelect={selectHandler.current}
+		>
+			<SearchPageContent {...comboProps}>
+				{getChildren()}
+			</SearchPageContent>
+		</Combobox>
 	);
 }

@@ -1,57 +1,63 @@
 import { useEffect } from "react";
 
 const useKeyDetector = ({ key, delayBy = 0, action }) => {
-    useEffect(() => {
-        let delayTimeout, clearListeners;
+	const keys = [...(Array.isArray(key) ? key : [key])];
 
-        const setupListeners = () => {
-            document.addEventListener("keyup", onKeyUp, false);
-            document.addEventListener("keydown", onKeyDown, false);
+	useEffect(() => {
+		let delayTimeout, clearListeners;
 
-            return () => {
-                document.removeEventListener("keydown", onKeyDown, false);
-                document.removeEventListener("keyup", onKeyUp, false);
-            };
-        };
+		const setupListeners = () => {
+			document.addEventListener("keyup", onKeyUp, false);
+			document.addEventListener("keydown", onKeyDown, false);
 
-        if (delayBy) {
-            delayTimeout = setTimeout(() => {
-                clearListeners = setupListeners();
-            }, delayBy);
-        } else clearListeners = setupListeners();
+			return () => {
+				document.removeEventListener("keydown", onKeyDown, false);
+				document.removeEventListener("keyup", onKeyUp, false);
+			};
+		};
 
-        return () => {
-            clearTimeout(delayTimeout);
-            if (clearListeners) clearListeners();
-        };
-    }, []);
+		if (delayBy) {
+			delayTimeout = setTimeout(() => {
+				clearListeners = setupListeners();
+			}, delayBy);
+		} else clearListeners = setupListeners();
 
-    function onKeyUp(e) {
-        if (key == e.key) action(e);
-    }
+		return () => {
+			clearTimeout(delayTimeout);
+			if (clearListeners) clearListeners();
+		};
+	}, []);
 
-    function onKeyDown(e) {
-        const validKey = key
-            .replace("Shift", "")
-            .replace("Ctrl", "")
-            .replace("Cmd", "")
-            .replace("+", "")
-            .trim();
+	function onKeyUp(e) {
+		keys.forEach((key) => {
+			if (key == e.key) action(e);
+		});
+	}
 
-        if (["Meta", "Shift", "Control"].includes(e.key)) return;
+	function onKeyDown(e) {
+		keys.forEach((key) => {
+			const validKey = key
+				.replace("Shift", "")
+				.replace("Ctrl", "")
+				.replace("Cmd", "")
+				.replace("+", "")
+				.trim();
 
-        if (
-            (key.includes("Shift") && e.shiftKey) ||
-            (key.includes("Cmd") && (e.metaKey || e.ctrlKey)) ||
-            (key.includes("Ctrl") && e.ctrlKey)
-        ) {
-            if (validKey != e.key && validKey != e.code) return;
+			if (["Meta", "Shift", "Control"].includes(e.key)) return;
 
-            action(true);
-        }
-    }
+			if (
+				(key.includes("Shift") && e.shiftKey) ||
+				(key.includes("Cmd") && (e.metaKey || e.ctrlKey)) ||
+				(key.includes("Ctrl") && e.ctrlKey)
+			) {
+				if (validKey != e.key && validKey != e.code) return;
 
-    return null;
+				action(true);
+			}
+		});
+	}
+
+	return null;
 };
 
 export default useKeyDetector;

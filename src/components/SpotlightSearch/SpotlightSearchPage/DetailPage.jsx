@@ -35,7 +35,7 @@ export default function DetailPage({
 	};
 
 	return (
-		<div id="spotlightSearchWrapper">
+		<>
 			<div
 				ref={popoverTitleRef}
 				id="popoverTitle"
@@ -66,6 +66,6 @@ export default function DetailPage({
 			>
 				{renderPage()}
 			</div>
-		</div>
+		</>
 	);
 }

@@ -15,6 +15,8 @@ import { WidgetsBridgePlugin } from "capacitor-widgetsbridge-plugin";
 import { useEffect, useRef, useState } from "react";
 
 export { default as clsx } from "clsx";
+export { default as useEventListener } from "@/hooks/useEventListener";
+export { default as useKeyDetector } from "@/hooks/useKeyDetector";
 export { useSourceGet, sourceGet } from "@/providers/data";
 export { useState, useEffect, useRef } from "react";
 export { default as usePrefsState } from "@/providers/prefs/usePrefsState";
@@ -54,25 +56,37 @@ export const useOnInit = (callback) => {
 
 export const onActionClick = (
 	action,
-	{ propagate, actionTypeMap = {} } = {}
+	{ propagate, actionTypeMap = {}, confirm } = {}
 ) => {
-	return async (e) => {
+	return async (e, ...args) => {
 		if (!propagate && typeof e?.stopPropagation == "function")
 			e.stopPropagation();
 
 		if (!action) return null;
 
 		try {
+			if (typeof confirm == "function" && action?.destructive) {
+				const res = await confirm({
+					title: action.label + "?",
+					actionType: "danger",
+					okayText: action.confirmText || "Yes, Continue",
+				});
+
+				if (!res) return;
+			}
+
 			if (typeof action.handler == "function")
-				return await Promise.resolve(action.handler(e));
+				return await Promise.resolve(action.handler(e, ...args));
 			else if (typeof action.onClick == "function")
-				return await Promise.resolve(action.onClick(e));
+				return await Promise.resolve(action.onClick(e, ...args));
 			else if (typeof actionTypeMap[action?.type] == "function")
-				return await Promise.resolve(actionTypeMap[action?.type]());
+				return await Promise.resolve(
+					actionTypeMap[action?.type](e, ...args)
+				);
 			else if (action.url)
 				return await Promise.resolve(openUrl(action.url));
 			else if (typeof action == "function")
-				return await Promise.resolve(action(e));
+				return await Promise.resolve(action(e, ...args));
 			else if (typeof action == "string")
 				return await Promise.resolve(openUrl(action));
 		} catch (error) {
@@ -324,6 +338,7 @@ export const registerDataSource = (provider, name, props = {}) => {
 export const registerAction = (name, action) => {
 	let _label = name,
 		_handler = action,
+		actions,
 		tags = [],
 		type,
 		icon,
@@ -351,6 +366,7 @@ export const registerAction = (name, action) => {
 			: action.url
 			? () => openUrl(action.url)
 			: null;
+		actions = action.actions || [];
 		tags = action.tags || [];
 	}
 
@@ -375,6 +391,7 @@ export const registerAction = (name, action) => {
 		shortcut,
 		mobileOnly,
 		handler,
+		actions,
 	};
 
 	window.addEventListener(`menu-item-click:${name}`, async () => {
