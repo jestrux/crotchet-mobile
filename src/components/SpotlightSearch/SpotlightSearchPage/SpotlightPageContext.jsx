@@ -9,7 +9,11 @@ const SpotlightPageContext = createContext({
 	lastStateUpdate: null,
 	searchTerm: null,
 	pageData: null,
-	pageLoading: false,
+	pageResolving: false,
+	pageStatus: {
+		status: "idle",
+		message: null,
+	},
 	// open,
 	onPop: () => {},
 	onPopAll: () => {},

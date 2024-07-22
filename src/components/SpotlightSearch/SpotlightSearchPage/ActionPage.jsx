@@ -4,13 +4,15 @@ import useAlerts from "@/components/Alerts/useAlerts";
 import CommandKey from "@/components/CommandKey";
 import { useSpotlightPageContext } from "./SpotlightPageContext";
 import { isValidAction, showToast } from "@/utils";
-import { onActionClick } from "@/crotchet";
+import { onActionClick, Loader } from "@/crotchet";
 import SpotLightPageMenu from "./SpotLightPageMenu";
+import clsx from "clsx";
 
 export default function ActionPage({ page, children }) {
 	const {
 		pageData,
-		pageLoading,
+		pageResolving,
+		pageStatus,
 		onContextMenuClick,
 		onActionMenuClick,
 		onSecondaryActionClick,
@@ -25,6 +27,7 @@ export default function ActionPage({ page, children }) {
 
 	const onSubmit = (callback) => {
 		setMainAction({
+			...(mainAction || {}),
 			handler: callback,
 		});
 	};
@@ -58,6 +61,69 @@ export default function ActionPage({ page, children }) {
 	};
 
 	const renderSecondaryContent = () => {
+		const status = pageStatus?.status;
+		if (status && status != "idle") {
+			const isError = status == "error";
+			const isLoading = status == "loading";
+			const isIdle = status == "idle";
+
+			return (
+				<div className="-ml-3 pl-3 w-full h-full flex items-center relative overflow-hidden">
+					<>
+						{isLoading ? (
+							<Loader size={20} thickness={7} />
+						) : !isIdle ? (
+							<div
+								className={clsx(
+									"absolute inset-0 max-w-[400px] bg-gradient-to-r to-transparent opacity-70",
+									isError
+										? "from-red-500/5 via-red-500/20"
+										: "from-green-500/5 via-green-500/20"
+								)}
+							></div>
+						) : null}
+
+						{!isIdle && !isLoading && (
+							<div className="w-5 relative flex center-center">
+								<div
+									className={clsx(
+										"animate-pulse absolute size-5 rounded-full",
+										isError
+											? "bg-red-500/20"
+											: "bg-green-500/20"
+									)}
+								></div>
+								<div
+									className={clsx(
+										"absolute size-3 rounded-full",
+										isError
+											? "bg-red-500/25"
+											: "bg-green-500/25"
+									)}
+								></div>
+								<div
+									className={clsx(
+										"absolute size-1.5 rounded-full ",
+										isError
+											? "bg-red-500/70"
+											: "bg-green-500/70"
+									)}
+								></div>
+							</div>
+						)}
+					</>
+
+					{(pageStatus?.message || isLoading) && (
+						<span className="ml-2.5 text-sm opacity-70">
+							{pageStatus?.message
+								? pageStatus.message
+								: "Loading, please wait..."}
+						</span>
+					)}
+				</div>
+			);
+		}
+
 		if (secondaryAction) {
 			return (
 				<Button
@@ -116,9 +182,9 @@ export default function ActionPage({ page, children }) {
 			)}
 
 			<div className="mx-0.5 mb-0.5 rounded-b-xl bg-card fixed bottom-0 inset-x-0 h-11 px-3 flex gap-4 items-center border-t z-10">
-				{!pageLoading && (
+				{!pageResolving && (
 					<>
-						<div className="flex-1 flex items-center gap-4">
+						<div className="h-full flex-1 flex items-center gap-4">
 							{renderSecondaryContent()}
 						</div>
 

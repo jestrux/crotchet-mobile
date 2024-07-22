@@ -88,6 +88,7 @@ export default function SpotlightSearchPage({
 	page,
 }) {
 	const pageWrapperRef = useRef(null);
+	const [pageStatus, setPageStatus] = useState("idle");
 	const [mainAction, setMainAction] = useState(page?.action);
 	const [secondaryAction, setSecondaryAction] = useState(
 		page?.secondaryAction
@@ -170,6 +171,8 @@ export default function SpotlightSearchPage({
 
 	const pageInFocus = (callback, fallback = () => {}) => {
 		return (...args) => {
+			if (!open) return;
+
 			let fallbackTimeout;
 			const pageWrapper = pageWrapperRef.current;
 
@@ -236,6 +239,10 @@ export default function SpotlightSearchPage({
 		pageInFocus(navigateUpHandler.current)
 	);
 
+	useEventListener("status-change-" + page?._id, (_, payload) =>
+		setPageStatus(payload)
+	);
+
 	return (
 		<div
 			ref={pageWrapperRef}
@@ -248,7 +255,8 @@ export default function SpotlightSearchPage({
 				value={{
 					page,
 					pageData,
-					pageLoading: loading,
+					pageResolving: loading,
+					pageStatus,
 					setSpotlightState,
 					pageWrapperRef,
 					spotlightState: spotlightState.current,

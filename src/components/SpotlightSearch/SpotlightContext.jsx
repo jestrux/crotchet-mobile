@@ -39,6 +39,9 @@ export function SpotlightProvider({ pages, open, children }) {
 		window.__crotchet.desktop.visible = false;
 	};
 
+	const getCurrentPageId = () =>
+		window.__crotchet.desktop.currentPageId ?? "root";
+
 	const getNewPage = (page) => {
 		let pageResolver;
 		const promise = new Promise((resolve) => {
@@ -142,85 +145,51 @@ export function SpotlightProvider({ pages, open, children }) {
 			);
 	}, []);
 
+	useEventListener("with-loader-status-change", (_, payload) =>
+		dispatch(`status-change-${getCurrentPageId()}`, payload)
+	);
+
 	useKeyDetector({
 		key: "Escape",
 		action: (e) =>
-			dispatch(
-				`escape-${window.__crotchet.desktop.currentPageId ?? "root"}`,
-				{
-					popAll: e.shiftKey,
-				}
-			),
+			dispatch(`escape-${getCurrentPageId()}`, {
+				popAll: e.shiftKey,
+			}),
 	});
 
 	useKeyDetector({
 		key: "Enter",
-		action: () =>
-			dispatch(
-				`enter-click-${
-					window.__crotchet.desktop.currentPageId ?? "root"
-				}`
-			),
+		action: () => dispatch(`enter-click-${getCurrentPageId()}`),
 	});
 
 	useKeyDetector({
 		key: "Cmd + Enter",
-		action: () =>
-			dispatch(
-				`cmd-enter-click-${
-					window.__crotchet.desktop.currentPageId ?? "root"
-				}`
-			),
+		action: () => dispatch(`cmd-enter-click-${getCurrentPageId()}`),
 	});
 
 	useKeyDetector({
 		key: "Cmd + t",
-		action: () =>
-			dispatch(
-				`secondary-action-${
-					window.__crotchet.desktop.currentPageId ?? "root"
-				}`
-			),
+		action: () => dispatch(`secondary-action-${getCurrentPageId()}`),
 	});
 
 	useKeyDetector({
 		key: "Cmd + k",
-		action: () =>
-			dispatch(
-				`action-menu-${
-					window.__crotchet.desktop.currentPageId ?? "root"
-				}`
-			),
+		action: () => dispatch(`action-menu-${getCurrentPageId()}`),
 	});
 
 	useKeyDetector({
 		key: "Cmd + P",
-		action: () =>
-			dispatch(
-				`context-menu-${
-					window.__crotchet.desktop.currentPageId ?? "root"
-				}`
-			),
+		action: () => dispatch(`context-menu-${getCurrentPageId()}`),
 	});
 
 	useKeyDetector({
 		key: "ArrowDown",
-		action: () =>
-			dispatch(
-				`navigate-down-${
-					window.__crotchet.desktop.currentPageId ?? "root"
-				}`
-			),
+		action: () => dispatch(`navigate-down-${getCurrentPageId()}`),
 	});
 
 	useKeyDetector({
 		key: "ArrowUp",
-		action: () =>
-			dispatch(
-				`navigate-up-${
-					window.__crotchet.desktop.currentPageId ?? "root"
-				}`
-			),
+		action: () => dispatch(`navigate-up-${getCurrentPageId()}`),
 	});
 
 	useOnInit(() => {

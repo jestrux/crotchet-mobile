@@ -9,11 +9,13 @@ export default function useLoadableView({
 }) {
 	const { data, error, loading, refetch } = useSourceGet(
 		async () => {
-			const res = _.isFunction(_data) ? await _data(pageData) : _data;
-
-			if (_.isFunction(onSuccess)) onSuccess(res);
-
-			if (res == null || res == undefined) throw Error("Unkown error!");
+			let res;
+			try {
+				res = _.isFunction(_data) ? await _data(pageData) : _data;
+				if (_.isFunction(onSuccess)) onSuccess(res);
+			} catch (error) {
+				throw Error(error || "Unkown error!");
+			}
 
 			return res;
 		},

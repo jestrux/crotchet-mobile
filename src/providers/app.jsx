@@ -20,6 +20,7 @@ import {
 	objectFieldChoices,
 	readClipboard,
 	dispatch,
+	onActionClick,
 } from "@/crotchet";
 import GenericPage from "@/components/Pages/GenericPage";
 import SearchPage from "@/components/Pages/SearchPage";
@@ -58,6 +59,8 @@ const AppContext = createContext({
 	openShareSheet: ({ text, image, url } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
 	openActionSheet: ({ actions, ...payload } = {}) => {},
+	// eslint-disable-next-line no-unused-vars
+	withLoader: (callback, { onChange } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
 	openChoicePicker: ({ actions, ...payload } = {}) => {},
 	// eslint-disable-next-line no-unused-vars
@@ -395,6 +398,59 @@ export default function AppProvider({ children }) {
 		openBottomSheet,
 		openShareSheet,
 		openActionSheet,
+		withLoader: async (
+			action,
+			{
+				successMessage = "Success!",
+				errorMessage = "Unknown Error!",
+				delay = 3500,
+				onChange = () => {},
+			} = {}
+		) => {
+			const handleChange = (status, payload) => {
+				let message = { success: successMessage, error: errorMessage }[
+					status
+				];
+
+				if (typeof message == "function") message = message(payload);
+
+				dispatch("with-loader-status-change", {
+					status,
+					message,
+				});
+
+				onChange(status, payload);
+			};
+
+			let resolve, reject;
+			const promise = new Promise((res, rej) => {
+				resolve = res;
+				reject = rej;
+			});
+
+			let success = true,
+				response;
+
+			try {
+				handleChange("loading");
+				response = await onActionClick(action)();
+				handleChange("success", response);
+			} catch (error) {
+				success = false;
+				response = error?.message || error;
+				handleChange("error", response);
+				resolve(response);
+			} finally {
+				if (success) resolve(response);
+				else reject(response);
+
+				setTimeout(() => {
+					handleChange("idle");
+				}, delay);
+			}
+
+			return promise;
+		},
 		openChoicePicker: ({ title, choices: _choices }) => {
 			return new Promise((resolve) => {
 				const actions = async () => {

@@ -1,13 +1,23 @@
 import { useRef } from "react";
 import { useSpotlightContext } from "../SpotlightContext";
 import Form from "@/components/Form";
-import { useOnInit } from "@/crotchet";
+import { useOnInit, useAppContext } from "@/crotchet";
 
 export default function FormPage({ page, onSubmit }) {
+	const { withLoader } = useAppContext();
 	const { popCurrentSpotlightPage } = useSpotlightContext();
 	const submitButtonRef = useRef();
 	const handleSubmit = async (values) => {
-		popCurrentSpotlightPage(values);
+		var res = values;
+		if (page.action) {
+			res = await withLoader(() => page.action.handler(values), {
+				successMessage: page.action.successMessage,
+				errorMessage: page.action.errorMessage,
+			});
+			if (!res) return;
+		}
+
+		popCurrentSpotlightPage(res);
 	};
 
 	useOnInit(() => {

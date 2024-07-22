@@ -64,34 +64,29 @@ export const onActionClick = (
 
 		if (!action) return null;
 
-		try {
-			if (typeof confirm == "function" && action?.destructive) {
-				const res = await confirm({
-					title: action.label + "?",
-					actionType: "danger",
-					okayText: action.confirmText || "Yes, Continue",
-				});
+		if (typeof confirm == "function" && action?.destructive) {
+			const res = await confirm({
+				title: action.label + "?",
+				actionType: "danger",
+				okayText: action.confirmText || "Yes, Continue",
+			});
 
-				if (!res) return;
-			}
-
-			if (typeof action.handler == "function")
-				return await Promise.resolve(action.handler(e, ...args));
-			else if (typeof action.onClick == "function")
-				return await Promise.resolve(action.onClick(e, ...args));
-			else if (typeof actionTypeMap[action?.type] == "function")
-				return await Promise.resolve(
-					actionTypeMap[action?.type](e, ...args)
-				);
-			else if (action.url)
-				return await Promise.resolve(openUrl(action.url));
-			else if (typeof action == "function")
-				return await Promise.resolve(action(e, ...args));
-			else if (typeof action == "string")
-				return await Promise.resolve(openUrl(action));
-		} catch (error) {
-			console.log("Action click error: ", error);
+			if (!res) return;
 		}
+
+		if (typeof action.handler == "function")
+			return await Promise.resolve(action.handler(e, ...args));
+		else if (typeof action.onClick == "function")
+			return await Promise.resolve(action.onClick(e, ...args));
+		else if (typeof actionTypeMap[action?.type] == "function")
+			return await Promise.resolve(
+				actionTypeMap[action?.type](e, ...args)
+			);
+		else if (action.url) return await Promise.resolve(openUrl(action.url));
+		else if (typeof action == "function")
+			return await Promise.resolve(action(e, ...args));
+		else if (typeof action == "string")
+			return await Promise.resolve(openUrl(action));
 
 		return null;
 	};

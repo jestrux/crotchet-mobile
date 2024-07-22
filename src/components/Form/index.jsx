@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import FormField from "./FormField";
-import { parseFields } from "@/utils";
+import { parseFields, randomId } from "@/utils";
 import Button from "../Button";
 
 const fieldIsVisible = (field, data) => {
@@ -40,13 +40,16 @@ export default function Form({
 		)
 	);
 
-	const formRef = useRef(null);
+	const formId = useRef("form-" + randomId());
+	const formWrapperRef = useRef(null);
 	const submitButtonRef = useRef();
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		let newData = fields.reduce((agg, field) => {
-			const formField = e.target[field.name];
+			const formField = formWrapperRef.current.querySelector(
+				`[name="${field.name}"]`
+			);
 
 			if (!formField || field.helper) return agg;
 
@@ -105,7 +108,7 @@ export default function Form({
 	useEffect(() => {
 		const timeout = setTimeout(() => {
 			const firstInput =
-				formRef.current?.querySelector("input, textarea");
+				formWrapperRef.current?.querySelector("input, textarea");
 			if (firstInput) {
 				firstInput.focus();
 				if (Object.keys(allFields).length == 1) firstInput.select();
@@ -118,7 +121,9 @@ export default function Form({
 	const inSpotlight = !!_submitButtonRefProp;
 
 	return (
-		<form ref={formRef} id="theForm" onSubmit={handleSubmit}>
+		<div ref={formWrapperRef}>
+			<form id={formId.current} onSubmit={handleSubmit}></form>
+
 			<div
 				className={`grid grid-cols-12 items-start ${
 					inSpotlight ? "gap-6" : "gap-3"
@@ -184,6 +189,7 @@ export default function Form({
 
 			<div className="mt-4">
 				<Button
+					form={formId.current}
 					ref={_submitButtonRefProp || submitButtonRef}
 					className={_submitButtonRefProp ? "hidden" : ""}
 					type="submit"
@@ -191,6 +197,6 @@ export default function Form({
 					Submit
 				</Button>
 			</div>
-		</form>
+		</div>
 	);
 }

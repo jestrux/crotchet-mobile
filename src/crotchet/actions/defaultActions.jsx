@@ -73,25 +73,18 @@ export const sendEmail = {
 			/>
 		</svg>
 	),
-	handler: async (payload, { openForm }) => {
-		var res = await openForm({
-			title: "Send Email",
-			data: {
-				subject: "Crotchet Mail",
-				to: "wakyj07@gmail.com",
-				message: "Howdy Partner!",
-				...(payload || {}),
-			},
-			fields: {
-				to: "email",
-				subject: "text",
-				message: "text",
-			},
-		});
+	handler: async (
+		payload,
+		{ openForm, cleanObject, objectTake, withLoader }
+	) => {
+		const handler = async (res) => {
+			if (
+				Object.keys(
+					cleanObject(objectTake(res, ["to", "message", "subject"]))
+				).length != 3
+			)
+				throw "Some fields are missing";
 
-		if (!res) return;
-
-		try {
 			await fetch(
 				"https://us-central1-letterplace-c103c.cloudfunctions.net/api/mailer",
 				{
@@ -109,10 +102,38 @@ export const sendEmail = {
 				}
 			);
 
-			showToast(`Email sent to ${res.to}`);
-		} catch (error) {
-			showToast("Email not sent: " + error);
-		}
+			return res;
+		};
+		const successMessage = (res) => `Email sent to ${res.to}`;
+		const errorMessage = (err) => err || "Email not sent";
+
+		var res = await openForm({
+			title: "Send Email",
+			data: {
+				subject: "Crotchet Mail",
+				to: "wakyj07@gmail.com",
+				message: "Howdy Partner!",
+				...(payload || {}),
+			},
+			fields: {
+				to: "email",
+				subject: "text",
+				message: "text",
+			},
+			// action: {
+			// 	label: "Send Email",
+			// 	handler: handler,
+			// 	successMessage,
+			// 	errorMessage,
+			// },
+		});
+
+		if (!res) return;
+
+		return withLoader(() => handler(res), {
+			successMessage,
+			errorMessage,
+		});
 	},
 };
 

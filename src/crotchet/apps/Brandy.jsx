@@ -26,24 +26,13 @@ registerAction("brandySearchUser", {
 			getMarkdownTable,
 		}
 	) => {
-		var email = copiedEmail;
-		if (!copiedEmail) {
-			copiedEmail = (await readClipboard())?.value?.replace(
-				"mailto:",
-				""
+		const doSearch = (email) =>
+			networkRequest(
+				`https://app.brandyhq.com/brandy-admin/user/${email}`,
+				{
+					secretToken: "X-BRANDY-ADMIN-CODE",
+				}
 			);
-
-			email = await openForm({
-				title: "Brandy - Search User",
-				field: {
-					label: "User's email address",
-					placeholder: "E.g. james@example.com",
-					defaultValue: isValidEmail(copiedEmail) ? copiedEmail : "",
-				},
-			});
-		}
-
-		if (!email?.length) return;
 
 		const downloadData = ({ pageData: user }) => {
 			exportContent(
@@ -59,16 +48,43 @@ registerAction("brandySearchUser", {
 			});
 		};
 
+		var email = copiedEmail;
+		let data;
+		if (!copiedEmail) {
+			copiedEmail = (await readClipboard())?.value?.replace(
+				"mailto:",
+				""
+			);
+
+			data = await openForm({
+				title: "Brandy - Search User",
+				field: {
+					label: "User's email address",
+					placeholder: "E.g. james@example.com",
+					defaultValue: isValidEmail(copiedEmail)
+						? copiedEmail
+						: "wakyj07@gmail.com",
+				},
+				action: {
+					label: "Search",
+					handler: (email) => {
+						if (!email?.length) return null;
+						return doSearch(email);
+					},
+				},
+			});
+		}
+
+		if (!data && !email) return;
+
 		return openPage({
 			title: "Brandy - Search User",
 			fullHeight: true,
-			resolve: () =>
-				networkRequest(
-					`https://app.brandyhq.com/brandy-admin/user/${email}`,
-					{
-						secretToken: "X-BRANDY-ADMIN-CODE",
-					}
-				),
+			resolve: () => {
+				if (data) return data;
+
+				return doSearch(email);
+			},
 			action: {
 				label: "Download user data",
 				handler: downloadData,
@@ -82,7 +98,9 @@ registerAction("brandySearchUser", {
 				{ label: "Download user data", handler: downloadData },
 			],
 			content: (user) => {
-				if (!user) return true;
+				user = data || user;
+
+				if (!user) return "";
 
 				return {
 					type: "markdown",
@@ -136,46 +154,46 @@ registerAction("brandySearchOrg", {
 		return openPage({
 			title: "Organisation Details",
 			fullHeight: true,
-			content: async () =>
-				await networkRequest(
+			resolve: () =>
+				networkRequest(
 					`https://app.brandyhq.com/brandy-admin/org/${name}`,
 					{
 						secretToken: "X-BRANDY-ADMIN-CODE",
 					}
-				).then((org) =>
-					!org
-						? null
-						: [
-								{
-									type: "markdown",
-									value: [
-										`## <button class="underline font-semibold" onclick="window.__crotchet.openUrl('https://app.brandyhq.com/${org.name}')">${org.company_name}</button>`,
-										getMarkdownTable([
-											{
-												Public: !org.is_private,
-												Plan: org.admin?.plan?.name,
-												"Total Assets":
-													org.totalAssetSizeInMb?.toFixed(
-														2
-													) + "Mbs",
-												Admin: org.admin?.email,
-											},
-										]),
-										"### Users",
-										getMarkdownTable(
-											org.users.map(({ user, role }) => ({
-												Name: [
-													user.first_name,
-													user.last_name,
-												].join(" "),
-												Email: user.email,
-												Role: role,
-											}))
-										),
-									].join("\n"),
-								},
-						  ]
 				),
+			content: (org) =>
+				!org
+					? ""
+					: [
+							{
+								type: "markdown",
+								value: [
+									`## <button class="underline font-semibold" onclick="window.__crotchet.openUrl('https://app.brandyhq.com/${org.name}')">${org.company_name}</button>`,
+									getMarkdownTable([
+										{
+											Public: !org.is_private,
+											Plan: org.admin?.plan?.name,
+											"Total Assets":
+												org.totalAssetSizeInMb?.toFixed(
+													2
+												) + "Mbs",
+											Admin: org.admin?.email,
+										},
+									]),
+									"### Users",
+									getMarkdownTable(
+										org.users.map(({ user, role }) => ({
+											Name: [
+												user.first_name,
+												user.last_name,
+											].join(" "),
+											Email: user.email,
+											Role: role,
+										}))
+									),
+								].join("\n"),
+							},
+					  ],
 		});
 	},
 });
