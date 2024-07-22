@@ -87,13 +87,14 @@ export default function SpotlightSearchPage({
 	children,
 	page,
 }) {
+	const pageStatusResetTimeoutRef = useRef(null);
 	const pageWrapperRef = useRef(null);
-	const [pageStatus, setPageStatus] = useState("idle");
-	const [mainAction, setMainAction] = useState(page?.action);
-	const [secondaryAction, setSecondaryAction] = useState(
-		page?.secondaryAction
-	);
-	const [actions, setActions] = useState(page?.actions);
+	const [preview, setPreview] = useState();
+	const [pageData, setPageData] = useState();
+	const [pageStatus, _setPageStatus] = useState({ status: "idle" });
+	const [mainAction, setMainAction] = useState();
+	const [secondaryAction, setSecondaryAction] = useState();
+	const [actions, setActions] = useState();
 	const [contextMenuActions, setContextMenuActions] = useState(
 		page?.contextMenuActions
 	);
@@ -127,15 +128,12 @@ export default function SpotlightSearchPage({
 	const navigateUpHandler = useRef(() => {});
 	const onNavigateUp = (callback) => (navigateUpHandler.current = callback);
 
-	const {
-		data: pageData,
-		loading,
-		pendingView: pagePendingView,
-	} = useLoadableView({
+	const { loading, pendingView: pagePendingView } = useLoadableView({
 		data: page?.resolve || (() => true),
 		resolver: true,
 		dismiss: onClose,
-		onSuccess: () => {
+		onSuccess: (data) => {
+			setPageData(data);
 			setTimeout(() => {
 				readyHandler.current();
 			});
@@ -150,6 +148,19 @@ export default function SpotlightSearchPage({
 	};
 	const [searchTerm, setSearchTerm] = useState("");
 	const [navigationValue, setNavigationValue] = useState(null);
+
+	const setPageStatus = (payload) => {
+		if (pageStatusResetTimeoutRef.current)
+			clearTimeout(pageStatusResetTimeoutRef.current);
+
+		if (["success", "error"].includes(payload?.status)) {
+			pageStatusResetTimeoutRef.current = setTimeout(() => {
+				_setPageStatus({ status: "idle" });
+			}, 3000);
+		}
+
+		_setPageStatus(payload);
+	};
 
 	const pageContent = () => {
 		if (pagePendingView != true) {
@@ -194,10 +205,12 @@ export default function SpotlightSearchPage({
 
 	useEventListener(
 		"escape-" + page?._id,
-		pageInFocus(
-			(_, payload) => escapeHandler.current(payload),
-			openHandler.current
-		)
+		pageInFocus((_, payload) => {
+			if (["error", "success"].includes(pageStatus?.status))
+				return setPageStatus({ status: "idle" });
+
+			escapeHandler.current(payload);
+		}, openHandler.current)
 	);
 
 	useEventListener(
@@ -247,6 +260,7 @@ export default function SpotlightSearchPage({
 		<div
 			ref={pageWrapperRef}
 			id="spotlightSearchWrapper"
+			{...(open ? { "data-current-spotlight-page": true } : {})}
 			className={clsx("fixed inset-0", {
 				"opacity-0 pointer-events-none": !open,
 			})}
@@ -255,6 +269,7 @@ export default function SpotlightSearchPage({
 				value={{
 					page,
 					pageData,
+					setPageData,
 					pageResolving: loading,
 					pageStatus,
 					setSpotlightState,
@@ -272,19 +287,52 @@ export default function SpotlightSearchPage({
 					onReady,
 					onEscape,
 					onClose,
-					mainAction: mainAction
-						? {
-								...mainAction,
-								shortcut:
-									page.type == "form"
-										? "Cmd + Enter"
-										: "Enter",
-						  }
-						: {},
+					preview: () => {
+						let pagePreview = preview || page?.preview;
+						return typeof pagePreview == "function"
+							? pagePreview({ page, pageData })
+							: pagePreview;
+					},
+					setPreview,
+					mainAction: () => {
+						let action = mainAction || page?.action;
+						action =
+							typeof action == "function"
+								? action({ page, pageData })
+								: action;
+
+						return action
+							? {
+									...action,
+									shortcut:
+										page.type == "form"
+											? "Cmd + Enter"
+											: "Enter",
+							  }
+							: null;
+					},
 					setMainAction,
-					secondaryAction,
+					secondaryAction: () => {
+						let action = secondaryAction || page?.secondaryAction;
+						action =
+							typeof action == "function"
+								? action({ page, pageData })
+								: action;
+
+						return action
+							? {
+									...action,
+									shortcut: "Cmd + T",
+							  }
+							: null;
+					},
 					setSecondaryAction,
-					actions,
+					actions: () => {
+						const pageActions = actions || page?.actions;
+						return typeof pageActions == "function"
+							? pageActions({ pageData })
+							: pageActions;
+					},
 					setActions,
 					contextMenuActions,
 					setContextMenuActions,

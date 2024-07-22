@@ -169,7 +169,7 @@ registerAction("floatingHead", {
 			.map(({ key: size, label }) => {
 				return {
 					label,
-					group: "Size",
+					section: "Size",
 					handler: (_, { backgroundAction }) =>
 						backgroundAction("floatingHead", {
 							action: "resize",
@@ -180,7 +180,7 @@ registerAction("floatingHead", {
 		...positionButtonKeys.map(({ key: position }) => {
 			return {
 				label: position,
-				group: "Position",
+				section: "Position",
 				handler: (_, { backgroundAction }) =>
 					backgroundAction("floatingHead", {
 						action: "move",
@@ -191,7 +191,7 @@ registerAction("floatingHead", {
 		...filters.map((filter) => {
 			return {
 				label: filter,
-				group: "Filter",
+				section: "Filter",
 				handler: (_, { backgroundAction }) =>
 					backgroundAction("floatingHead", {
 						action: "filter",

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { ComboboxOption } from "@/components/reach-combobox";
 import { useSpotlightPageContext } from "../SpotlightSearchPage/SpotlightPageContext";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
+import { matchSorter } from "match-sorter";
 
 export const defaultSpotlightSearchItemLeading = (
 	<svg
@@ -22,6 +23,7 @@ export const defaultSpotlightSearchItemLeading = (
 function SpotlightListItem({
 	id = "",
 	value,
+	tags,
 	leading = defaultSpotlightSearchItemLeading,
 	trailing = "",
 	children,
@@ -120,12 +122,11 @@ function SpotlightListItem({
 
 	if (searchTerm?.length) {
 		try {
-			const matched = value
-				.toString()
-				.toLowerCase()
-				.includes(searchTerm.toString().toLowerCase());
+			const matched = matchSorter([{ label, value, tags }], searchTerm, {
+				keys: ["value", "label", "tags"],
+			});
 
-			if (!matched) return null;
+			if (!matched?.length) return null;
 		} catch (error) {
 			//
 		}
@@ -137,7 +138,7 @@ function SpotlightListItem({
 		<ComboboxOption
 			ref={optionRef}
 			id={id}
-			className={`cursor-pointer ${
+			className={`cursor-default ${
 				replace ? className : ""
 			} list-none sfocus:outline-none`}
 			data-value={value}

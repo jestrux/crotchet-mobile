@@ -53,7 +53,7 @@ const createMainWindow = () => {
 	);
 
 	if (isDev) {
-		// mainWindow.webContents.openDevTools({ mode: "detach" });
+		mainWindow.webContents.openDevTools({ mode: "detach" });
 
 		mainWindow.loadURL("http://localhost:5173/");
 

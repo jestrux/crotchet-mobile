@@ -288,6 +288,9 @@ export const registerDataSource = (provider, name, props = {}) => {
 			}
 		);
 
+	const latest = async (payload = {}) =>
+		await get({ single: true, ...payload });
+
 	const random = async (payload = {}) => {
 		const res = await get({ random: true, single: true, ...payload });
 		setTimeout(() => {
@@ -306,6 +309,7 @@ export const registerDataSource = (provider, name, props = {}) => {
 		handler,
 		get,
 		random,
+		latest,
 		insertRow,
 		updateRow,
 		deleteRow,

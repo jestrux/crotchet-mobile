@@ -1,9 +1,17 @@
+import lodash from "lodash";
+window._ = lodash;
+import moment from "moment";
+window.moment = moment;
+
 import * as crotchet from "@/crotchet";
 
 if (!window.__crotchet) window.__crotchet = {};
 
 Object.assign(window.__crotchet, {
 	...crotchet,
+	_,
+	lodash,
+	moment,
 	__crotchetApp: {
 		name: "Crotchet",
 		colors: {

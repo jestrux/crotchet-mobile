@@ -13,17 +13,23 @@ export default function ActionPage({ page, children }) {
 		pageData,
 		pageResolving,
 		pageStatus,
+		preview: _preview,
 		onContextMenuClick,
 		onActionMenuClick,
 		onSecondaryActionClick,
 		onMainActionClick,
 		setMainAction,
-		mainAction,
-		secondaryAction,
-		actions,
+		mainAction: _mainAction,
+		secondaryAction: _secondaryAction,
+		actions: _actions,
 	} = useSpotlightPageContext();
 	const { confirm } = useAlerts();
 	const actionsButtonRef = useRef();
+
+	const secondaryAction = _secondaryAction();
+	const mainAction = _mainAction();
+	const preview = _preview();
+	const actions = _actions();
 
 	const onSubmit = (callback) => {
 		setMainAction({
@@ -57,7 +63,7 @@ export default function ActionPage({ page, children }) {
 	});
 
 	const mainActionSet = () => {
-		return typeof isValidAction(mainAction);
+		return isValidAction(mainAction);
 	};
 
 	const renderSecondaryContent = () => {
@@ -172,13 +178,28 @@ export default function ActionPage({ page, children }) {
 		);
 	};
 
+	const content = () => {
+		return Children.map(children, (child) => {
+			if (!child?.type) return null;
+
+			return cloneElement(child, {
+				page,
+				onSubmit,
+			});
+		});
+	};
+
 	return (
 		<>
-			{Children.map(children, (child) =>
-				cloneElement(child, {
-					page,
-					onSubmit,
-				})
+			{preview && preview?.type ? (
+				<div className="grid grid-cols-12 h-sc">
+					<div className="col-span-5">{content()}</div>
+					<div className="col-span-7 border-l border-content/10 overflow-hidden p-0.5">
+						{preview}
+					</div>
+				</div>
+			) : (
+				content()
 			)}
 
 			<div className="mx-0.5 mb-0.5 rounded-b-xl bg-card fixed bottom-0 inset-x-0 h-11 px-3 flex gap-4 items-center border-t z-10">
@@ -226,10 +247,6 @@ export default function ActionPage({ page, children }) {
 									);
 
 									if (action) {
-										console.log(
-											"On menu action click: ",
-											action
-										);
 										onActionClick(action)(
 											{ pageData },
 											window.__crotchet

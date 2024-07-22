@@ -403,7 +403,6 @@ export default function AppProvider({ children }) {
 			{
 				successMessage = "Success!",
 				errorMessage = "Unknown Error!",
-				delay = 3500,
 				onChange = () => {},
 			} = {}
 		) => {
@@ -413,6 +412,8 @@ export default function AppProvider({ children }) {
 				];
 
 				if (typeof message == "function") message = message(payload);
+				else if (status == "error" && typeof payload == "string")
+					message = payload;
 
 				dispatch("with-loader-status-change", {
 					status,
@@ -428,25 +429,17 @@ export default function AppProvider({ children }) {
 				reject = rej;
 			});
 
-			let success = true,
-				response;
+			let response;
 
 			try {
 				handleChange("loading");
 				response = await onActionClick(action)();
 				handleChange("success", response);
+				resolve(response);
 			} catch (error) {
-				success = false;
 				response = error?.message || error;
 				handleChange("error", response);
-				resolve(response);
-			} finally {
-				if (success) resolve(response);
-				else reject(response);
-
-				setTimeout(() => {
-					handleChange("idle");
-				}, delay);
+				reject(response);
 			}
 
 			return promise;

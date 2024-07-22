@@ -63,7 +63,7 @@ const HomePageActions = ({ onOpenPage }) => {
 					<SpotlightListItem
 						key={source._id}
 						value={source.label}
-						onFocus={() =>
+						onFocus={() => {
 							setMainAction({
 								label: "View Data Source",
 								handler: () =>
@@ -71,8 +71,10 @@ const HomePageActions = ({ onOpenPage }) => {
 										page: "search",
 										source: source.name,
 									}),
-							})
-						}
+							});
+
+							if (source.actions) setActions(source.actions);
+						}}
 						trailing="Data Source"
 					/>
 				))}
@@ -152,6 +154,9 @@ export default function DesktopApp() {
 					: "",
 				searchQuery: q ?? query,
 				resolve: actualSource.get,
+				secondaryAction: actualSource.entrySecondaryAction,
+				action: actualSource.entryAction,
+				actions: actualSource.entryActions,
 			});
 
 			return;
@@ -281,7 +286,7 @@ export default function DesktopApp() {
 			)}
 
 			{toast && (
-				<div className="fixed inline-flex items-center bottom-12 h-8 px-3.5 z-50 bg-content/80 text-canvas text-sm drop-shadow-sm rounded-full -translate-x-1/2 left-1/2">
+				<div className="fixed inline-flex items-center bottom-14 h-7 px-3 z-50 bg-content/85 text-on-content text-xs drop-shadow-sm rounded-full -translate-x-1/2 left-1/2">
 					{toast}
 				</div>
 			)}

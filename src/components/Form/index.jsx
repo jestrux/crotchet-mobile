@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import FormField from "./FormField";
-import { parseFields, randomId } from "@/utils";
+import { parseFields } from "@/utils";
 import Button from "../Button";
 
 const fieldIsVisible = (field, data) => {
@@ -14,7 +14,9 @@ const fieldIsVisible = (field, data) => {
 
 export default function Form({
 	onClose = () => {},
-	submitButtonRef: _submitButtonRefProp,
+	horizontalLayout = false,
+	formId,
+	onChange,
 	onSubmit,
 	...props
 }) {
@@ -40,16 +42,15 @@ export default function Form({
 		)
 	);
 
-	const formId = useRef("form-" + randomId());
-	const formWrapperRef = useRef(null);
-	const submitButtonRef = useRef();
+	const formRef = useRef(null);
 
-	const handleSubmit = async (e) => {
-		e.preventDefault();
+	const processFieldValues = () => {
+		const form = formRef.current;
+
+		if (!form) return null;
+
 		let newData = fields.reduce((agg, field) => {
-			const formField = formWrapperRef.current.querySelector(
-				`[name="${field.name}"]`
-			);
+			const formField = form[field.name];
 
 			if (!formField || field.helper) return agg;
 
@@ -64,6 +65,9 @@ export default function Form({
 			} catch (error) {
 				//
 			}
+
+			if (typeof field.validate == "function" && !field.validate(value))
+				throw `Invalid value for ${field.name}`;
 
 			agg = { ...agg, [field.name]: value };
 
@@ -83,10 +87,22 @@ export default function Form({
 			if (value === undefined) delete mergedValues[key];
 		});
 
-		const savedValues =
+		const res =
 			fieldKeys.length == 1 && fieldKeys[0] == "formField"
 				? mergedValues.formField
 				: mergedValues;
+
+		return res;
+	};
+
+	const handleChange = () => {
+		if (typeof onChange == "function") onChange(processFieldValues());
+	};
+
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+
+		const savedValues = processFieldValues();
 
 		if (typeof onSubmit == "function") onSubmit(savedValues);
 		else onClose(savedValues);
@@ -108,7 +124,7 @@ export default function Form({
 	useEffect(() => {
 		const timeout = setTimeout(() => {
 			const firstInput =
-				formWrapperRef.current?.querySelector("input, textarea");
+				formRef.current?.querySelector("input, textarea");
 			if (firstInput) {
 				firstInput.focus();
 				if (Object.keys(allFields).length == 1) firstInput.select();
@@ -118,15 +134,11 @@ export default function Form({
 		return () => clearTimeout(timeout);
 	}, []);
 
-	const inSpotlight = !!_submitButtonRefProp;
-
 	return (
-		<div ref={formWrapperRef}>
-			<form id={formId.current} onSubmit={handleSubmit}></form>
-
+		<form ref={formRef} id={formId} onSubmit={handleSubmit}>
 			<div
 				className={`grid grid-cols-12 items-start ${
-					inSpotlight ? "gap-6" : "gap-3"
+					horizontalLayout ? "gap-6" : "gap-3"
 				}`}
 			>
 				{fields.map((field, index) => {
@@ -164,16 +176,21 @@ export default function Form({
 									</div>
 								)}
 							<FormField
-								horizontal={inSpotlight}
+								horizontal={horizontalLayout}
 								{...(key ? { key } : {})}
 								className={` ${widthClass} ${
 									field.noMargin && "-mt-3"
 								}`}
 								field={field}
 								__data={data}
-								onChange={(newProps) =>
-									setData({ ...data, ...newProps })
-								}
+								onChange={(newProps) => {
+									setData((data) => ({
+										...data,
+										...newProps,
+									}));
+
+									setTimeout(handleChange, 50);
+								}}
 							/>
 
 							{field?.group &&
@@ -188,15 +205,10 @@ export default function Form({
 			</div>
 
 			<div className="mt-4">
-				<Button
-					form={formId.current}
-					ref={_submitButtonRefProp || submitButtonRef}
-					className={_submitButtonRefProp ? "hidden" : ""}
-					type="submit"
-				>
+				<Button className={formId ? "hidden" : ""} type="submit">
 					Submit
 				</Button>
 			</div>
-		</div>
+		</form>
 	);
 }

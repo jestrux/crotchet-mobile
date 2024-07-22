@@ -18,7 +18,8 @@ const SpotLightPageMenuContent = forwardRef(function SpotLightPageMenuContent(
 	containerRef
 ) {
 	let formattedChoices = objectFieldChoices(choices).map((choice) => {
-		if (choice.group) choice.groupTag = `${choice.group} ${choice.label}`;
+		if (choice.section)
+			choice.sectionTag = `${choice.section} ${choice.label}`;
 		return choice;
 	});
 	const [activeChoice, setActiveChoice] = useState(formattedChoices[0].value);
@@ -29,31 +30,32 @@ const SpotLightPageMenuContent = forwardRef(function SpotLightPageMenuContent(
 		query === ""
 			? formattedChoices
 			: matchSorter(formattedChoices, query, {
-					keys: ["label", "groupTag"],
+					keys: ["label", "sectionTag"],
 			  });
 
-	if (query?.length) formattedChoices = _.sortBy(formattedChoices, ["group"]);
+	if (query?.length)
+		formattedChoices = _.sortBy(formattedChoices, ["section"]);
 
 	formattedChoices = formattedChoices.reduce((agg, choice, idx) => {
-		const group = choice?.group;
-		const prevGroup = formattedChoices[idx - 1]?.group;
-		const nextGroup = formattedChoices[idx + 1]?.group;
+		const section = choice?.section;
+		const prevSection = formattedChoices[idx - 1]?.section;
+		const nextSection = formattedChoices[idx + 1]?.section;
 
-		if (group && (idx == 0 || prevGroup != group)) {
+		if (section && (idx == 0 || prevSection != section)) {
 			agg.push({
-				groupStart: true,
-				label: group,
-				__id: choice.__id + "group-start",
+				sectionStart: true,
+				label: section,
+				__id: choice.__id + "section-start",
 			});
 		}
 
 		agg.push(choice);
 
-		if (nextGroup != group && idx < formattedChoices.length - 1) {
+		if (nextSection != section && idx < formattedChoices.length - 1) {
 			agg.push({
-				groupEnd: true,
-				label: group,
-				__id: choice.__id + "group-end",
+				sectionEnd: true,
+				label: section,
+				__id: choice.__id + "section-end",
 			});
 		}
 
@@ -164,13 +166,13 @@ const SpotLightPageMenuContent = forwardRef(function SpotLightPageMenuContent(
 				{formattedChoices.map((choice, idx) => {
 					const active = activeChoice == choice.value;
 
-					if (choice.groupStart) {
+					if (choice.sectionStart) {
 						return (
 							<div
-								key={"group-start" + choice.__id}
+								key={"section-start" + choice.__id}
 								className={clsx(
 									"mb-1 text-[11px]/none tracking-wider uppercase font-medium text-content/40 pl-2",
-									{ "mt-1": idx == 0 }
+									idx == 0 ? "mt-1" : "mt-3"
 								)}
 							>
 								{choice.label}
@@ -178,32 +180,36 @@ const SpotLightPageMenuContent = forwardRef(function SpotLightPageMenuContent(
 						);
 					}
 
-					if (choice.groupEnd) {
+					if (choice.sectionEnd) {
 						return (
 							<div
-								key={"group-end" + choice.__id}
-								className="-mx-1 mt-1 pt-3 border-t border-content/[0.07]"
+								key={"section-end" + choice.__id}
+								className="-mx-1 mt-1 mb-1 border-t border-content/[0.07]"
 							></div>
 						);
 					}
 
 					return (
-						<div
+						<button
+							type="button"
 							key={choice.__id}
 							data-choice={choice.value}
 							className={clsx(
-								"rounded relative cursor-default select-none p-2 truncate text-[14px] font-medium",
+								"w-full flex items-center gap-1 rounded relative cursor-default select-none p-2 truncate text-[14px] font-medium",
 								active
-									? "bg-content/5 text-content/70"
-									: "text-content/60"
+									? "bg-content/10 text-content/70"
+									: "text-content/60 hover:bg-content/5 hover:text-content/70"
 							)}
-							style={{
-								scrollMarginTop: "20px",
-							}}
 							onClick={() => handleSelect(choice.value)}
 						>
-							{choice.label}
-						</div>
+							<span
+								className={`${
+									choice.destructive ? "text-red-600" : ""
+								}`}
+							>
+								{choice.label}
+							</span>
+						</button>
 					);
 				})}
 			</div>
@@ -254,8 +260,6 @@ export default function SpotLightPageMenu({
 
 		if (open) spotlightParent.classList.add(idRef.current);
 		if (!open) {
-			var input = spotlightParent.querySelector("input");
-			if (input) input.focus();
 			wrapperRef.current.querySelector(`#menuTriggerButton`).blur();
 
 			setTimeout(() => {
@@ -335,7 +339,6 @@ export default function SpotLightPageMenu({
 						onSelect={handleSelect}
 						onOpen={() => doProcess(true)}
 						onClose={() => {
-							doProcess(false);
 							onClose();
 						}}
 					/>

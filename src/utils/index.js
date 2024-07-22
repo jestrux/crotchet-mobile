@@ -388,6 +388,23 @@ export const openUrl = async (path) => {
 		);
 	}
 
+	if (path.startsWith("crotchet://data-source/")) {
+		const url = new URL(
+			path.replace("crotchet://data-source/", "https://crotchet.app/")
+		);
+		const [name, slug = "get"] = [
+			...url.pathname.substring(1).split("/"),
+			null,
+			null,
+		];
+		const actualSource = __crotchet.dataSources[name];
+
+		if (typeof actualSource?.[slug] != "function")
+			return showToast(`Data source ${name} not found!`);
+
+		return actualSource?.[slug]();
+	}
+
 	if (path.startsWith("crotchet://share")) {
 		const share = (payload) => {
 			return __crotchet.actionSheets.share.handler(payload);
@@ -511,7 +528,7 @@ export const getMarkdownTable = (rows) => {
 		"\n| ",
 		rows
 			.map((row) => fields.map((field) => row[field]).join(" | "))
-			.join("\n\n"),
+			.join("|\n"),
 		" |",
 	].join("");
 };
@@ -560,17 +577,27 @@ export const formatDate = (
 	return value;
 };
 
-export const showToast = (text, { image, position = "bottom" } = {}) => {
+export const showToast = (...toast) => {
+	const {
+		text,
+		image,
+		position = "bottom",
+	} = typeof toast?.[0] == "object"
+		? toast[0]
+		: {
+				text: [...toast].join(" "),
+		  };
+
 	console.log(text);
 
 	if (onDesktop()) {
-		const backgroundToast = window.__crotchet.backgroundToast;
-		if (typeof backgroundToast == "function") return backgroundToast(text);
-
 		return window.__crotchet.desktop.showToast(text, image);
-	}
 
-	// if (onDesktop()) return window.__crotchet.desktop.showToast(text, image);
+		// const backgroundToast = window.__crotchet.backgroundToast;
+		// if (typeof backgroundToast == "function") return backgroundToast(text);
+
+		// return window.__crotchet.desktop.showToast(text, image);
+	}
 
 	Toast.show({
 		text,
@@ -1008,6 +1035,16 @@ export const saveToken = async (key, value, expiresAt) => {
 	return token;
 };
 
+export const getPromise = () => {
+	let resolve, reject;
+	const promise = new Promise((res, rej) => {
+		resolve = res;
+		reject = rej;
+	});
+
+	return [promise, resolve, reject];
+};
+
 export const networkRequest = async (
 	url,
 	{
@@ -1029,27 +1066,28 @@ export const networkRequest = async (
 		...headers,
 	};
 
-	if (secretToken) {
-		const token = await getToken(secretToken);
-		if (!token?.value?.length) return null;
+	const handler = async () => {
+		if (secretToken) {
+			const token = await getToken(secretToken);
+			if (!token?.value?.length) return null;
 
-		fetchHeaders[secretToken] = token.value;
-	}
+			fetchHeaders[secretToken] = token.value;
+		}
 
-	let fullUrl = new URL(url);
-	try {
+		let fullUrl = new URL(url);
+
 		Object.entries({ ...params, [searchParam]: q, ...filters }).forEach(
 			([key, value]) => {
 				if (value != undefined) fullUrl.searchParams.append(key, value);
 			}
 		);
-	} catch (error) {
-		console.log("Error: ", error);
-	}
 
-	return fetch(fullUrl.href, {
-		headers: fetchHeaders,
-	})
-		.then((response) => response[responseType]())
-		.then((res) => res?.[responseField] || res);
+		return fetch(fullUrl.href, {
+			headers: fetchHeaders,
+		})
+			.then((response) => response[responseType]())
+			.then((res) => res?.[responseField] || res);
+	};
+
+	return window.__crotchet.withLoader(handler);
 };

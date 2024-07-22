@@ -8,6 +8,8 @@ export default {
 				card: "rgb(var(--card-color) / <alpha-value>)",
 				content: "rgb(var(--content-color) / <alpha-value>)",
 				inverted: "rgb(var(--content-inverted-color) / <alpha-value>)",
+				"on-content":
+					"rgb(var(--content-inverted-color) / <alpha-value>)",
 				primary: "rgb(var(--primary-color) / <alpha-value>)",
 				"on-primary": "rgb(var(--on-primary-color) / <alpha-value>)",
 				"on-primary-inverted":

@@ -1,6 +1,7 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { AlertDialog, AlertDialogLabel } from "@reach/alert-dialog";
 import { DragHandle } from "./DraggableElement";
+import { randomId } from "@/utils";
 
 function Button({
 	type = "button",
@@ -138,11 +139,32 @@ const Modal = ({
 	dismissible = false,
 	showOverlayBg = true,
 	isOpen,
-	onClose,
+	onClose: _onClose,
 	dragProps,
 }) => {
+	const idRef = useRef("menu-open-" + randomId());
 	const cancelRef = useRef();
 	const { listeners, attributes, setNodeRef, style, reset } = dragProps || {};
+	const onClose = (...args) => {
+		toggleOpenClass(false);
+		_onClose(...args);
+	};
+
+	useEffect(() => {
+		toggleOpenClass(isOpen);
+	}, [isOpen]);
+
+	const toggleOpenClass = (status) => {
+		const spotlightParent = document.querySelector(
+			"[data-current-spotlight-page]"
+		);
+
+		if (!spotlightParent) return console.log("No parent found!!");
+
+		setTimeout(() => {
+			spotlightParent.classList.toggle(idRef.current, status);
+		}, 120);
+	};
 
 	return (
 		<AlertDialog
@@ -158,7 +180,7 @@ const Modal = ({
 			</div>
 
 			<div
-				className={`group bg-card border shadow-2xl rounded-lg overflow-hidden w-full relative
+				className={`group bg-card text-content border shadow-2xl rounded-lg overflow-hidden w-full relative
                     ${className}
                     ${size == "xs" && "max-w-xs"}
                     ${size == "sm" && "max-w-sm"}

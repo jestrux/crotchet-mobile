@@ -5,7 +5,7 @@ import SpotlightGrid from "../SpotlightComponents/SpotlightGrid";
 import { useSpotlightPageContext } from "../SpotlightSearchPage/SpotlightPageContext";
 
 export default function DataPage({ page, pageData }) {
-	const { setMainAction } = useSpotlightPageContext();
+	const { setMainAction, setActions } = useSpotlightPageContext();
 	const {
 		layout,
 		columns: columnString = 3,
@@ -52,12 +52,19 @@ export default function DataPage({ page, pageData }) {
 				aspectRatio={aspectRatio}
 				columns={columns}
 				choices={content}
-				onItemFocused={(item) =>
-					setMainAction({
-						label: "Select",
-						handler: onActionClick(item),
-					})
-				}
+				onItemFocused={(item) => {
+					setMainAction(
+						typeof page.action == "function"
+							? page.action(item)
+							: {
+									label: "Select",
+									handler: onActionClick(item),
+							  }
+					);
+
+					if (typeof page.actions == "function")
+						setActions(page.actions(item));
+				}}
 			/>
 		);
 	}
@@ -70,12 +77,13 @@ export default function DataPage({ page, pageData }) {
 					key={entry._id}
 					label={entry.title}
 					value={entry.value}
-					onFocus={() =>
+					tags={entry.tags}
+					onFocus={() => {
 						setMainAction({
 							label: "Select",
 							handler: onActionClick(entry),
-						})
-					}
+						});
+					}}
 				/>
 			))}
 		</SpotlightListSection>

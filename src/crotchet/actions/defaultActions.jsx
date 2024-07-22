@@ -175,3 +175,16 @@ export const searchSimpleIcons = {
 	// global: true,
 	url: `crotchet://search/simpleIcons?layout=grid&columns=7`,
 };
+
+export const setHero = {
+	global: true,
+	handler: (_, { openUrl, moment }) => {
+		const date = moment().startOf("iweek").subtract(7, "days");
+		const iso = (d) => d.toISOString().split("T").shift();
+
+		return openUrl(
+			`https://www.upwork.com/nx/wm/workroom/31953978/timesheet?timesheetDate=
+			${iso(date)}&workdiaryDate=${iso(date.add(2, "days"))}`
+		);
+	},
+};

@@ -67,6 +67,7 @@ export default function SpotlightGrid({
 					)}
 					key={entry.value}
 					value={entry.value}
+					tags={entry.tags}
 					onSelect={() => handleSelect(entry.value)}
 					onFocus={() => handleFocus(entry)}
 					leading={null}
