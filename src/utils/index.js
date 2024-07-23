@@ -323,6 +323,8 @@ export const toggleAppWindow = async (status, duration) => {
 	if (changing) return await someTime(duration);
 };
 
+export const hideApp = async () => dispatch("toggle-app", false);
+
 const processSchemeUrl = (schemeName, path) => {
 	const url = new URL(
 		path.replace(`crotchet://${schemeName}/`, "https://crotchet.app/")

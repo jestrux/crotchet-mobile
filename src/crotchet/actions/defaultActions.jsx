@@ -193,3 +193,14 @@ export const raycastTest = {
 	global: true,
 	url: `crotchet://socket/run?command=code /Users/waky/Documents/raycast/raycast-test/`,
 };
+
+export const tailwindCdn = {
+	global: true,
+	handler: async (_, { hideApp, socketEmit }) => {
+		hideApp();
+		socketEmit(
+			"copy-paste",
+			'<script src="https://cdn.tailwindcss.com"></script>'
+		);
+	},
+};
