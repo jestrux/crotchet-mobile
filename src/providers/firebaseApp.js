@@ -50,7 +50,10 @@ export const getDbTables = async () => {
 	const res = await getDocs(collectionGroup(db, "dbModel"));
 	return res.docs.map((doc) => doc.ref.id);
 };
-export const queryDb = async (table, { orderBy: _orderBy, filter } = {}) => {
+export const queryDb = async (
+	table,
+	{ rowId, orderBy: _orderBy, filter } = {}
+) => {
 	if (filter && _.isObject(filter)) filter = _.first(Object.entries(filter));
 
 	const params = [
@@ -63,12 +66,17 @@ export const queryDb = async (table, { orderBy: _orderBy, filter } = {}) => {
 
 	const res = await getDocs(query(...params));
 
-	return res.docs.map((doc) => {
+	const docs = res.docs.map((doc) => {
 		return {
+			_rowId: doc.ref.id,
 			_id: doc.ref.id,
 			...doc.data(),
 		};
 	});
+
+	if (rowId?.length) return docs.find((doc) => doc._rowId == rowId);
+
+	return docs;
 };
 
 export const dbInsert = async (table, data, { rowId, merge = true } = {}) => {
