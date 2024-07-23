@@ -182,7 +182,7 @@ module.exports = function Crotchet() {
 			this.mainWindow.show();
 		} else {
 			this.mainWindow.hide();
-			// mouse.click(Button.LEFT);
+			app.hide();
 
 			if (!Object.keys(this.windows).length) app.dock.hide();
 		}
