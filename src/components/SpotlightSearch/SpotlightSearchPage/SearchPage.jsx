@@ -1,12 +1,7 @@
-import { useState, useRef } from "react";
+import { useState, useRef, Children } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
-import {
-	objectFieldChoices,
-	useEventListener,
-	isValidAction,
-	onActionClick,
-} from "@/crotchet";
+import { objectFieldChoices, isValidAction, onActionClick } from "@/crotchet";
 import { useSpotlightPageContext } from "./SpotlightPageContext";
 import SpotlightListItem from "../SpotlightComponents/SpotlightListItem";
 import SpotlightGrid from "../SpotlightComponents/SpotlightGrid";
@@ -53,7 +48,7 @@ const layoutDetails = (page) => {
 	};
 };
 
-export default function SearchPage() {
+export default function SearchPage({ children }) {
 	const {
 		page,
 		pageData,
@@ -64,6 +59,7 @@ export default function SearchPage() {
 		onPopAll,
 		onOpen,
 		onReady,
+		onClick,
 		onEscape,
 		onNavigateDown,
 		onNavigateUp,
@@ -116,7 +112,7 @@ export default function SearchPage() {
 		setActions(actions);
 	};
 
-	useEventListener("click", () => {
+	onClick(() => {
 		if (inputRef.current) inputRef.current.focus();
 	});
 
@@ -231,57 +227,64 @@ export default function SearchPage() {
 				className="relative overflow-auto"
 				style={{ height: "calc(100vh - 100px)" }}
 			>
-				{!choiceSections?.length && (
-					<div className="rounded relative cursor-default select-none py-2 truncate text-[14px] text-content/30 text-center font-medium">
-						No results
-					</div>
-				)}
-
-				{choiceSections.map(([section, choices], idx) => {
-					if (grid) {
-						return (
-							<SpotlightGrid
-								key={section + "" + idx}
-								aspectRatio={aspectRatio}
-								columns={columns}
-								choices={choices}
-								selected={activeChoice}
-								onSelect={handleSelect}
-							/>
-						);
-					}
-
-					return (
-						<div
-							key={section + "" + idx}
-							className={clsx({
-								"border-b border-content/5":
-									idx != choiceSections.length - 1,
-							})}
-						>
-							{section && (
-								<span className="mt-5 mb-1 uppercase tracking-wide text-xs font-semibold opacity-50 px-4 flex items-center">
-									{section}
-								</span>
-							)}
-
-							{choices.map((choice) => {
+				{Children.count(children) ? (
+					children
+				) : (
+					<>
+						{!choiceSections?.length && (
+							<div className="rounded relative cursor-default select-none py-2 truncate text-[14px] text-content/30 text-center font-medium">
+								No results
+							</div>
+						)}
+						{choiceSections.map(([section, choices], idx) => {
+							if (grid) {
 								return (
-									<SpotlightListItem
-										key={choice.__id}
-										className="cursor-default"
-										label={choice.label}
-										value={choice.value}
-										focused={activeChoice == choice.value}
-										onClick={() =>
-											handleSelect(choice.value)
-										}
+									<SpotlightGrid
+										key={section + "" + idx}
+										aspectRatio={aspectRatio}
+										columns={columns}
+										choices={choices}
+										selected={activeChoice}
+										onSelect={handleSelect}
 									/>
 								);
-							})}
-						</div>
-					);
-				})}
+							}
+
+							return (
+								<div
+									key={section + "" + idx}
+									className={clsx({
+										"border-b border-content/5":
+											idx != choiceSections.length - 1,
+									})}
+								>
+									{section && section != "undefined" && (
+										<span className="mt-5 mb-1 uppercase tracking-wide text-xs font-semibold opacity-50 px-4 flex items-center">
+											{section}
+										</span>
+									)}
+
+									{choices.map((choice) => {
+										return (
+											<SpotlightListItem
+												key={choice.__id}
+												className="cursor-default"
+												label={choice.label}
+												value={choice.value}
+												focused={
+													activeChoice == choice.value
+												}
+												onClick={() =>
+													handleSelect(choice.value)
+												}
+											/>
+										);
+									})}
+								</div>
+							);
+						})}
+					</>
+				)}
 			</div>
 		</div>
 	);

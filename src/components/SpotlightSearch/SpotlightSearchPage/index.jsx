@@ -6,6 +6,7 @@ import DetailPage from "./DetailPage";
 import clsx from "clsx";
 import useEventListener from "@/hooks/useEventListener";
 import PageActionBar from "./PageActionBar";
+import { someTime } from "@/utils";
 
 function PageLoader() {
 	return (
@@ -100,6 +101,8 @@ export default function SpotlightSearchPage({
 		page?.contextMenuActions
 	);
 
+	const clickHandler = useRef(() => {});
+	const onClick = (callback) => (clickHandler.current = callback);
 	const mainActionClickHandler = useRef(() => {});
 	const onMainActionClick = (callback) =>
 		(mainActionClickHandler.current = callback);
@@ -132,7 +135,10 @@ export default function SpotlightSearchPage({
 	const onNavigateUp = (callback) => (navigateUpHandler.current = callback);
 
 	const { loading, pendingView: pagePendingView } = useLoadableView({
-		data: page?.resolve || (() => true),
+		data: async () => {
+			await someTime(5);
+			return typeof page?.resolve == "function" ? page.resolve() : true;
+		},
 		resolver: true,
 		dismiss: onClose,
 		onSuccess: (data) => {
@@ -183,22 +189,16 @@ export default function SpotlightSearchPage({
 		});
 	};
 
-	const pageInFocus = (callback, fallback = () => {}) => {
+	const hasClass = (cls) => {
+		const pageWrapper = pageWrapperRef.current;
+		return pageWrapper?.className.indexOf(cls) != -1;
+	};
+
+	const pageInFocus = (callback) => {
 		return (...args) => {
 			if (!open) return;
 
-			let fallbackTimeout;
-			const pageWrapper = pageWrapperRef.current;
-
-			if (fallbackTimeout) clearTimeout(fallbackTimeout);
-
-			if (pageWrapper?.className.indexOf("menu-open-") != -1) {
-				fallbackTimeout = setTimeout(() => {
-					if (pageWrapper?.className.indexOf("menu-open-") == -1)
-						fallback(...args);
-				}, 10);
-				return;
-			}
+			if (hasClass("menu-open-") || hasClass("alert-open-")) return;
 
 			callback(...args);
 		};
@@ -225,6 +225,8 @@ export default function SpotlightSearchPage({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [page?.onDataChange]);
 
+	useEventListener("click-" + page?._id, pageInFocus(clickHandler.current));
+
 	useEventListener("open-" + page?._id, openHandler.current);
 
 	useEventListener(
@@ -234,7 +236,17 @@ export default function SpotlightSearchPage({
 				return setPageStatus({ status: "idle" });
 
 			escapeHandler.current(payload);
-		}, openHandler.current)
+		})
+	);
+
+	useEventListener(
+		"menu-closed-" + page?._id,
+		pageInFocus(openHandler.current)
+	);
+
+	useEventListener(
+		"alert-closed-" + page?._id,
+		pageInFocus(openHandler.current)
 	);
 
 	useEventListener(
@@ -360,6 +372,7 @@ export default function SpotlightSearchPage({
 					setActions,
 					contextMenuActions,
 					setContextMenuActions,
+					onClick,
 					onActionMenuClick,
 					onContextMenuClick,
 					onSecondaryActionClick,

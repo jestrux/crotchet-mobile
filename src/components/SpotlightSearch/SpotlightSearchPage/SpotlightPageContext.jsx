@@ -33,6 +33,7 @@ const SpotlightPageContext = createContext({
 	setActions: () => {},
 	contextMenuActions: null,
 	setContextMenuActions: () => {},
+	onClick: () => {},
 	onMainActionClick: () => {},
 	onActionMenuClick: () => {},
 	onContextMenuClick: () => {},

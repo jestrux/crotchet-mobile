@@ -1,7 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { AlertDialog, AlertDialogLabel } from "@reach/alert-dialog";
 import { DragHandle } from "./DraggableElement";
-import { randomId } from "@/utils";
 
 function Button({
 	type = "button",
@@ -138,38 +137,17 @@ const Modal = ({
 	size = "xl",
 	dismissible = false,
 	showOverlayBg = true,
-	isOpen,
-	onClose: _onClose,
+	// isOpen,
+	onClose,
 	dragProps,
 }) => {
-	const idRef = useRef("menu-open-" + randomId());
 	const cancelRef = useRef();
 	const { listeners, attributes, setNodeRef, style, reset } = dragProps || {};
-	const onClose = (...args) => {
-		toggleOpenClass(false);
-		_onClose(...args);
-	};
-
-	useEffect(() => {
-		toggleOpenClass(isOpen);
-	}, [isOpen]);
-
-	const toggleOpenClass = (status) => {
-		const spotlightParent = document.querySelector(
-			"[data-current-spotlight-page]"
-		);
-
-		if (!spotlightParent) return console.log("No parent found!!");
-
-		setTimeout(() => {
-			spotlightParent.classList.toggle(idRef.current, status);
-		}, 120);
-	};
 
 	return (
 		<AlertDialog
 			onDismiss={dismissible ? onClose : () => {}}
-			isOpen={isOpen}
+			isOpen={true}
 			leastDestructiveRef={cancelRef}
 			className={`fixed overflow-y-auto inset-0 z-10 flex items-center justify-center py-16
                 ${showOverlayBg && "bg-black/20 dark:bg-black/70"}

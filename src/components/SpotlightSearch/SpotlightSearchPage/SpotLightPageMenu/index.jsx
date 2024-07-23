@@ -132,7 +132,7 @@ const SpotLightPageMenuContent = forwardRef(function SpotLightPageMenuContent(
 									idx != choiceSections.length - 1,
 							})}
 						>
-							{section != "undefined" && (
+							{section && section != "undefined" && (
 								<div
 									className={clsx(
 										"mb-1 text-[11px]/none tracking-wider uppercase font-medium text-content/40 pl-2",
@@ -190,7 +190,6 @@ export default function SpotLightPageMenu({
 	const [open, setOpen] = useState(false);
 	const wrapperRef = useRef();
 	const idRef = useRef("menu-open-" + randomId());
-	const closedRef = useRef();
 	const [triggerRef, containerRef] = usePopper({
 		placement: "bottom-end",
 		strategy: "fixed",
@@ -198,13 +197,18 @@ export default function SpotLightPageMenu({
 	});
 
 	const handleSelect = (value) => {
-		onClose();
 		onChange(value);
+		onClose();
 	};
 
 	const onClose = () => {
+		if (!open) return;
+
 		setOpen(false);
 		doProcess(false);
+		setTimeout(() => {
+			dispatch("menu-closed");
+		}, 20);
 	};
 
 	const onToggle = () => {
@@ -231,10 +235,7 @@ export default function SpotLightPageMenu({
 		}
 	}, []);
 
-	useOnClickOutside(
-		wrapperRef,
-		() => closedRef.current == false && triggerRef.current.click()
-	);
+	useOnClickOutside(wrapperRef, onClose);
 
 	return (
 		<div

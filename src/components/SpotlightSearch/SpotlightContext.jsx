@@ -173,6 +173,16 @@ export function SpotlightProvider({ pages, open, children }) {
 			);
 	}, []);
 
+	useEventListener("click", () => dispatch(`click-${getCurrentPageId()}`));
+
+	useEventListener("menu-closed", (_, payload) =>
+		dispatch(`menu-closed-${getCurrentPageId()}`, payload)
+	);
+
+	useEventListener("alert-closed", (_, payload) =>
+		dispatch(`alert-closed-${getCurrentPageId()}`, payload)
+	);
+
 	useEventListener("with-loader-status-change", (_, payload) =>
 		dispatch(`status-change-${getCurrentPageId()}`, payload)
 	);

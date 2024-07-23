@@ -755,12 +755,11 @@ export const sectionedChoices = (choices, query) => {
 		return choice;
 	});
 
-	formattedChoices =
-		query === ""
-			? formattedChoices
-			: matchSorter(formattedChoices, query, {
-					keys: ["label", "sectionTag"],
-			  });
+	formattedChoices = !query?.length
+		? formattedChoices
+		: matchSorter(formattedChoices, query, {
+				keys: ["label", "sectionTag"],
+		  });
 
 	return Object.entries(_.groupBy(formattedChoices, "section")).filter(
 		([, choices]) => choices.length
