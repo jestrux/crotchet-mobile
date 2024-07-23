@@ -332,10 +332,9 @@ const processSchemeUrl = (schemeName, path) => {
 	const paramValues = Object.values(params);
 	let args;
 
-	console.log("Args: ", args);
-
 	if (paramValues.length) {
-		if (paramValues.length == 1 && params.param) args = paramValues[0];
+		if (paramValues.length == 1 && (params.param || params.arg))
+			args = paramValues[0];
 		else args = params;
 	}
 
