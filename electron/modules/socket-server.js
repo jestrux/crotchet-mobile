@@ -74,7 +74,7 @@ module.exports = function socketServer(server) {
 			}
 		},
 
-		run({ command, args, callback }) {
+		run({ command, callback, ...args }) {
 			runScript(command, args, callback);
 		},
 

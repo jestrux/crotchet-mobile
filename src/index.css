@@ -154,6 +154,10 @@
 	z-index: 10;
 }
 
+.spotlight-grid-item:hover .spotlight-grid-item-preview:after {
+	border-color: rgb(var(--content-color));
+}
+
 .window-drag-handle {
 	-webkit-app-region: drag;
 }

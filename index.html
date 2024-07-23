@@ -207,6 +207,18 @@
 				z-index: 10;
 			}
 
+			.spotlight-grid-item:not([data-selected]):hover
+				.spotlight-grid-item-preview:after {
+				border: 4px solid rgb(var(--content-color));
+			}
+
+			@media (prefers-color-scheme: dark) {
+				.spotlight-grid-item:not([data-selected]):hover
+					.spotlight-grid-item-preview:after {
+					opacity: 0.2;
+				}
+			}
+
 			.window-drag-handle {
 				-webkit-app-region: drag;
 			}

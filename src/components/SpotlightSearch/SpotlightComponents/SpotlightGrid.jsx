@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import SpotlightListItem from "./SpotlightListItem";
 import clsx from "clsx";
 
@@ -8,52 +7,14 @@ export default function SpotlightGrid({
 	columns = 4,
 	previewOnly,
 	onSelect,
-	onItemFocused,
+	selected,
 }) {
-	const gridRef = useRef(null);
-	// const handleNavigate = (dir) => {
-	// 	const options = choices;
-	// 	const index = options.findIndex(
-	// 		({ __index }) => __index === navValue.current
-	// 	);
-	// 	let nextIndex = 0;
-
-	// 	if (index != -1) {
-	// 		let column = Math.floor(index % chunks);
-	// 		let row = Math.floor(index / chunks);
-	// 		console.log("Column: ", column, "Row: ", row);
-
-	// 		if (dir == "right") {
-	// 			if (index == options.length - 1) nextIndex = 0;
-	// 			else nextIndex = index + 1;
-	// 		}
-	// 		if (dir == "left") {
-	// 			if (index == 0) nextIndex = options.length - 1;
-	// 			else nextIndex = index - 1;
-	// 		}
-	// 		if (dir == "down") {
-	// 			if (rows > 1 && row < rows - 1) {
-	// 				nextIndex = (row + 1) * chunks + column;
-	// 				while (nextIndex > options.length - 1) nextIndex -= 1;
-	// 			} else nextIndex = column;
-	// 		}
-	// 		if (dir == "up") {
-	// 			if (row > 0) nextIndex = (row - 1) * chunks + column;
-	// 		}
-	// 	}
-	// };
-
 	const handleSelect = (value) => {
 		if (typeof onSelect == "function") onSelect(value);
 	};
 
-	const handleFocus = (item) => {
-		if (typeof onItemFocused == "function") onItemFocused(item);
-	};
-
 	return (
 		<div
-			ref={gridRef}
 			className="grid mt-0.5 pt-2 pr-2"
 			style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
 		>
@@ -66,12 +27,10 @@ export default function SpotlightGrid({
 							: "pl-2 pb-2 spotlight-grid-item"
 					)}
 					key={entry.value}
+					label={entry.label}
 					value={entry.value}
-					tags={entry.tags}
-					onSelect={() => handleSelect(entry.value)}
-					onFocus={() => handleFocus(entry)}
-					leading={null}
-					trailing={null}
+					focused={entry.value == selected}
+					onClick={() => handleSelect(entry.value)}
 				>
 					{() => {
 						const { icon, image, video, title, subtitle } = entry;

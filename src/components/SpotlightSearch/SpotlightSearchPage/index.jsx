@@ -1,10 +1,11 @@
-import { Children, cloneElement, useRef, useState } from "react";
+import { Children, cloneElement, useEffect, useRef, useState } from "react";
 import { SpotlightPageProvider } from "./SpotlightPageContext";
 import useLoadableView from "@/hooks/useLoadableView";
 import SearchPage from "./SearchPage";
 import DetailPage from "./DetailPage";
 import clsx from "clsx";
 import useEventListener from "@/hooks/useEventListener";
+import PageActionBar from "./PageActionBar";
 
 function PageLoader() {
 	return (
@@ -115,7 +116,8 @@ export default function SpotlightSearchPage({
 	const onReady = (callback) => (readyHandler.current = callback);
 	const escapeHandler = useRef(({ popAll } = {}) => {
 		if (popAll && typeof onPopAll == "function") return onPopAll();
-		onPop();
+		if (typeof onPop == "function") return onPop();
+		if (typeof onClose == "function") onClose();
 	});
 	const onEscape = (callback) => (escapeHandler.current = callback);
 
@@ -123,8 +125,9 @@ export default function SpotlightSearchPage({
 	const onOpen = (callback) => (openHandler.current = callback);
 
 	const navigateDownHandler = useRef(() => {});
-	const onNavigateDown = (callback) =>
-		(navigateDownHandler.current = callback);
+	const onNavigateDown = (callback) => {
+		navigateDownHandler.current = callback;
+	};
 	const navigateUpHandler = useRef(() => {});
 	const onNavigateUp = (callback) => (navigateUpHandler.current = callback);
 
@@ -200,6 +203,27 @@ export default function SpotlightSearchPage({
 			callback(...args);
 		};
 	};
+
+	useEffect(() => {
+		let clearDataChangeWatcher;
+
+		if (
+			typeof page?.onDataChange == "function" &&
+			typeof page?.resolve == "function"
+		) {
+			clearDataChangeWatcher = page?.onDataChange(() =>
+				page.resolve().then((data) => {
+					console.log("New data:", data);
+				})
+			);
+		}
+
+		return () => {
+			if (typeof clearDataChangeWatcher == "function")
+				clearDataChangeWatcher();
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [page?.onDataChange]);
 
 	useEventListener("open-" + page?._id, openHandler.current);
 
@@ -373,6 +397,8 @@ export default function SpotlightSearchPage({
 						{pageContent()}
 					</SearchPage>
 				)}
+
+				<PageActionBar />
 			</SpotlightPageProvider>
 		</div>
 	);

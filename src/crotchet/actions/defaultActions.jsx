@@ -188,3 +188,8 @@ export const setHero = {
 		);
 	},
 };
+
+export const raycastTest = {
+	global: true,
+	url: `crotchet://socket/run?command=code /Users/waky/Documents/raycast/raycast-test/`,
+};

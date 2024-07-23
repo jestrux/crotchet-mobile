@@ -1,9 +1,7 @@
-import { matchSorter } from "match-sorter";
 import { useState, useRef, useCallback, forwardRef } from "react";
 import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
 import useOnClickOutside from "@/hooks/useOnClickOutside";
 import {
-	objectFieldChoices,
 	randomId,
 	dispatch,
 	useOnInit,
@@ -12,55 +10,16 @@ import {
 } from "@/crotchet";
 import { usePopper } from "./usePopper";
 import clsx from "clsx";
+import { sectionedChoices } from "@/utils";
 
 const SpotLightPageMenuContent = forwardRef(function SpotLightPageMenuContent(
 	{ idRef, choices, width, onSelect, onOpen, onClose },
 	containerRef
 ) {
-	let formattedChoices = objectFieldChoices(choices).map((choice) => {
-		if (choice.section)
-			choice.sectionTag = `${choice.section} ${choice.label}`;
-		return choice;
-	});
-	const [activeChoice, setActiveChoice] = useState(formattedChoices[0].value);
 	const [query, setQuery] = useState("");
+	const [activeChoice, setActiveChoice] = useState();
 	const inputRef = useRef(null);
-
-	formattedChoices =
-		query === ""
-			? formattedChoices
-			: matchSorter(formattedChoices, query, {
-					keys: ["label", "sectionTag"],
-			  });
-
-	if (query?.length)
-		formattedChoices = _.sortBy(formattedChoices, ["section"]);
-
-	formattedChoices = formattedChoices.reduce((agg, choice, idx) => {
-		const section = choice?.section;
-		const prevSection = formattedChoices[idx - 1]?.section;
-		const nextSection = formattedChoices[idx + 1]?.section;
-
-		if (section && (idx == 0 || prevSection != section)) {
-			agg.push({
-				sectionStart: true,
-				label: section,
-				__id: choice.__id + "section-start",
-			});
-		}
-
-		agg.push(choice);
-
-		if (nextSection != section && idx < formattedChoices.length - 1) {
-			agg.push({
-				sectionEnd: true,
-				label: section,
-				__id: choice.__id + "section-end",
-			});
-		}
-
-		return agg;
-	}, []);
+	const choiceSections = sectionedChoices(choices, query);
 
 	const getContainer = () => inputRef.current.closest("#menuContent");
 
@@ -72,6 +31,7 @@ const SpotLightPageMenuContent = forwardRef(function SpotLightPageMenuContent(
 		onOpen();
 		setTimeout(() => {
 			if (inputRef.current) inputRef.current.focus();
+			onNavigate();
 		});
 	});
 
@@ -157,59 +117,62 @@ const SpotLightPageMenuContent = forwardRef(function SpotLightPageMenuContent(
 				id="scrollArea"
 				className="relative p-1 max-h-60 overflow-auto"
 			>
-				{!formattedChoices?.length && (
+				{!choiceSections?.length && (
 					<div className="rounded relative cursor-default select-none py-2 truncate text-[14px] text-content/30 text-center font-medium">
 						No results
 					</div>
 				)}
 
-				{formattedChoices.map((choice, idx) => {
-					const active = activeChoice == choice.value;
-
-					if (choice.sectionStart) {
-						return (
-							<div
-								key={"section-start" + choice.__id}
-								className={clsx(
-									"mb-1 text-[11px]/none tracking-wider uppercase font-medium text-content/40 pl-2",
-									idx == 0 ? "mt-1" : "mt-3"
-								)}
-							>
-								{choice.label}
-							</div>
-						);
-					}
-
-					if (choice.sectionEnd) {
-						return (
-							<div
-								key={"section-end" + choice.__id}
-								className="-mx-1 mt-1 mb-1 border-t border-content/[0.07]"
-							></div>
-						);
-					}
-
+				{choiceSections.map(([section, choices], idx) => {
 					return (
-						<button
-							type="button"
-							key={choice.__id}
-							data-choice={choice.value}
-							className={clsx(
-								"w-full flex items-center gap-1 rounded relative cursor-default select-none p-2 truncate text-[14px] font-medium",
-								active
-									? "bg-content/10 text-content/70"
-									: "text-content/60 hover:bg-content/5 hover:text-content/70"
-							)}
-							onClick={() => handleSelect(choice.value)}
+						<div
+							key={section + "idx"}
+							className={clsx("-mx-1 px-1", {
+								"mb-1 pb-1 border-b border-content/[0.07]":
+									idx != choiceSections.length - 1,
+							})}
 						>
-							<span
-								className={`${
-									choice.destructive ? "text-red-600" : ""
-								}`}
-							>
-								{choice.label}
-							</span>
-						</button>
+							{section != "undefined" && (
+								<div
+									className={clsx(
+										"mb-1 text-[11px]/none tracking-wider uppercase font-medium text-content/40 pl-2",
+										idx == 0 ? "mt-1" : "mt-3"
+									)}
+								>
+									{section}
+								</div>
+							)}
+
+							{choices.map((choice) => {
+								const active = activeChoice == choice.value;
+								return (
+									<button
+										type="button"
+										key={choice.__id}
+										data-choice={choice.value}
+										className={clsx(
+											"w-full flex items-center gap-1 rounded relative cursor-default select-none p-2 truncate text-[14px] font-medium",
+											active
+												? "bg-content/10 text-content/70"
+												: "text-content/60 hover:bg-content/5 hover:text-content/70"
+										)}
+										onClick={() =>
+											handleSelect(choice.value)
+										}
+									>
+										<span
+											className={`${
+												choice.destructive
+													? "text-red-600"
+													: ""
+											}`}
+										>
+											{choice.label}
+										</span>
+									</button>
+								);
+							})}
+						</div>
 					);
 				})}
 			</div>

@@ -1,38 +1,64 @@
-import { Children, useRef } from "react";
-import {
-	Combobox,
-	ComboboxInput,
-	ComboboxPopover,
-	useComboboxContext,
-} from "@/components/reach-combobox";
-import useEventListener from "@/hooks/useEventListener";
-
+import { useState, useRef } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import SpotlightPageActions from "./SpotlightPageActions";
-import ActionPage from "./ActionPage";
-import { useSpotlightPageContext } from "./SpotlightPageContext";
-import DataPage from "./DataPage";
 
-function SearchPageContent({
-	open,
-	placeholder,
-	searchTerm,
-	setSearchTerm,
-	page = { type: "search" },
-	// onPopAll,
-	// onPop,
-	// onOpen,
-	// onReady,
-	// onEscape,
-	onSelect,
-	children,
-}) {
-	const navValue = useRef();
-	const popoverTitleRef = useRef(null);
-	const containerRef = useRef(null);
-	const inputRef = useRef(null);
-	const comboboxData = useComboboxContext();
+import {
+	objectFieldChoices,
+	useEventListener,
+	isValidAction,
+	onActionClick,
+} from "@/crotchet";
+import { useSpotlightPageContext } from "./SpotlightPageContext";
+import SpotlightListItem from "../SpotlightComponents/SpotlightListItem";
+import SpotlightGrid from "../SpotlightComponents/SpotlightGrid";
+import { sectionedChoices } from "../../../utils";
+import clsx from "clsx";
+
+const layoutDetails = (page) => {
 	const {
+		layout,
+		columns: columnString = 3,
+		aspectRatio = "1/1",
+	} = {
+		...(page?.layoutProps || {}),
+	};
+	const columnMap = columnString
+		.toString()
+		.split(",")
+		.reduce(
+			(agg, col) => {
+				const [columns, screen = "xs"] = col.split(":").reverse();
+
+				return {
+					...agg,
+					[screen]: Number(columns),
+				};
+			},
+			{ xs: 1 }
+		);
+
+	const columns =
+		columnMap["2xl"] ||
+		columnMap["xl"] ||
+		columnMap["lg"] ||
+		columnMap["md"] ||
+		columnMap["sm"] ||
+		columnMap["xs"];
+
+	const grid = ["grid", "masonry"].includes(layout);
+
+	return {
+		grid,
+		aspectRatio,
+		columns,
+	};
+};
+
+export default function SearchPage() {
+	const {
+		page,
+		pageData,
+		setMainAction,
+		setActions,
 		onClose,
 		onPop,
 		onPopAll,
@@ -42,39 +68,106 @@ function SearchPageContent({
 		onNavigateDown,
 		onNavigateUp,
 	} = useSpotlightPageContext();
+	const [activeChoice, _setActiveChoice] = useState();
+	const [query, setQuery] = useState("");
+	const containerRef = useRef(null);
+	const inputRef = useRef(null);
+	const { grid, aspectRatio, columns } = layoutDetails(page);
+	const choices = pageData || [];
 
-	const onKeyDown = (event) => {
-		if (!event.isDefaultPrevented()) {
-			const outerContainer = containerRef.current;
-			if (!outerContainer) return;
+	const getContainer = () => containerRef.current;
 
-			window.requestAnimationFrame(() => {
-				const element = outerContainer.querySelector(
-					"[aria-selected=true]"
-				);
-				if (!element) return;
+	const getActionForValue = (value) => {
+		const choice = objectFieldChoices(choices).find(
+			(choice) => choice.value == value
+		);
+		let action, actions;
 
-				const container = element.closest("#popoverContent");
+		if (choice) {
+			action = choice.action
+				? choice.action
+				: typeof page.entryAction == "function"
+				? page.entryAction(choice)
+				: isValidAction(choice)
+				? { ...choice, label: "Select" }
+				: null;
 
-				if (container && element) {
-					const top = element.offsetTop - container.scrollTop;
-					const bottom =
-						container.scrollTop +
-						container.clientHeight -
-						(element.offsetTop + element.clientHeight);
-
-					if (bottom < 0) container.scrollTop -= bottom;
-					if (top < 0) container.scrollTop += top;
-				}
-			});
+			actions = choice.actions
+				? choice.actions
+				: typeof page.entryActions == "function"
+				? page.entryActions(choice)
+				: null;
 		}
+
+		return [action, actions];
+	};
+
+	const handleSelect = (value) => {
+		const [action] = getActionForValue(value);
+		onActionClick(action)();
+		navigate(value);
+	};
+
+	const setActiveChoice = (value) => {
+		_setActiveChoice(value);
+
+		const [action, actions] = getActionForValue(value);
+		setMainAction(action);
+		setActions(actions);
+	};
+
+	useEventListener("click", () => {
+		if (inputRef.current) inputRef.current.focus();
+	});
+
+	const focusInput = () => {
+		if (inputRef.current) inputRef.current.select();
+	};
+
+	const navigateToStart = (focus) => {
+		setTimeout(() => navigate());
+		if (focus) focusInput();
+	};
+
+	const navigate = (value) => {
+		const options = getContainer().querySelectorAll(
+			"[data-reach-combobox-option]"
+		);
+		const activeChoice = getContainer()
+			.querySelector("[data-reach-combobox-option][data-selected]")
+			?.getAttribute("data-value");
+
+		if (!options?.length) return setActiveChoice(null);
+
+		const values = Array.from(options).map((option) =>
+			option.getAttribute("data-value")
+		);
+
+		if (!value) value = values[0];
+		else if (["up", "down"].includes(value)) {
+			let index = values.findIndex((value) => value === activeChoice);
+
+			if (index == -1) index = 0;
+			else if (value == "down")
+				index = index == options.length - 1 ? 0 : index + 1;
+			else if (value == "up")
+				index = index == 0 ? options.length - 1 : (index = index - 1);
+
+			value = values[index];
+		}
+
+		setActiveChoice(value);
+
+		if (value == values[0])
+			getContainer().querySelector("#scrollArea").scrollTop = 0;
+		else options[values.indexOf(value)]?.scrollIntoView();
 	};
 
 	const handleEscape = ({ popAll } = {}) => {
 		if (!open) return;
 
-		if (inputRef.current.value.length) {
-			setSearchTerm("");
+		if (query.length) {
+			setQuery("");
 			navigateToStart();
 
 			if (popAll && typeof onPopAll == "function") onPopAll();
@@ -89,231 +182,107 @@ function SearchPageContent({
 		onClose();
 	};
 
-	const getChoices = () =>
-		Array.from(
-			popoverTitleRef.current
-				?.closest("#spotlightSearchWrapper")
-				.querySelectorAll(`[data-reach-combobox-option]`) ?? []
-		);
-
-	const handleNavigate = (dir) => {
-		const options = getChoices().map((item) =>
-			item.getAttribute("data-value")
-		);
-		let nextIndex = 0;
-
-		if (!options.length) return;
-
-		if (dir && navValue.current) {
-			const index = options.findIndex(
-				(option) => option === navValue.current
-			);
-
-			if (dir == "down") {
-				if (index == options.length - 1) nextIndex = 0;
-				else nextIndex = index + 1;
-			}
-			if (dir == "up") {
-				if (index == 0) nextIndex = options.length - 1;
-				else nextIndex = index - 1;
-			}
-		}
-
-		const value = options[nextIndex];
-		navValue.current = value;
-		comboboxData.transition("NAVIGATE", {
-			value,
-		});
-
-		onNavigate(value);
-	};
-
-	useEventListener("click", () => {
-		if (open) inputRef.current.focus();
-	});
-
-	onNavigateDown(() => handleNavigate("down"));
-
-	onNavigateUp(() => handleNavigate("up"));
-
-	onEscape((payload) => {
-		handleEscape(payload);
-	});
-
 	onOpen(() => {
-		inputRef.current.focus();
-		if (inputRef.current.value?.length) inputRef.current.select();
+		if (!activeChoice) navigateToStart("select");
+		else focusInput();
 	});
 
-	onReady(() => {
-		navigateToStart();
-	});
+	onReady(() => navigateToStart());
 
-	onSelect((value, fromManualClick) => {
-		navValue.current = value;
-		navigateToValue(value);
+	onNavigateDown(() => navigate("down"));
 
-		if (fromManualClick) return;
+	onNavigateUp(() => navigate("up"));
 
-		const selected = getChoices().find(
-			(item) => item.getAttribute("data-value") == value
-		);
+	onEscape((payload) => handleEscape(payload));
 
-		if (selected) {
-			selected.setAttribute("data-on-click", true);
-			setTimeout(() => {
-				if (selected.getAttribute("data-on-click")) {
-					selected.removeAttribute("data-on-click");
-					selected.click();
-				}
-			}, 10);
-		}
-	});
-
-	const onNavigate = (value) => {
-		const selected = getChoices().find(
-			(item) => item.getAttribute("data-value") == value
-		);
-
-		if (selected) {
-			selected.setAttribute("data-on-focus", true);
-			setTimeout(() => {
-				if (selected.getAttribute("data-on-focus")) {
-					selected.removeAttribute("data-on-focus");
-					selected.focus();
-
-					setTimeout(() => {
-						selected.blur();
-						inputRef.current.focus();
-					}, 5);
-				}
-			}, 10);
-		}
-	};
-
-	const handleSearchTermChange = (event) => {
-		if (event.target.value === inputRef.current.value)
-			setSearchTerm(event.target.value);
-
-		navigateToStart();
-	};
-
-	const navigateToStart = () => navigateToValue();
-
-	const navigateToValue = (value) => {
-		setTimeout(() => {
-			if (value) {
-				return comboboxData.transition("NAVIGATE", {
-					value,
-				});
-			}
-
-			handleNavigate();
-		});
-	};
+	const choiceSections = sectionedChoices(choices, query);
 
 	return (
-		<>
-			<div
-				ref={popoverTitleRef}
-				id="popoverTitle"
-				className={`h-14 px-4 flex items-center ${
-					comboboxData.isExpanded &&
-					"border-b border-content/10 z-10 relative"
-				}`}
-			>
+		<div ref={containerRef}>
+			<div className="h-14 px-4 flex items-center comboboxData.isExpanded border-b border-content/10 z-10 relative">
 				{typeof onPop == "function" && (
 					<button
 						type="button"
 						className="flex-shrink-0 -ml-1.5 mr-2.5 bg-content/10 rounded flex items-center justify-center w-7 h-7"
-						onClick={() => onPop()}
+						onClick={onPop}
 					>
 						<ArrowLeftIcon width={13} strokeWidth={3} />
 					</button>
 				)}
 
-				<ComboboxInput
+				<input
 					type="text"
 					ref={inputRef}
 					className="popover-input bg-transparent h-full w-full border-none shadow-none px-0 py-3 text-xl focus:outline-none placeholder-content/30"
-					readOnly={["color"].includes(page.type)}
-					placeholder={placeholder}
-					value={searchTerm}
-					onChange={handleSearchTermChange}
-					autocomplete={false}
-					selectOnClick
-					onKeyDown={onKeyDown}
-					onFocus={() => {
-						navigateToValue(navValue.current);
+					placeholder={page?.placeholder || "Type to search actions"}
+					// onKeyDown={onKeyDown}
+					value={query}
+					onChange={(e) => {
+						setQuery(e.target.value);
+						navigateToStart();
 					}}
 				/>
 
-				<SpotlightPageActions page={page} />
+				{/* <SpotlightPageActions page={page} /> */}
 			</div>
 
-			<ComboboxPopover
-				id="popoverContent"
-				ref={containerRef}
-				portal={false}
-				className="-mt-0.5 relative w-screen overflow-auto focus:outline-none"
+			<div
+				id="scrollArea"
+				className="relative overflow-auto"
 				style={{ height: "calc(100vh - 100px)" }}
 			>
-				<ActionPage page={page}>{children}</ActionPage>
-			</ComboboxPopover>
-		</>
-	);
-}
+				{!choiceSections?.length && (
+					<div className="rounded relative cursor-default select-none py-2 truncate text-[14px] text-content/30 text-center font-medium">
+						No results
+					</div>
+				)}
 
-export default function SearchPageWrapper({
-	open,
-	children,
-	page,
-	pageData,
-	onClose,
-	onEscape,
-	onOpen,
-	onReady,
-	onPop,
-	onPopAll,
-}) {
-	const { searchTerm, setSearchTerm, navigationValue, setNavigationValue } =
-		useSpotlightPageContext();
-	const selectHandler = useRef(() => {});
-	const onSelect = (callback) => (selectHandler.current = callback);
+				{choiceSections.map(([section, choices], idx) => {
+					if (grid) {
+						return (
+							<SpotlightGrid
+								key={section + "" + idx}
+								aspectRatio={aspectRatio}
+								columns={columns}
+								choices={choices}
+								selected={activeChoice}
+								onSelect={handleSelect}
+							/>
+						);
+					}
 
-	const comboProps = {
-		placeholder: page?.placeholder || "Type to search actions",
-		searchTerm,
-		setSearchTerm,
-		navigationValue,
-		setNavigationValue,
-		open,
-		page,
-		onClose,
-		onEscape,
-		onOpen,
-		onReady,
-		onPop,
-		onSelect,
-		onPopAll,
-		pageData,
-	};
+					return (
+						<div
+							key={section + "" + idx}
+							className={clsx({
+								"border-b border-content/5":
+									idx != choiceSections.length - 1,
+							})}
+						>
+							{section && (
+								<span className="mt-5 mb-1 uppercase tracking-wide text-xs font-semibold opacity-50 px-4 flex items-center">
+									{section}
+								</span>
+							)}
 
-	const getChildren = () => {
-		if (Children.count(children)) return children;
-
-		return <DataPage page={page} pageData={pageData} />;
-	};
-
-	return (
-		<Combobox
-			className="w-full text-content is-grid"
-			openOnFocus
-			onSelect={selectHandler.current}
-		>
-			<SearchPageContent {...comboProps}>
-				{getChildren()}
-			</SearchPageContent>
-		</Combobox>
+							{choices.map((choice) => {
+								return (
+									<SpotlightListItem
+										key={choice.__id}
+										className="cursor-default"
+										label={choice.label}
+										value={choice.value}
+										focused={activeChoice == choice.value}
+										onClick={() =>
+											handleSelect(choice.value)
+										}
+									/>
+								);
+							})}
+						</div>
+					);
+				})}
+			</div>
+		</div>
 	);
 }

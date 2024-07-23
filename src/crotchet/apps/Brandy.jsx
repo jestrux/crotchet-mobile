@@ -160,7 +160,7 @@ registerAction("brandySearchOrg", {
 
 		let organisation;
 
-		organisation = name.length
+		organisation = name?.length
 			? await doSearch(name)
 			: await openForm({
 					title: "Brandy - Search Organisation",

@@ -8,10 +8,13 @@ module.exports = function runScript(command, args, callback) {
 			? callback
 			: (...args) => console.log(...args);
 
-	var child = child_process.spawn(command, args, {
-		encoding: "utf8",
+	var child = child_process.exec(command, {
 		shell: true,
 	});
+	// var child = child_process.spawn(command, args, {
+	// 	encoding: "utf8",
+	// 	shell: true,
+	// });
 
 	child.on("error", (error) => {
 		// dialog.showMessageBox({

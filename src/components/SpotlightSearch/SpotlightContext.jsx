@@ -1,6 +1,11 @@
 /* eslint-disable no-unused-vars */
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { dispatch, randomId } from "@/utils";
+import {
+	camelCaseToSentenceCase,
+	dispatch,
+	randomId,
+	showToast,
+} from "@/utils";
 import useEventListener from "@/hooks/useEventListener";
 import useKeyDetector from "@/hooks/useKeyDetector";
 import { useOnInit } from "@/crotchet";
@@ -49,6 +54,29 @@ export function SpotlightProvider({ pages, open, children }) {
 		});
 		const id = randomId();
 
+		if (page.source) {
+			const { q, query, source, ...otherPageProps } = page;
+			const actualSource = window.__crotchet.dataSources[source];
+
+			if (!actualSource)
+				return showToast(`Invalid data source ${source}`);
+
+			page = {
+				...otherPageProps,
+				layoutProps: actualSource.layoutProps,
+				type: "search",
+				placeholder: actualSource.name
+					? `Search ${camelCaseToSentenceCase(actualSource.name)}...`
+					: "",
+				searchQuery: q ?? query,
+				resolve: actualSource.get,
+				onDataChange: source.listenForUpdates,
+				secondaryAction: actualSource.entrySecondaryAction,
+				entryAction: actualSource.entryAction,
+				entryActions: actualSource.entryActions,
+			};
+		}
+
 		return [
 			{
 				...page,
@@ -95,7 +123,7 @@ export function SpotlightProvider({ pages, open, children }) {
 			window.__crotchet.desktop.currentPageId =
 				newPages.at(-1)?.id || "root";
 
-			dispatch(`open-${newPages.at(-2)?.id || "root"}`);
+			dispatch(`open-${newPages.at(-1)?.id || "root"}`);
 
 			return newPages;
 		});

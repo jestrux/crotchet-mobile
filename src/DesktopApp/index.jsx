@@ -1,93 +1,15 @@
 import { useRef, useState } from "react";
-import {
-	camelCaseToSentenceCase,
-	dispatch,
-	showToast,
-	urlQueryParamsAsObject,
-	useAppContext,
-} from "@/crotchet";
+import { dispatch, urlQueryParamsAsObject, useAppContext } from "@/crotchet";
 import useEventListener from "../hooks/useEventListener";
 import clsx from "clsx";
 import useKeyDetector from "@/hooks/useKeyDetector";
 import SpotlightSearch from "@/components/SpotlightSearch";
-import { useSpotlightPageContext } from "@/components/SpotlightSearch/SpotlightSearchPage/SpotlightPageContext";
-import SpotlightListSection from "@/components/SpotlightSearch/SpotlightComponents/SpotlightListSection";
-import SpotlightListItem from "@/components/SpotlightSearch/SpotlightComponents/SpotlightListItem";
-import SpotlightNavigationButton from "@/components/SpotlightSearch/SpotlightComponents/SpotlightNavigationButton";
-
-const HomePageActions = ({ onOpenPage }) => {
-	const { actions, globalActions, dataSources } = useAppContext();
-	const { setMainAction, setActions } = useSpotlightPageContext();
-
-	return (
-		<>
-			<SpotlightListSection title="Actions">
-				<SpotlightNavigationButton
-					label="Run an Automation"
-					onFocus={() =>
-						setMainAction({
-							label: "Select action",
-							handler: () =>
-								onOpenPage({
-									type: "search",
-									resolve: actions.getAutomations.handler,
-								}),
-						})
-					}
-					trailing="Action"
-				/>
-				{globalActions().map((action) => (
-					<SpotlightListItem
-						key={action._id}
-						value={action.label}
-						onFocus={() => {
-							setMainAction({
-								...action,
-								label: "Select action",
-							});
-
-							setActions(action.actions);
-						}}
-						trailing="Action"
-					/>
-				))}
-			</SpotlightListSection>
-			<SpotlightListSection title="Data sources">
-				{_.sortBy(
-					_.filter(
-						Object.values(dataSources),
-						({ searchable }) => !searchable
-					),
-					"label"
-				).map((source) => (
-					<SpotlightListItem
-						key={source._id}
-						value={source.label}
-						onFocus={() => {
-							setMainAction({
-								label: "View Data Source",
-								handler: () =>
-									onOpenPage({
-										page: "search",
-										source: source.name,
-									}),
-							});
-
-							if (source.actions) setActions(source.actions);
-						}}
-						trailing="Data Source"
-					/>
-				))}
-			</SpotlightListSection>
-		</>
-	);
-};
 
 export default function DesktopApp() {
 	const toastTimerRef = useRef();
 	const [toast, setToast] = useState(null);
 	const [app, _setApp] = useState(null);
-	const { apps, actions, dataSources, openUrl } = useAppContext();
+	const { apps, actions, openUrl } = useAppContext();
 
 	const setApp = (app) => {
 		window.__crotchet.desktop.app = app;
@@ -135,34 +57,6 @@ export default function DesktopApp() {
 		if (!app) window.hideAppTimeout = setTimeout(hideAppWindow, 10);
 	};
 
-	const handleOpenPage = (payload) => {
-		const { page, ...pageProps } = payload || {};
-
-		if (page == "search") {
-			const { q, query, source, ...otherPageProps } = pageProps;
-			const actualSource = dataSources[source];
-
-			if (!actualSource)
-				return showToast(`Invalid data source ${source}`);
-
-			window.__crotchet.desktop.openPage({
-				...otherPageProps,
-				layoutProps: actualSource.layoutProps,
-				type: "search",
-				placeholder: actualSource.name
-					? `Search ${camelCaseToSentenceCase(actualSource.name)}...`
-					: "",
-				searchQuery: q ?? query,
-				resolve: actualSource.get,
-				secondaryAction: actualSource.entrySecondaryAction,
-				action: actualSource.entryAction,
-				actions: actualSource.entryActions,
-			});
-
-			return;
-		}
-	};
-
 	useEventListener("focus", () => {
 		window.__crotchet.desktop.visible = true;
 		if (window.hideAppTimeout) clearTimeout(window.hideAppTimeout);
@@ -204,10 +98,7 @@ export default function DesktopApp() {
 			return;
 		}
 
-		if (event == "open-page") {
-			handleOpenPage(payload);
-			return;
-		}
+		if (event == "open-page") return dispatch("open-page", payload);
 	});
 
 	useKeyDetector({
@@ -249,9 +140,7 @@ export default function DesktopApp() {
 				>
 					{/* <div className="pointer-events-none fixed inset-0 bg-stone-50/0.05 blur-3xl"></div> */}
 
-					<SpotlightSearch open={!app?.scheme}>
-						<HomePageActions onOpenPage={handleOpenPage} />
-					</SpotlightSearch>
+					<SpotlightSearch open={!app?.scheme} />
 				</div>
 			</div>
 

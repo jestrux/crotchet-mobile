@@ -3,6 +3,7 @@ import { Clipboard } from "@capacitor/clipboard";
 import { Toast } from "@capacitor/toast";
 import { Share } from "@capacitor/share";
 import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
+import { matchSorter } from "match-sorter";
 
 export { default as tinyColor } from "./tinycolor";
 export { default as getColorName } from "./get-color-name";
@@ -322,6 +323,25 @@ export const toggleAppWindow = async (status, duration) => {
 	if (changing) return await someTime(duration);
 };
 
+const processSchemeUrl = (schemeName, path) => {
+	const url = new URL(
+		path.replace(`crotchet://${schemeName}/`, "https://crotchet.app/")
+	);
+	const scheme = url.pathname.substring(1).split("/")?.at(0);
+	const params = urlQueryParamsAsObject(path);
+	const paramValues = Object.values(params);
+	let args;
+
+	console.log("Args: ", args);
+
+	if (paramValues.length) {
+		if (paramValues.length == 1 && params.param) args = paramValues[0];
+		else args = params;
+	}
+
+	return [scheme, args];
+};
+
 export const openUrl = async (path) => {
 	if (onDesktop()) dispatch("toggle-app", true);
 
@@ -443,24 +463,15 @@ export const openUrl = async (path) => {
 	}
 
 	if (path.startsWith("crotchet://action/")) {
-		const url = new URL(
-			path.replace("crotchet://action/", "https://crotchet.app/")
-		);
-		const scheme = url.pathname.substring(1).split("/")?.at(0);
-		const params = urlQueryParamsAsObject(path);
-		const paramValues = Object.values(params);
-		let args;
-
-		if (paramValues.length) {
-			if (paramValues.length == 1 && params.param) args = paramValues[0];
-			else args = params;
-		}
-
+		const [scheme, args] = processSchemeUrl("action", path);
 		const action = window.__crotchet.actions[scheme];
 		if (action?.handler) return await action.handler(args);
 
 		return showToast(`Action ${scheme} not found`);
 	}
+
+	if (path.startsWith("crotchet://socket/"))
+		return socketEmit(...processSchemeUrl("socket", path));
 
 	if (path.startsWith("crotchet://automation-action/")) {
 		path = path.replace(
@@ -713,7 +724,10 @@ export const simulateClick = (cb) => {
 
 export const objectFieldChoices = (choices) =>
 	choices.map((choice) => {
-		let label = objectField(choice, "label");
+		let label =
+			objectField(choice, "label") ||
+			objectField(choice, "title") ||
+			objectField(choice, "subtitle");
 		let value = objectField(choice, "value");
 
 		if (!value && label) value = label;
@@ -730,6 +744,27 @@ export const objectFieldChoices = (choices) =>
 
 export const objectField = (object, field) => {
 	return typeof object == "object" ? object?.[field] : object;
+};
+
+export const sectionedChoices = (choices, query) => {
+	if (!choices) return null;
+
+	let formattedChoices = objectFieldChoices(choices).map((choice) => {
+		if (choice.section)
+			choice.sectionTag = `${choice.section} ${choice.value}`;
+		return choice;
+	});
+
+	formattedChoices =
+		query === ""
+			? formattedChoices
+			: matchSorter(formattedChoices, query, {
+					keys: ["label", "sectionTag"],
+			  });
+
+	return Object.entries(_.groupBy(formattedChoices, "section")).filter(
+		([, choices]) => choices.length
+	);
 };
 
 export const objectAsLabelValue = (object) => {
