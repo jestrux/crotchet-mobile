@@ -5,6 +5,7 @@ import dataSourceProviders, {
 import {
 	camelCaseToSentenceCase,
 	cleanObject,
+	hideApp,
 	objectExcept,
 	objectTake,
 	openUrl,
@@ -373,7 +374,10 @@ export const registerAction = (name, action) => {
 		(_label || name).replace("-", " ").replace("_", " ")
 	);
 
-	const handler = (payload) => _handler(payload ?? {}, window.__crotchet);
+	const handler = (payload) => {
+		if (action.hideApp) hideApp();
+		return _handler(payload ?? {}, window.__crotchet);
+	};
 
 	window.__crotchet.actions[name] = {
 		_id: randomId(),

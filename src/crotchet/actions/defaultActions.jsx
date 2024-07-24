@@ -196,11 +196,6 @@ export const raycastTest = {
 
 export const tailwindCdn = {
 	global: true,
-	handler: async (_, { hideApp, socketEmit }) => {
-		hideApp();
-		socketEmit(
-			"copy-paste",
-			'<script src="https://cdn.tailwindcss.com"></script>'
-		);
-	},
+	hideApp: true,
+	url: 'crotchet://socket/copy-paste?arg=<script src="https://cdn.tailwindcss.com"></script>',
 };
