@@ -1,18 +1,26 @@
-import { Loader, useSourceGet } from "@/crotchet";
+import { Loader, useEffect, useRef, useSourceGet } from "@/crotchet";
 
 export default function useLoadableView({
 	data: _data,
 	dismiss,
 	delayLoader = false,
 	onSuccess,
+	onUpdate,
+	listenForUpdates,
 	pageData,
 }) {
+	const oldData = useRef(pageData);
 	const { data, error, loading, refetch } = useSourceGet(
-		async () => {
+		async ({ fromRefetch } = {}) => {
 			let res;
 			try {
 				res = _.isFunction(_data) ? await _data(pageData) : _data;
-				if (_.isFunction(onSuccess)) onSuccess(res);
+
+				if (fromRefetch) {
+					if (_.isFunction(onUpdate)) onUpdate(res, oldData.current);
+				} else if (_.isFunction(onSuccess)) onSuccess(res);
+
+				oldData.current = res;
 			} catch (error) {
 				throw Error(error || "Unkown error!");
 			}
@@ -56,6 +64,18 @@ export default function useLoadableView({
 
 		return true;
 	};
+
+	useEffect(() => {
+		let clearUpdateWatcher;
+
+		if (typeof listenForUpdates == "function")
+			clearUpdateWatcher = listenForUpdates(() => refetch());
+
+		return () => {
+			if (typeof clearUpdateWatcher == "function") clearUpdateWatcher();
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	return { data, loading, error, pendingView: content(), retry: refetch };
 }

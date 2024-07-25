@@ -16,6 +16,8 @@ import { WidgetsBridgePlugin } from "capacitor-widgetsbridge-plugin";
 import { useEffect, useRef, useState } from "react";
 
 export { default as clsx } from "clsx";
+export { useSpotlightContext } from "@/components/SpotlightSearch/SpotlightContext";
+export { useSpotlightPageContext } from "@/components/SpotlightSearch/SpotlightSearchPage/SpotlightPageContext";
 export { default as useEventListener } from "@/hooks/useEventListener";
 export { default as useKeyDetector } from "@/hooks/useKeyDetector";
 export { useSourceGet, sourceGet } from "@/providers/data";
@@ -348,6 +350,7 @@ export const registerAction = (name, action) => {
 		scheme,
 		sheet,
 		shortcut,
+		desktopOnly = false,
 		mobileOnly = false;
 
 	if (typeof action != "function") {
@@ -359,6 +362,7 @@ export const registerAction = (name, action) => {
 		scheme = action.scheme;
 		sheet = action.sheet;
 		shortcut = action.shortcut;
+		desktopOnly = action.desktopOnly;
 		mobileOnly = action.mobileOnly;
 		_label = action.label;
 		_handler = action.handler
@@ -393,6 +397,7 @@ export const registerAction = (name, action) => {
 		sheet,
 		shortcut,
 		mobileOnly,
+		desktopOnly,
 		handler,
 		actions,
 	};

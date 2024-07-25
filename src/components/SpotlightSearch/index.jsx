@@ -1,67 +1,86 @@
 import SpotlightSearchPage from "./SpotlightSearchPage";
 import { SpotlightProvider, useSpotlightContext } from "./SpotlightContext";
 import DraggableElement from "@/components/DraggableElement";
-import { dispatch } from "@/utils";
+import { dispatch, getPreference, savePreference } from "@/utils";
 
-const getCommands = () => {
-	return [
-		{
-			name: "getAutomations",
-			label: "Run an Automation",
-			trailing: "Action",
-			section: window.__crotchet.favoriteCommands.includes(
-				"getAutomations"
-			)
-				? "Favorites"
-				: "Actions",
-			action: {
-				label: "Select action",
-				handler: () =>
-					dispatch("open-page", {
-						type: "search",
-						resolve:
-							window.__crotchet.actions.getAutomations.handler,
-					}),
-			},
-			actions: () => [
-				{
-					label: "Add to favorites",
-					handler: () => {
-						window.__crotchet.withLoader(() => {}, {
-							successMessage:
-								"Run an Automation added to favorites",
-						});
-					},
+const getFavoriteCommands = () => getPreference("favorite-commands", []);
+
+const toggleCommandInFavorites = async (command) => {
+	const favorites = await getFavoriteCommands();
+	await savePreference(
+		"favorite-commands",
+		favorites.includes(command)
+			? favorites.filter((c) => c != command)
+			: [...favorites, command]
+	);
+
+	dispatch("app-commands-updated");
+
+	return;
+};
+
+const commandProps = (item, section, favorites) => {
+	const faved = favorites.includes(item.name);
+	const props = {
+		section: faved ? "Favorites" : section,
+		pinned: favorites.indexOf(item.name),
+		actions: (...payload) => [
+			...(typeof item.actions == "function"
+				? item.actions(...payload)
+				: item.actions
+				? item.actions
+				: []),
+			{
+				label: faved ? "Remove from favorites" : "Add to favorites",
+				handler: () => {
+					window.__crotchet.withLoader(
+						() => toggleCommandInFavorites(item.name),
+						{
+							successMessage: `${item.label} ${
+								faved
+									? "removed from favorites"
+									: "added to favorites"
+							}`,
+						}
+					);
 				},
-			],
+			},
+		],
+	};
+
+	return props;
+};
+
+const getCommands = async () => {
+	const favorites = await getFavoriteCommands();
+	const getAutomationsAction = {
+		name: "getAutomations",
+		label: "Run an Automation",
+		trailing: "Action",
+		action: {
+			label: "Select action",
+			handler: () =>
+				dispatch("open-page", {
+					type: "search",
+					resolve: window.__crotchet.actions.getAutomations.handler,
+				}),
 		},
-		...window.__crotchet.globalActions().map((action) => ({
+	};
+
+	return [
+		..._.concat(
+			getAutomationsAction,
+			window.__crotchet.globalActions()
+		).map((action) => ({
 			name: action.name,
 			label: action.label,
 			value: action.label,
 			trailing: "Action",
-			section: window.__crotchet.favoriteCommands.includes(action.name)
-				? "Favorites"
-				: "Actions",
 			action: {
 				label: "Select action",
 				handler: action.handler,
 			},
-			actions: (...payload) => [
-				...(typeof action.actions == "function"
-					? action.actions(...payload)
-					: action.actions
-					? action.actions
-					: []),
-				{
-					label: "Add to favorites",
-					handler: () => {
-						window.__crotchet.withLoader(() => {}, {
-							successMessage: `${action.label} added to favorites`,
-						});
-					},
-				},
-			],
+			...commandProps(action, "Actions", favorites),
 		})),
 		..._.sortBy(
 			_.filter(
@@ -74,9 +93,6 @@ const getCommands = () => {
 			label: source.label,
 			value: source.label,
 			trailing: "Data Source",
-			section: window.__crotchet.favoriteCommands.includes(source.name)
-				? "Favorites"
-				: "Data Source",
 			action: {
 				label: "View Data Source",
 				handler: () =>
@@ -85,21 +101,7 @@ const getCommands = () => {
 						source: source.name,
 					}),
 			},
-			actions: (...payload) => [
-				...(typeof source.actions == "function"
-					? source.actions(...payload)
-					: source.actions
-					? source.actions
-					: []),
-				{
-					label: "Add to favorites",
-					handler: () => {
-						window.__crotchet.withLoader(() => {}, {
-							successMessage: `${source.label} added to favorites`,
-						});
-					},
-				},
-			],
+			...commandProps(source, "Data Source", favorites),
 		})),
 	];
 };
@@ -120,6 +122,16 @@ export function SpotlightSearchWrapper({ open, children }) {
 		_id: "root",
 		type: "search",
 		resolve: getCommands,
+		listenForUpdates: (callback = () => {}) => {
+			window.addEventListener("app-commands-updated", callback, false);
+
+			return () =>
+				window.removeEventListener(
+					"app-commands-updated",
+					callback,
+					false
+				);
+		},
 	};
 
 	return (

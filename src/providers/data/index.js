@@ -84,7 +84,7 @@ export function useSourceGet(
 		loading: false,
 		data: null,
 		error: null,
-		refetch: () => doFetch(),
+		refetch: () => doFetch(true),
 	});
 
 	const onChange = (newState) => {
@@ -94,7 +94,7 @@ export function useSourceGet(
 		}));
 	};
 
-	const doFetch = async () => {
+	const doFetch = async (fromRefetch) => {
 		if (!source) return;
 
 		// if (res.loading) return null;
@@ -114,7 +114,12 @@ export function useSourceGet(
 		);
 
 		try {
-			const data = await sourceGet(source, { single, shuffle, ...props });
+			const data = await sourceGet(source, {
+				fromRefetch,
+				single,
+				shuffle,
+				...props,
+			});
 			onChange({
 				loading: false,
 				data,
@@ -130,7 +135,7 @@ export function useSourceGet(
 		}
 	};
 
-	useOnInit(doFetch);
+	useOnInit(() => doFetch());
 
 	return res;
 }
@@ -266,7 +271,7 @@ export function useDataFetch({
 
 	const handleRefetch = (newProps) => {
 		cacheRef.current = randomId();
-		
+
 		// query.variables.
 		if (newProps) {
 			if (newProps.searchQuery != undefined)

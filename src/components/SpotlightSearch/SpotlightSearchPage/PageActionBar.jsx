@@ -3,7 +3,7 @@ import { useRef } from "react";
 import useAlerts from "@/components/Alerts/useAlerts";
 import CommandKey from "@/components/CommandKey";
 import { useSpotlightPageContext } from "./SpotlightPageContext";
-import { isValidAction, showToast } from "@/utils";
+import { dispatch, isValidAction, showToast } from "@/utils";
 import { onActionClick, Loader } from "@/crotchet";
 import SpotLightPageMenu from "./SpotLightPageMenu";
 import clsx from "clsx";
@@ -213,6 +213,8 @@ export default function PageActionBar() {
 								);
 
 								if (action) {
+									dispatch("context-menu-select", value);
+
 									onActionClick(action)(
 										{ pageData },
 										window.__crotchet

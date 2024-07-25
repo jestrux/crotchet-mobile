@@ -56,7 +56,9 @@ export function SpotlightProvider({ pages, open, children }) {
 
 		if (page.source) {
 			const { q, query, source, ...otherPageProps } = page;
-			const actualSource = window.__crotchet.dataSources[source];
+			const actualSource = source?._id
+				? source
+				: window.__crotchet.dataSources[source];
 
 			if (!actualSource)
 				return showToast(`Invalid data source ${source}`);
@@ -174,6 +176,10 @@ export function SpotlightProvider({ pages, open, children }) {
 	}, []);
 
 	useEventListener("click", () => dispatch(`click-${getCurrentPageId()}`));
+
+	useEventListener("context-menu-select", (_, payload) =>
+		dispatch(`context-menu-select-${getCurrentPageId()}`, payload)
+	);
 
 	useEventListener("menu-closed", (_, payload) =>
 		dispatch(`menu-closed-${getCurrentPageId()}`, payload)

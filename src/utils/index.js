@@ -747,7 +747,7 @@ export const objectField = (object, field) => {
 	return typeof object == "object" ? object?.[field] : object;
 };
 
-export const sectionedChoices = (choices, query) => {
+export const sectionedChoices = (choices, query, { valuesOnly } = {}) => {
 	if (!choices) return null;
 
 	let formattedChoices = objectFieldChoices(choices).map((choice) => {
@@ -762,9 +762,13 @@ export const sectionedChoices = (choices, query) => {
 				keys: ["label", "sectionTag"],
 		  });
 
-	return Object.entries(_.groupBy(formattedChoices, "section")).filter(
-		([, choices]) => choices.length
-	);
+	formattedChoices = Object.entries(
+		_.groupBy(_.orderBy(formattedChoices, "pinned", "desc"), "section")
+	).filter(([, choices]) => choices.length);
+
+	return valuesOnly
+		? formattedChoices.map(([, values]) => values).flat()
+		: formattedChoices;
 };
 
 export const objectAsLabelValue = (object) => {
@@ -1062,6 +1066,35 @@ export const getToken = async (key) => {
 	}
 
 	return token;
+};
+
+export const getPreference = async (key, defaultValue = null, fromSave) => {
+	let res = await readFile("__crotchetPreferences.json");
+
+	if (!res?.length) {
+		res = {};
+		if (!fromSave) await savePreference(null, {});
+	} else {
+		try {
+			res = JSON.parse(res);
+		} catch (_) {
+			//
+		}
+	}
+
+	if (key) res = res?.[key] ?? defaultValue;
+
+	return res;
+};
+
+export const savePreference = async (key, value) => {
+	const prefs = getPreference(null, null, true);
+	if (key) prefs[key] = value;
+
+	return await writeFile(
+		"__crotchetPreferences.json",
+		JSON.stringify(prefs, null, 4)
+	);
 };
 
 export const saveToken = async (key, value, expiresAt) => {

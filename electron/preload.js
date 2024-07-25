@@ -10,6 +10,16 @@ window.addEventListener("socket-emit", (e) => {
 	ipcRenderer.send("socket-emit", { event, payload });
 });
 
+window.addEventListener("get-file", (e) =>
+	ipcRenderer
+		.invoke("get-file", e.detail)
+		.then((result) =>
+			window.dispatchEvent(
+				new CustomEvent(`get-file:${e.detail}`, { detail: result })
+			)
+		)
+);
+
 window.addEventListener("read-file", (e) =>
 	ipcRenderer
 		.invoke("read-file", e.detail)

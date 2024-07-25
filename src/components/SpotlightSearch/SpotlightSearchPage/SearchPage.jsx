@@ -59,17 +59,20 @@ export default function SearchPage({ children }) {
 		onPopAll,
 		onOpen,
 		onReady,
+		onDataUpdated,
 		onClick,
 		onEscape,
 		onNavigateDown,
 		onNavigateUp,
 	} = useSpotlightPageContext();
+	const activeChoiceIndexRef = useRef(null);
 	const [activeChoice, _setActiveChoice] = useState();
 	const [query, setQuery] = useState("");
 	const containerRef = useRef(null);
 	const inputRef = useRef(null);
 	const { grid, aspectRatio, columns } = layoutDetails(page);
 	const choices = pageData || [];
+	const choiceSections = sectionedChoices(choices, query);
 
 	const getContainer = () => containerRef.current;
 
@@ -104,8 +107,10 @@ export default function SearchPage({ children }) {
 		navigate(value);
 	};
 
-	const setActiveChoice = (value) => {
+	const setActiveChoice = (value, index) => {
 		_setActiveChoice(value);
+
+		activeChoiceIndexRef.current = index;
 
 		const [action, actions] = getActionForValue(value);
 		setMainAction(action);
@@ -126,10 +131,13 @@ export default function SearchPage({ children }) {
 	};
 
 	const navigate = (value) => {
-		const options = getContainer().querySelectorAll(
+		const container = getContainer();
+		const scrollArea = container.querySelector("#scrollArea");
+
+		const options = container.querySelectorAll(
 			"[data-reach-combobox-option]"
 		);
-		const activeChoice = getContainer()
+		const activeChoice = container
 			.querySelector("[data-reach-combobox-option][data-selected]")
 			?.getAttribute("data-value");
 
@@ -152,11 +160,49 @@ export default function SearchPage({ children }) {
 			value = values[index];
 		}
 
-		setActiveChoice(value);
+		setActiveChoice(value, values.indexOf(value));
 
-		if (value == values[0])
-			getContainer().querySelector("#scrollArea").scrollTop = 0;
-		else options[values.indexOf(value)]?.scrollIntoView();
+		if (value == values[0]) scrollArea.scrollTop = 0;
+		else {
+			const el = options[values.indexOf(value)];
+
+			if (!el) return;
+
+			const elementInView = (
+				el,
+				containerEl,
+				{ offsetTop = 6, offsetBottom = 6 } = {}
+			) => {
+				const rect = el.getBoundingClientRect();
+				const parent = containerEl.getBoundingClientRect();
+				const top = parent.top + offsetTop;
+				const bottom = parent.bottom - offsetBottom;
+				const deltaTop = rect.top - top;
+				const deltaBottom = bottom - rect.bottom;
+
+				return [
+					deltaTop >= 0 && deltaBottom >= 0,
+					deltaTop < 0 ? deltaTop : -deltaBottom,
+				];
+			};
+
+			try {
+				const [inView, elementPosition] = elementInView(el, scrollArea);
+
+				if (!inView) {
+					scrollArea.scrollTo(
+						0,
+						scrollArea.scrollTop + elementPosition
+					);
+				}
+
+				return;
+			} catch (error) {
+				//
+			}
+
+			el.scrollIntoView();
+		}
 	};
 
 	const handleEscape = ({ popAll } = {}) => {
@@ -185,13 +231,24 @@ export default function SearchPage({ children }) {
 
 	onReady(() => navigateToStart());
 
+	onDataUpdated((newData) => {
+		const newChoicesValues = sectionedChoices(newData, query, {
+			valuesOnly: true,
+		});
+
+		const newSelection =
+			newChoicesValues[activeChoiceIndexRef.current]?.value;
+
+		if (!newSelection) return navigateToStart();
+
+		setTimeout(() => navigate(newSelection));
+	});
+
 	onNavigateDown(() => navigate("down"));
 
 	onNavigateUp(() => navigate("up"));
 
 	onEscape((payload) => handleEscape(payload));
-
-	const choiceSections = sectionedChoices(choices, query);
 
 	return (
 		<div ref={containerRef}>

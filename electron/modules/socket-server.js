@@ -1,5 +1,12 @@
 const fs = require("fs");
-const { ipcMain, app, shell, clipboard, nativeImage } = require("electron");
+const {
+	ipcMain,
+	app,
+	shell,
+	clipboard,
+	nativeImage,
+	dialog,
+} = require("electron");
 
 const {
 	keyboard,
@@ -136,6 +143,10 @@ module.exports = function socketServer(server) {
 	ipcMain.on("socket-emit", (_, { event, payload }) => {
 		events[event](payload);
 	});
+
+	ipcMain.handle("get-file", async (_, properties) =>
+		dialog.showOpenDialog({ properties })
+	);
 
 	ipcMain.handle(
 		"read-file",

@@ -112,9 +112,14 @@ export default function SpotlightSearchPage({
 	const actionMenuClickHandler = useRef(() => {});
 	const onActionMenuClick = (callback) =>
 		(actionMenuClickHandler.current = callback);
+	const contextMenuSelectHandler = useRef(() => {});
+	const onContextMenuSelect = (callback) =>
+		(contextMenuSelectHandler.current = callback);
 	const contextMenuClickHandler = useRef(() => {});
 	const onContextMenuClick = (callback) =>
 		(contextMenuClickHandler.current = callback);
+	const dataUpdatedHandler = useRef(() => {});
+	const onDataUpdated = (callback) => (dataUpdatedHandler.current = callback);
 	const readyHandler = useRef(() => {});
 	const onReady = (callback) => (readyHandler.current = callback);
 	const escapeHandler = useRef(({ popAll } = {}) => {
@@ -139,13 +144,15 @@ export default function SpotlightSearchPage({
 			await someTime(5);
 			return typeof page?.resolve == "function" ? page.resolve() : true;
 		},
-		resolver: true,
+		listenForUpdates: page.listenForUpdates,
 		dismiss: onClose,
 		onSuccess: (data) => {
 			setPageData(data);
-			setTimeout(() => {
-				readyHandler.current();
-			});
+			setTimeout(() => readyHandler.current(data));
+		},
+		onUpdate: (data, oldData) => {
+			setPageData(data);
+			setTimeout(() => dataUpdatedHandler.current(data, oldData));
 		},
 	});
 
@@ -255,6 +262,11 @@ export default function SpotlightSearchPage({
 	);
 
 	useEventListener(
+		"context-menu-select-" + page?._id,
+		pageInFocus(contextMenuSelectHandler.current)
+	);
+
+	useEventListener(
 		"action-menu-" + page?._id,
 		actionMenuClickHandler.current
 	);
@@ -321,6 +333,7 @@ export default function SpotlightSearchPage({
 					onPopAll,
 					onOpen,
 					onReady,
+					onDataUpdated,
 					onEscape,
 					onClose,
 					preview: () => {
@@ -375,6 +388,7 @@ export default function SpotlightSearchPage({
 					onClick,
 					onActionMenuClick,
 					onContextMenuClick,
+					onContextMenuSelect,
 					onSecondaryActionClick,
 					onMainActionClick,
 					onNavigateDown,
