@@ -136,12 +136,14 @@ export default function DesktopApp() {
 				})}
 			>
 				<div
-					className="relative border border-transparent dark:border-content/30 rounded-xl bg-canvas/[0.985] size-full overflow-hidden"
+					className="relative bg-canvas/[0.985] size-full overflow-hidden"
 					onMouseMove={handleMouseMove}
 				>
 					{/* <div className="pointer-events-none fixed inset-0 bg-stone-50/0.05 blur-3xl"></div> */}
 
 					<SpotlightSearch open={!app?.scheme} />
+
+					<div className="border border-transparent dark:border-content/30 rounded-xl fixed inset-0 pointer-events-none z-50"></div>
 				</div>
 			</div>
 
