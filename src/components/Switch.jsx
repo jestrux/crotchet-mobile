@@ -1,29 +1,24 @@
 import { useState } from "react";
+import clsx from "clsx";
 
 export default function Switch({ type, value, checked, ...props }) {
 	const [_checked, setValue] = useState(checked);
 	const [focused, setFocused] = useState(false);
 
 	return (
-		<label
-			className={`${
-				_checked ? "text-primary" : "text-transparent"
-			} focus-within:ring-[3px] border border-current overflow-hidden relative flex items-center bg-neutral-200 dark:bg-neutral-700 rounded-full`}
-			style={{
-				height: "20px",
-				width: "34px",
-			}}
-		>
+		<label className="cursor-pointer flex justify-start items-center first-letter:uppercase text-content/10">
 			<span
-				className="transition-all rounded-l-full h-full bg-current"
-				style={{
-					opacity: _checked ? 1 : 0,
-					width: _checked ? "100%" : 0,
-				}}
-			></span>
-
-			<span className="transition-all flex-shrink-0 py-px px-px rounded-r-full bg-current h-full flex">
-				<span className="transition-all h-full aspect-square rounded-full bg-white border border-content/10"></span>
+				className={clsx(
+					"transition-colors w-10 bg-current rounded-full overflow-hidden relative flex items-center border border-current p-px",
+					checked ? "text-primary" : "text-content/10"
+				)}
+			>
+				<span
+					className={clsx(
+						"block rounded-full bg-white size-5 transition-transform",
+						{ "translate-x-4": checked }
+					)}
+				></span>
 			</span>
 
 			<input

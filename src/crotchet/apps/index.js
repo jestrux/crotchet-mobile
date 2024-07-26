@@ -1,5 +1,6 @@
 import "./Automate";
 
+import "./PageBuilder";
 import "./PinnedItems";
 
 import "./AudioPlayer";

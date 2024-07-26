@@ -165,7 +165,7 @@ export default function PageActionBar() {
 	};
 
 	return (
-		<div className="mx-0.5 mb-0.5 rounded-b-xl bg-card fixed bottom-0 inset-x-0 h-11 px-3 flex gap-4 items-center border-t z-10">
+		<div className="rounded-b-xl bg-card fixed bottom-0 inset-x-0 h-11 px-3 flex gap-4 items-center border-t z-10">
 			{!pageResolving && (
 				<>
 					<div className="h-full flex-1 flex items-center gap-4">

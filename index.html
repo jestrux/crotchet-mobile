@@ -272,6 +272,11 @@
 			function updateColorScheme(colorScheme) {
 				document.body.classList.remove("dark", "light");
 				document.body.classList.add(colorScheme);
+				window.dispatchEvent(
+					new CustomEvent("theme-changed", {
+						detail: colorScheme,
+					})
+				);
 			}
 		</script>
 	</head>

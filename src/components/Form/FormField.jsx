@@ -1,8 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { camelCaseToSentenceCase, objectField, randomId } from "@/utils";
+import {
+	camelCaseToSentenceCase,
+	loadExternalAsset,
+	objectField,
+	randomId,
+} from "@/utils";
 import useDebounce from "@/hooks/useDebounce";
 import { useThrottle } from "@/hooks/useThrottle";
+import { useOnInit } from "@/crotchet";
 import { useQuery } from "@tanstack/react-query";
+import clsx from "clsx";
 
 import {
 	Combobox,
@@ -13,7 +20,8 @@ import {
 } from "@reach/combobox";
 
 import { matchSorter } from "match-sorter";
-import Switch from "../Switch";
+import Switch from "@/components/Switch";
+import useEventListener from "@/hooks/useEventListener";
 
 function useSearch(data, term) {
 	const throttledTerm = useThrottle(term, 100);
@@ -457,11 +465,74 @@ const Select = ({ value, name, optional, choices: _choices, onChange }) => {
 							value={choice.value || choice}
 							required={!optional}
 						>
-							{choice.label || choice}
+							{camelCaseToSentenceCase(choice.label || choice)}
 						</option>
 					);
 				})}
 			</select>
+		</div>
+	);
+};
+
+const ContentEditableField = ({ value, name, optional, onChange }) => {
+	const editorRef = useRef(null);
+	const textareaRef = useRef(null);
+	const handleChange = (cm) => {
+		const value = cm.getValue();
+		onChange(value);
+		textareaRef.current.value = value;
+	};
+
+	const setTheme = () => {
+		editorRef.current.setOption(
+			"theme",
+			document.body.classList.contains("dark") ? "bongzilla" : "default"
+		);
+	};
+
+	const loadEditor = async () => {
+		try {
+			await loadExternalAsset(
+				"https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.js"
+			);
+			await Promise.all(
+				[
+					"https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.css",
+					"https://cdn.jsdelivr.net/npm/code-mirror-themes@1.0.0/themes/bongzilla.min.css",
+					"https://codemirror.net/mode/javascript/javascript.js",
+				].map(loadExternalAsset)
+			);
+
+			editorRef.current = window.CodeMirror.fromTextArea(
+				textareaRef.current,
+				{
+					mode: "javascript",
+					lineNumbers: true,
+					onChange: handleChange,
+				}
+			);
+			editorRef.current.setSize("auto", "auto");
+			setTheme();
+		} catch (error) {
+			console.log("Failed to load editor: ", error);
+		}
+	};
+
+	useEventListener("theme-changed", setTheme);
+
+	useOnInit(() => {
+		loadEditor();
+	});
+
+	return (
+		<div className="w-full">
+			<textarea
+				name={name}
+				ref={textareaRef}
+				className="w-full min-h-screen"
+				defaultValue={value}
+				required={!optional}
+			></textarea>
 		</div>
 	);
 };
@@ -485,7 +556,7 @@ const Field = ({ field, value, onChange, __data }) => {
 			return (
 				<div>
 					<label
-						htmlFor={field.label}
+						htmlFor={field.name}
 						className="cursor-pointer inline-flex items-center gap-2"
 						style={{
 							...(field.meta?.rightAligned
@@ -497,7 +568,7 @@ const Field = ({ field, value, onChange, __data }) => {
 						}}
 					>
 						<Switch
-							id={field.label}
+							id={field.name}
 							size="md"
 							checked={value}
 							onChange={onChange}
@@ -506,9 +577,9 @@ const Field = ({ field, value, onChange, __data }) => {
 
 						<span
 							className="inline-block first-letter:capitalize"
-							htmlFor={field.label}
+							htmlFor={field.name}
 						>
-							{field.label}
+							{camelCaseToSentenceCase(field.label)}
 						</span>
 					</label>
 				</div>
@@ -536,16 +607,18 @@ const Field = ({ field, value, onChange, __data }) => {
 						return (
 							<label
 								key={index}
-								className={`
-								hover:bg-content/10 cursor-pointer border border-content/20 text-xs leading-none px-2 py-1.5 rounded relative
-							${
-								selected
-									? "bg-content/5 pointer-events-none"
-									: hasFocus
-									? "border-content/50 bg-content/10"
-									: "text-content/70"
-							}
-							`}
+								className={clsx(
+									customRenderer
+										? ""
+										: "hover:bg-content/10 cursor-pointer border border-content/20 text-xs leading-none px-2 py-1.5 rounded relative",
+									customRenderer
+										? ""
+										: selected
+										? "bg-content/5 pointer-events-none"
+										: hasFocus
+										? "border-content/50 bg-content/10"
+										: "text-content/70"
+								)}
 							>
 								<input
 									className="pointer-events-none opacity-0 absolute"
@@ -613,6 +686,16 @@ const Field = ({ field, value, onChange, __data }) => {
 				/>
 			);
 
+		case "contentEditable":
+			return (
+				<ContentEditableField
+					{...field}
+					{...(field.meta || {})}
+					value={value}
+					onChange={onChange}
+				/>
+			);
+
 		default: {
 			let fieldType = field.type || "text";
 			if (["image"].includes(fieldType)) fieldType = "text";
@@ -621,7 +704,7 @@ const Field = ({ field, value, onChange, __data }) => {
 				<input
 					autoFocus
 					className="block bg-transparent placeholder:text-content/20"
-					id={field.label}
+					id={field.name}
 					placeholder={field.placeholder}
 					type={fieldType}
 					size="md"
@@ -661,6 +744,10 @@ export default function FormField({
 		onChange({ [field.name]: value });
 	};
 
+	useEffect(() => {
+		setValue(field.value ?? field.defaultValue ?? "");
+	}, [field.__id]);
+
 	// if (field.type === "authUser")
 	// 	return (
 	// 		<input type="hidden" name={field.name} defaultValue={user._rowId} />
@@ -670,23 +757,25 @@ export default function FormField({
 		return <input type="hidden" name={field.name} defaultValue={value} />;
 
 	return (
-		<div className={`${className}`}>
+		<div className={`@container  ${className}`}>
 			<div
-				className={`${
+				className={`flex flex-col gap-1 ${
 					horizontal
-						? "grid grid-cols-12 gap-3 items-center"
-						: "flex flex-col gap-1"
+						? "@lg:grid grid-cols-12 @lg:gap-3 @lg:items-center"
+						: ""
 				}`}
 			>
 				{horizontal && <div className="col-span-1"></div>}
 				{field.type !== "boolean" && !field.hideLabel && (
 					<label
 						className={`inline-block first-letter:capitalize ${
-							horizontal ? "col-span-3 text-right text-sm leading-tight" : ""
+							horizontal
+								? "col-span-3 text-right text-sm leading-tight"
+								: ""
 						}`}
-						htmlFor={field.label}
+						htmlFor={field.name}
 					>
-						{field.label}
+						{camelCaseToSentenceCase(field.label)}
 					</label>
 				)}
 
