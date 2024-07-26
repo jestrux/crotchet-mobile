@@ -9,6 +9,8 @@ Object.entries(defaultShareActions).forEach(([name, action]) =>
 Object.entries(defaultActions).forEach(([name, action]) => {
 	registerAction(
 		name,
-		typeof action == "function" ? { global: true, handler: action } : action
+		typeof action == "function"
+			? { global: true, handler: action }
+			: { global: true, ...action }
 	);
 });

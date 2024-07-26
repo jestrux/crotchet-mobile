@@ -1,15 +1,12 @@
 import { Children, cloneElement, useRef } from "react";
 import useAlerts from "@/components/Alerts/useAlerts";
 import { useSpotlightPageContext } from "./SpotlightPageContext";
-import { showToast } from "@/utils";
 import { onActionClick } from "@/crotchet";
 
 export default function ActionPage({ page, children }) {
 	const {
 		pageData,
 		preview: _preview,
-		onContextMenuClick,
-		onActionMenuClick,
 		onSecondaryActionClick,
 		onMainActionClick,
 		setMainAction,
@@ -17,7 +14,6 @@ export default function ActionPage({ page, children }) {
 		secondaryAction: _secondaryAction,
 	} = useSpotlightPageContext();
 	const { confirm } = useAlerts();
-	const actionsButtonRef = useRef();
 
 	const secondaryAction = _secondaryAction();
 	const mainAction = _mainAction();
@@ -37,14 +33,6 @@ export default function ActionPage({ page, children }) {
 	const handleMainAction = (payload) => {
 		return onActionClick(mainAction, { confirm })(payload);
 	};
-
-	onContextMenuClick(() => {
-		showToast("Context menu shortcut clicked");
-	});
-
-	onActionMenuClick(() => {
-		if (actionsButtonRef.current) actionsButtonRef.current.click();
-	});
 
 	onSecondaryActionClick(() => {
 		handleSecondaryAction({ page, pageData });
@@ -70,8 +58,12 @@ export default function ActionPage({ page, children }) {
 			{preview && preview?.type ? (
 				<div className="grid grid-cols-12 h-sc">
 					<div className="col-span-5">{content()}</div>
-					<div className="col-span-7 border-l border-content/10 overflow-hidden p-0.5">
-						{preview}
+					<div className="col-span-7 overflow-hidden p-0.5">
+						<div className="fixed top-14 bottom-0 right-0 w-7/12">
+							<div className="h-full w-full border-l border-content/10 overflow-x-hidden overflow-y-auto">
+								{preview}
+							</div>
+						</div>
 					</div>
 				</div>
 			) : (

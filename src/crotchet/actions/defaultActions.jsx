@@ -194,8 +194,23 @@ export const raycastTest = {
 	url: `crotchet://socket/run?command=code /Users/waky/Documents/raycast/raycast-test/`,
 };
 
+export const kitTest = {
+	url: `crotchet://socket/run?command=code /Users/waky/.kenv`,
+};
+
 export const tailwindCdn = {
-	global: true,
 	hideApp: true,
 	url: 'crotchet://socket/copy-paste?arg=<script src="https://cdn.tailwindcss.com"></script>',
+};
+
+export const trimNewLines = {
+	handler: async (_, { hideApp, readClipboard, socketEmit }) => {
+		const value = (await readClipboard())?.value
+			.toString()
+			.split("\n")
+			.map((s) => s.trim().replaceAll("\n", ""))
+			.join(" ");
+		hideApp();
+		socketEmit("copy-paste", value);
+	},
 };

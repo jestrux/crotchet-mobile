@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import {
+	cleanObject,
 	shuffle as doShuffle,
 	objectExcept,
 	objectTake,
@@ -20,6 +21,7 @@ export const getterFields = [
 	"searchable",
 	"searchFields",
 	"searchQuery",
+	"filters",
 ];
 
 export const sourceGet = async (source, props = {}) => {
@@ -36,6 +38,7 @@ export const sourceGet = async (source, props = {}) => {
 		searchable,
 		searchFields = ["title", "subtitle", "tags"],
 		searchQuery,
+		filters,
 	} = objectTake({ ...source, ...props }, getterFields);
 
 	let handler;
@@ -56,7 +59,24 @@ export const sourceGet = async (source, props = {}) => {
 
 	if (!Array.isArray(res)) return res;
 
-	res = typeof mapEntry == "function" ? res.map(mapEntry) : res;
+	const validFilters = cleanObject(filters);
+	if (
+		Object.values(validFilters).length > 0
+		// && ![true, false].includes(source.filterable)
+	) {
+		res = res.reduce((agg, entry) => {
+			if (typeof source.mapEntry == "function")
+				entry = { ...entry, ...source.mapEntry(entry) };
+
+			const matches = Object.entries(validFilters).every(
+				([key, value]) =>
+					value?.toString().toLowerCase() ==
+					entry[key]?.toString().toLowerCase()
+			);
+
+			return [...agg, ...(matches ? [entry] : [])];
+		}, []);
+	} else if (typeof source.mapEntry == "function") res = res.map(mapEntry);
 
 	if (searchable !== false && res?.length && searchQuery?.length) {
 		res = matchSorter(res, searchQuery, {
@@ -107,7 +127,7 @@ export function useSourceGet(
 		loadingRef.current = setTimeout(
 			() => {
 				onChange({
-					loading: true,
+					loading: !fromRefetch,
 				});
 			},
 			delayLoader ? 1500 : 0
@@ -142,7 +162,6 @@ export function useSourceGet(
 
 export function useDataFetch({
 	source,
-	limit = 3000,
 	first = false,
 	shuffle: shuffleData,
 	searchQuery: _searchQuery,

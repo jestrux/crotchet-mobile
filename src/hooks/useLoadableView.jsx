@@ -14,7 +14,9 @@ export default function useLoadableView({
 		async ({ fromRefetch } = {}) => {
 			let res;
 			try {
-				res = _.isFunction(_data) ? await _data(pageData) : _data;
+				res = _.isFunction(_data)
+					? await _data({ pageData, fromRefetch })
+					: _data;
 
 				if (fromRefetch) {
 					if (_.isFunction(onUpdate)) onUpdate(res, oldData.current);
@@ -77,5 +79,12 @@ export default function useLoadableView({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	return { data, loading, error, pendingView: content(), retry: refetch };
+	return {
+		data,
+		loading,
+		error,
+		pendingView: content(),
+		retry: refetch,
+		refetch,
+	};
 }

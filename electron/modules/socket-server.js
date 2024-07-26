@@ -144,29 +144,48 @@ module.exports = function socketServer(server) {
 		events[event](payload);
 	});
 
-	ipcMain.handle("get-file", async (_, properties) =>
-		dialog.showOpenDialog({ properties })
-	);
+	const handlReadFile = async ({ path, folder = "userData", name }) =>
+		new Promise((res) =>
+			fs.readFile(
+				path ? path : `${app.getPath(folder)}/${name}`,
+				"utf8",
+				(err, data) => res(err ? null : data)
+			)
+		);
 
 	ipcMain.handle(
-		"read-file",
-		async (_, name) =>
+		"get-file",
+		async (_, { read, properties }) =>
 			new Promise((res) =>
-				fs.readFile(
-					`${app.getPath("userData")}/${name}`,
-					"utf8",
-					(err, data) => res(err ? null : data)
-				)
+				dialog.showOpenDialog({ properties }).then((r) => {
+					if (r.canceled || !r.filePaths?.length) return res(null);
+
+					const multiple = properties.includes("multiSelections");
+					const path = multiple ? r.filePaths : r.filePaths[0];
+
+					if (!multiple && read) {
+						return handlReadFile({ path }).then((contents) => {
+							res({
+								path,
+								contents,
+							});
+						});
+					}
+
+					res(path);
+				})
 			)
 	);
 
+	ipcMain.handle("read-file", (_, payload) => handlReadFile(payload));
+
 	ipcMain.handle(
 		"write-file",
-		async (_, { name, content, folder = "userData", open }) =>
+		async (_, { name, path, contents, folder = "userData", open }) =>
 			new Promise((res) =>
 				fs.writeFile(
-					`${app.getPath(folder)}/${name}`,
-					content,
+					path ? path : `${app.getPath(folder)}/${name}`,
+					contents,
 					(err) => {
 						if (!err && open)
 							shell.showItemInFolder(

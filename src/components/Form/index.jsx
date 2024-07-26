@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import FormField from "./FormField";
-import { parseFields } from "@/utils";
-import Button from "../Button";
+import { parseFields, useOnInit } from "@/crotchet";
+import Button from "@/components/Button";
 
 const fieldIsVisible = (field, data) => {
 	if (!field) return false;
@@ -30,8 +30,7 @@ export default function Form({
 		: props.field
 		? { formField: props.field }
 		: {};
-	// const {  } = useAppContext();
-	const fields = parseFields(allFields, allData);
+	const [fields] = useState(parseFields(allFields, allData));
 	const [data, setData] = useState(
 		Object.entries(allFields).reduce(
 			(agg, [key, { defaultValue, value }]) => ({
@@ -121,6 +120,10 @@ export default function Form({
 		// }
 	};
 
+	useOnInit(() => {
+		handleChange();
+	});
+
 	useEffect(() => {
 		const timeout = setTimeout(() => {
 			const firstInput =
@@ -204,10 +207,8 @@ export default function Form({
 				})}
 			</div>
 
-			<div className="mt-4">
-				<Button className={formId ? "hidden" : ""} type="submit">
-					Submit
-				</Button>
+			<div className={formId ? "hidden" : ""}>
+				<Button type="submit">Submit</Button>
 			</div>
 		</form>
 	);

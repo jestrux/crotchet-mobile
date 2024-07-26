@@ -99,6 +99,9 @@ const getCommands = async () => {
 					dispatch("open-page", {
 						type: "search",
 						source: source.name,
+						filter: source.filter,
+						filters: source.filters,
+						listenForUpdates: source.listenForUpdates,
 					}),
 			},
 			...commandProps(source, "Data Source", favorites),

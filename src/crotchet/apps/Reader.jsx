@@ -27,6 +27,7 @@ const formFields = {
 	group: {
 		type: "radio",
 		choices: ["📺 Watch", "🧪 Learn", "🎧 Listen", "🌎 General"],
+		defaultValue: "🌎 General",
 	},
 	image: "text",
 	title: "text",
@@ -34,10 +35,36 @@ const formFields = {
 	url: "text",
 };
 
+const addItem = async (
+	item,
+	{ withLoader, openForm, dataSources, cleanObject }
+) => {
+	var res = await openForm({
+		title: "Add to reading list",
+		data: item
+			? {
+					// group: (await Preferences.get({ key: "groupFilter" })).value ?? "",
+					group: "🌎 General",
+					image: item.image,
+					title: item.title,
+					description: item.description || item.subtitle,
+					url: item.url,
+			  }
+			: null,
+		fields: formFields,
+	});
+
+	if (!res) return;
+
+	return withLoader(await dataSources.reader.insertRow(cleanObject(res)), {
+		successMessage: `${res.title || "Entry"} Added `,
+		errorMessage: `Failed to add ${res.title}`,
+	});
+};
+
 registerDataSource("db", "reader", {
 	table: "reader",
 	orderBy: "_index,desc",
-	filter: "group",
 	mapEntry(item) {
 		const isVideo =
 			item.url?.toLowerCase().indexOf("videos") != -1 ||
@@ -49,7 +76,7 @@ registerDataSource("db", "reader", {
 			...(isVideo
 				? { video: item.image || "placeholder" }
 				: { image: item.image || "placeholder" }),
-			title: item.title || "Untitled",
+			title: item.title || "Untitled" + (" " + item.group),
 			subtitle: item.description,
 			tags: [item.group],
 			share: getShareUrl({
@@ -62,60 +89,69 @@ registerDataSource("db", "reader", {
 			}),
 		};
 	},
-	layoutProps: {
-		layout: "card",
+	filter: {
+		field: "group",
+		defaultValue: "",
 	},
-});
+	filters: [
+		{ label: "All", value: "" },
+		"📺 Watch",
+		"🧪 Learn",
+		"🎧 Listen",
+		"🌎 General",
+	],
+	actions: [
+		{
+			label: "Add New Entry",
+			handler: (_, crotchet) => addItem(null, crotchet),
+		},
+	],
+	entryActions: (item) => {
+		return [
+			{
+				label: "Edit",
+				handler: async (
+					{ previewImage },
+					{ withLoader, openForm, dataSources }
+				) => {
+					if (!item.image && previewImage) item.image = previewImage;
 
-registerAction("editReadingListItem", {
-	context: "share",
-	icon: appIcon,
-	scheme: "reader",
-	match: ({ scheme, state }) => scheme == "reader" && state._id,
-	handler: async (
-		{ state, previewImage },
-		{ showToast, openForm, dataSources }
-	) => {
-		if (!state.image && previewImage) state.image = previewImage;
+					var res = await openForm({
+						title: "Edit reading list item",
+						data: item,
+						fields: formFields,
+					});
 
-		var res = await openForm({
-			title: "Edit reading list item",
-			data: state,
-			fields: formFields,
-		});
+					if (!res) return;
 
-		if (!res) return;
+					withLoader(dataSources.reader.updateRow(item._id, res), {
+						successMessage: `${res.title || "Entry"} Updated `,
+						errorMessage: `Failed to update ${res.title}`,
+					});
+				},
+			},
+			{
+				label: "Delete Item",
+				destructive: true,
+				handler: async (
+					item,
+					{ dataSources, confirmDangerousAction, withLoader }
+				) => {
+					const confirmed = await confirmDangerousAction();
 
-		try {
-			await dataSources.reader.updateRow(state._id, res);
-			showToast(`${res.title || "Entry"} Updated `);
-		} catch (error) {
-			showToast(`Failed to update ${res.title}`);
-			console.log(error);
-		}
-	},
-});
+					if (!confirmed) return;
 
-registerAction("removeFromReadingList", {
-	context: "share",
-	icon: appIcon,
-	scheme: "reader",
-	match: ({ scheme, state }) => scheme == "reader" && state._id,
-	handler: async (
-		{ state },
-		{ dataSources, showToast, confirmDangerousAction }
-	) => {
-		const confirmed = await confirmDangerousAction();
-
-		if (!confirmed) return;
-
-		try {
-			await dataSources.reader.deleteRow(state._id);
-			showToast(`${state.title || "Entry"} Deleted`);
-		} catch (error) {
-			showToast(`Failed to delete ${state.title}`);
-			console.log(error);
-		}
+					withLoader(dataSources.reader.deleteRow(item._id), {
+						successMessage: `${item.title || "Entry"} Deleted`,
+						errorMessage: `Failed to delete ${item.title}`,
+					});
+				},
+			},
+			{
+				label: "Add New Entry",
+				handler: (_, crotchet) => addItem(null, crotchet),
+			},
+		];
 	},
 });
 
@@ -123,10 +159,8 @@ registerAction("addToReadingList", {
 	context: "share",
 	icon: appIcon,
 	match: ({ url }) => url?.toString().length,
-	handler: async (
-		{ previewImage, title, subtitle, url },
-		{ utils, openUrl, showToast, openForm, dataSources }
-	) => {
+	handler: async ({ previewImage, title, subtitle, url }, crotchet) => {
+		const { utils, openUrl } = crotchet;
 		var payload = await openUrl(
 			`crotchet://action/crawlUrl?${utils.objectToQueryParams({
 				preview: previewImage,
@@ -137,28 +171,7 @@ registerAction("addToReadingList", {
 			})}`
 		);
 
-		var res = await openForm({
-			title: "Add to reading list",
-			data: {
-				// group: (await Preferences.get({ key: "groupFilter" })).value ?? "",
-				group: "🌎 General",
-				image: payload.image,
-				title: payload.title,
-				description: payload.description || payload.subtitle,
-				url: payload.url,
-			},
-			fields: formFields,
-		});
-
-		if (!res) return;
-
-		try {
-			await dataSources.reader.insertRow(utils.cleanObject(res));
-			showToast(`${res.title || "Entry"} Added `);
-		} catch (error) {
-			showToast(`Failed to add ${res.title}`);
-			console.log(error);
-		}
+		return addItem(payload, crotchet);
 	},
 });
 

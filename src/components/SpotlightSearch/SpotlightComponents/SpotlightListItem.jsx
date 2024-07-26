@@ -39,12 +39,12 @@ function SpotlightListItem({
 				children()
 			) : (
 				<div
-					className={`${className} h-12 flex items-center gap-2 px-4 text-base leading-none`}
+					className={`${className} h-12 flex items-center gap-3 pl-4 pr-2 text-base leading-none`}
 				>
 					{leading != null && (
 						<div className="w-5 flex-shrink-0">{leading}</div>
 					)}
-					<div className="flex-1">{children || label}</div>
+					<div className="flex-1 truncate">{children || label}</div>
 					{
 						<span
 							className={`flex-shrink-0 ml-auto text-sm ${

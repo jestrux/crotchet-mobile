@@ -10,25 +10,29 @@ window.addEventListener("socket-emit", (e) => {
 	ipcRenderer.send("socket-emit", { event, payload });
 });
 
-window.addEventListener("get-file", (e) =>
-	ipcRenderer
-		.invoke("get-file", e.detail)
-		.then((result) =>
-			window.dispatchEvent(
-				new CustomEvent(`get-file:${e.detail}`, { detail: result })
-			)
-		)
-);
+window.addEventListener("get-file", (e) => {
+	const [key, props] = e.detail;
+	document.body.classList.add(`get-file-${key}`);
+	ipcRenderer.invoke("get-file", props).then((result) => {
+		document.body.classList.remove(`get-file-${key}`);
+		window.dispatchEvent(
+			new CustomEvent(`get-file-${key}`, { detail: result })
+		);
+	});
+});
 
-window.addEventListener("read-file", (e) =>
-	ipcRenderer
-		.invoke("read-file", e.detail)
-		.then((result) =>
-			window.dispatchEvent(
-				new CustomEvent(`read-file:${e.detail}`, { detail: result })
-			)
-		)
-);
+window.addEventListener("read-file", (e) => {
+	const key = e.detail?.key;
+	document.body.classList.add(`get-file-${key}`);
+	ipcRenderer.invoke("read-file", e.detail).then((result) => {
+		document.body.classList.remove(`get-file-${key}`);
+		window.dispatchEvent(
+			new CustomEvent(`read-file-${key}`, {
+				detail: result,
+			})
+		);
+	});
+});
 
 window.addEventListener("write-file", (e) =>
 	ipcRenderer.invoke("write-file", e.detail)

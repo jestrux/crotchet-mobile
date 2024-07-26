@@ -9,13 +9,29 @@ const SpotlightPageContext = createContext({
 	lastStateUpdate: null,
 	searchTerm: null,
 	setSearchTerm: () => {},
-	pageData: null,
 	pageResolving: false,
-	setPageData: () => {},
 	pageStatus: {
 		status: "idle",
 		message: null,
 	},
+	pageData: null,
+	pageDataVersion: null,
+	setPageData: () => {},
+	formData: null,
+	setFormData: () => {},
+	content: () => {},
+	preview: () => {},
+	setPreview: () => {},
+	pageFilter: null,
+	setPageFilter: () => {},
+	filters: () => {},
+	formFields: () => {},
+	mainAction: () => {},
+	setMainAction: () => {},
+	secondaryAction: () => {},
+	setSecondaryAction: () => {},
+	actions: () => {},
+	setActions: () => {},
 	open,
 	onPop: () => {},
 	onPopAll: () => {},
@@ -24,21 +40,11 @@ const SpotlightPageContext = createContext({
 	onDataUpdated: () => {},
 	onEscape: () => {},
 	onClose: () => {},
-	preview: () => {},
-	setPreview: () => {},
-	mainAction: () => {},
-	setMainAction: () => {},
-	secondaryAction: () => {},
-	setSecondaryAction: () => {},
-	actions: () => {},
-	setActions: () => {},
-	contextMenuActions: null,
-	setContextMenuActions: () => {},
 	onClick: () => {},
 	onMainActionClick: () => {},
-	onActionMenuClick: () => {},
-	onContextMenuClick: () => {},
-	onContextMenuSelect: () => {},
+	onOpenActionMenu: () => {},
+	onChangeFilter: () => {},
+	onFilterChanged: () => {},
 	onSecondaryActionClick: () => {},
 	onNavigateDown: () => {},
 	onNavigateUp: () => {},
@@ -50,54 +56,6 @@ export function SpotlightPageProvider({ value, children }) {
 			{children}
 		</SpotlightPageContext.Provider>
 	);
-}
-
-export function useSpotlightPageState(key, defaultValue) {
-	const { spotlightState, setSpotlightState } = useSpotlightPageContext();
-	const value = spotlightState[key] ?? defaultValue;
-	const setValue = (newValue) => {
-		setSpotlightState({ [key + "Old"]: value, [key]: newValue });
-	};
-	const oldValue = spotlightState[key + "Old"];
-
-	useEffect(() => {
-		if (defaultValue == undefined || value != undefined) return;
-		setValue(defaultValue);
-	}, []);
-
-	return [value, setValue, oldValue];
-}
-
-export function useSpotlightPageActions(actions, defaultValue) {
-	const { spotlightState, setSpotlightState } = useSpotlightPageContext();
-	const setValue = (spotlightSearchActionsValue) => {
-		setSpotlightState({ spotlightSearchActionsValue });
-	};
-
-	useEffect(() => {
-		if (actions) {
-			setSpotlightState({
-				spotlightSearchActions: actions,
-				spotlightSearchActionsValue: defaultValue,
-			});
-		}
-	}, []);
-
-	return {
-		actions: spotlightState.spotlightSearchActions,
-		value: spotlightState.spotlightSearchActionsValue,
-		setValue,
-	};
-}
-
-export function useSpotlightPageEffect(callback, key) {
-	const [value, setValue, oldValue] = useSpotlightPageState(key);
-	useEffect(() => {
-		if (!value || value == oldValue) return;
-
-		callback();
-		setValue(value);
-	}, [value]);
 }
 
 export function useSpotlightPageContext() {

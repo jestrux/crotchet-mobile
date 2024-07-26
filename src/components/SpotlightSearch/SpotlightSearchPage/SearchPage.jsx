@@ -8,6 +8,8 @@ import SpotlightGrid from "../SpotlightComponents/SpotlightGrid";
 import { sectionedChoices } from "../../../utils";
 import clsx from "clsx";
 
+import SpotlightPageFilters from "./SpotlightPageFilters";
+
 const layoutDetails = (page) => {
 	const {
 		layout,
@@ -52,6 +54,7 @@ export default function SearchPage({ children }) {
 	const {
 		page,
 		pageData,
+		pageDataVersion,
 		setMainAction,
 		setActions,
 		onClose,
@@ -266,7 +269,7 @@ export default function SearchPage({ children }) {
 				<input
 					type="text"
 					ref={inputRef}
-					className="popover-input bg-transparent h-full w-full border-none shadow-none px-0 py-3 text-xl focus:outline-none placeholder-content/30"
+					className="popover-input bg-transparent h-full flex-1 border-none shadow-none px-0 py-3 text-xl focus:outline-none placeholder-content/30"
 					placeholder={page?.placeholder || "Type to search actions"}
 					// onKeyDown={onKeyDown}
 					value={query}
@@ -276,7 +279,7 @@ export default function SearchPage({ children }) {
 					}}
 				/>
 
-				{/* <SpotlightPageActions page={page} /> */}
+				<SpotlightPageFilters page={page} />
 			</div>
 
 			<div
@@ -297,7 +300,9 @@ export default function SearchPage({ children }) {
 							if (grid) {
 								return (
 									<SpotlightGrid
-										key={section + "" + idx}
+										key={
+											section + "" + idx + pageDataVersion
+										}
 										aspectRatio={aspectRatio}
 										columns={columns}
 										choices={choices}
@@ -322,10 +327,58 @@ export default function SearchPage({ children }) {
 									)}
 
 									{choices.map((choice) => {
+										const { icon, image, video } = choice;
+
 										return (
 											<SpotlightListItem
 												key={choice.__id}
 												className="cursor-default"
+												trailing={
+													icon?.length ? (
+														<div
+															className="mr-2"
+															dangerouslySetInnerHTML={{
+																__html: icon,
+															}}
+														/>
+													) : (
+														(image?.length ||
+															video?.length) && (
+															<div className="mr-2 h-8 relative flex-shrink-0 bg-content/10 border border-content/10 overflow-hidden aspect-[1.3/1] rounded">
+																<img
+																	className={
+																		"absolute size-full object-cover"
+																	}
+																	src={
+																		image?.length
+																			? image
+																			: video
+																	}
+																	alt=""
+																/>
+
+																{video?.length && (
+																	<div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+																		<div className="relative size-3 flex items-center justify-center rounded-full overflow-hidden bg-card">
+																			<div className="absolute inset-0 bg-content/60"></div>
+																			<svg
+																				className="size-3 ml-0.5 relative text-canvas"
+																				viewBox="0 0 24 24"
+																				fill="currentColor"
+																			>
+																				<path
+																					strokeLinecap="round"
+																					strokeLinejoin="round"
+																					d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
+																				/>
+																			</svg>
+																		</div>
+																	</div>
+																)}
+															</div>
+														)
+													)
+												}
 												label={choice.label}
 												value={choice.value}
 												focused={

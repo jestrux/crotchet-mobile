@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import SpotlightPageActions from "./SpotlightPageActions";
+import SpotlightPageFilters from "./SpotlightPageFilters";
 import ActionPage from "./ActionPage";
 import FormPage from "./FormPage";
 
@@ -26,7 +26,9 @@ export default function DetailPage({
 
 	const renderPage = () => {
 		const pageHasFields =
-			Object.keys(page.fields ?? {}).length > 0 || page.field;
+			[typeof page.fields, typeof page.field].includes("function") ||
+			Object.keys(page.fields ?? {}).length > 0 ||
+			page.field;
 		let content = children;
 
 		if (pageHasFields) content = <FormPage page={page} />;
@@ -55,7 +57,7 @@ export default function DetailPage({
 					{page?.title}
 				</span>
 
-				<SpotlightPageActions page={page} />
+				<SpotlightPageFilters page={page} />
 			</div>
 
 			<div

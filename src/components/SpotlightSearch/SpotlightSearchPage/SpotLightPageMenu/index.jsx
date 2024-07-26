@@ -13,7 +13,7 @@ import clsx from "clsx";
 import { sectionedChoices } from "@/utils";
 
 const SpotLightPageMenuContent = forwardRef(function SpotLightPageMenuContent(
-	{ idRef, choices, width, onSelect, onOpen, onClose },
+	{ idRef, choices, width, selected, onSelect, onOpen, onClose },
 	containerRef
 ) {
 	const [query, setQuery] = useState("");
@@ -31,7 +31,7 @@ const SpotLightPageMenuContent = forwardRef(function SpotLightPageMenuContent(
 		onOpen();
 		setTimeout(() => {
 			if (inputRef.current) inputRef.current.focus();
-			onNavigate();
+			onNavigate(selected);
 		});
 	});
 
@@ -42,7 +42,7 @@ const SpotLightPageMenuContent = forwardRef(function SpotLightPageMenuContent(
 	useEventListener(`key-` + idRef.current, (_, key) => {
 		if (key == "Escape") return handleEscape();
 
-		if (key == "Enter" && activeChoice) return handleSelect(activeChoice);
+		if (key == "Enter") return handleSelect(activeChoice);
 
 		onNavigate(key.replace("Arrow", "").toLowerCase());
 	});
@@ -183,6 +183,7 @@ const SpotLightPageMenuContent = forwardRef(function SpotLightPageMenuContent(
 export default function SpotLightPageMenu({
 	width = "180px",
 	plain = false,
+	selected,
 	choices = [],
 	onChange = () => {},
 	trigger,
@@ -300,6 +301,7 @@ export default function SpotLightPageMenu({
 						idRef={idRef}
 						choices={choices}
 						width={width}
+						selected={selected}
 						onSelect={handleSelect}
 						onOpen={() => doProcess(true)}
 						onClose={() => {

@@ -7,6 +7,7 @@ import clsx from "clsx";
 import useEventListener from "@/hooks/useEventListener";
 import PageActionBar from "./PageActionBar";
 import { someTime } from "@/utils";
+import { randomId } from "@/utils";
 
 function PageLoader() {
 	return (
@@ -91,15 +92,19 @@ export default function SpotlightSearchPage({
 }) {
 	const pageStatusResetTimeoutRef = useRef(null);
 	const pageWrapperRef = useRef(null);
+	const [pageDataVersion, setPageDataVersion] = useState(
+		"data-" + randomId()
+	);
 	const [preview, setPreview] = useState();
+	const [formData, setFormData] = useState(null);
+	const filterRef = useRef(page?.filter?.defaultValue);
+	const [pageFilter, _setPageFilter] = useState(filterRef.current);
+
 	const [pageData, setPageData] = useState();
 	const [pageStatus, _setPageStatus] = useState({ status: "idle" });
 	const [mainAction, setMainAction] = useState();
 	const [secondaryAction, setSecondaryAction] = useState();
 	const [actions, setActions] = useState();
-	const [contextMenuActions, setContextMenuActions] = useState(
-		page?.contextMenuActions
-	);
 
 	const clickHandler = useRef(() => {});
 	const onClick = (callback) => (clickHandler.current = callback);
@@ -110,14 +115,14 @@ export default function SpotlightSearchPage({
 	const onSecondaryActionClick = (callback) =>
 		(secondaryActionClickHandler.current = callback);
 	const actionMenuClickHandler = useRef(() => {});
-	const onActionMenuClick = (callback) =>
+	const onOpenActionMenu = (callback) =>
 		(actionMenuClickHandler.current = callback);
-	const contextMenuSelectHandler = useRef(() => {});
-	const onContextMenuSelect = (callback) =>
-		(contextMenuSelectHandler.current = callback);
-	const contextMenuClickHandler = useRef(() => {});
-	const onContextMenuClick = (callback) =>
-		(contextMenuClickHandler.current = callback);
+	const filterChangedHandler = useRef(() => {});
+	const onFilterChanged = (callback) =>
+		(filterChangedHandler.current = callback);
+	const onChangeFilterHandler = useRef(() => {});
+	const onChangeFilter = (callback) =>
+		(onChangeFilterHandler.current = callback);
 	const dataUpdatedHandler = useRef(() => {});
 	const onDataUpdated = (callback) => (dataUpdatedHandler.current = callback);
 	const readyHandler = useRef(() => {});
@@ -139,10 +144,22 @@ export default function SpotlightSearchPage({
 	const navigateUpHandler = useRef(() => {});
 	const onNavigateUp = (callback) => (navigateUpHandler.current = callback);
 
-	const { loading, pendingView: pagePendingView } = useLoadableView({
-		data: async () => {
+	const {
+		refetch,
+		loading,
+		pendingView: pagePendingView,
+	} = useLoadableView({
+		data: async ({ fromRefetch }) => {
+			const filter = filterRef.current;
 			await someTime(5);
-			return typeof page?.resolve == "function" ? page.resolve() : true;
+			return typeof page?.resolve == "function"
+				? page.resolve({
+						fromRefetch,
+						filters: page?.filter?.field
+							? { [page.filter.field]: filter }
+							: null,
+				  })
+				: true;
 		},
 		listenForUpdates: page.listenForUpdates,
 		dismiss: onClose,
@@ -151,6 +168,7 @@ export default function SpotlightSearchPage({
 			setTimeout(() => readyHandler.current(data));
 		},
 		onUpdate: (data, oldData) => {
+			setPageDataVersion("data-" + randomId());
 			setPageData(data);
 			setTimeout(() => dataUpdatedHandler.current(data, oldData));
 		},
@@ -257,13 +275,13 @@ export default function SpotlightSearchPage({
 	);
 
 	useEventListener(
-		"context-menu-" + page?._id,
-		contextMenuClickHandler.current
+		"change-filter-" + page?._id,
+		pageInFocus(onChangeFilterHandler.current)
 	);
 
 	useEventListener(
-		"context-menu-select-" + page?._id,
-		pageInFocus(contextMenuSelectHandler.current)
+		"filter-changed-" + page?._id,
+		pageInFocus(filterChangedHandler.current)
 	);
 
 	useEventListener(
@@ -304,6 +322,14 @@ export default function SpotlightSearchPage({
 		setPageStatus(payload)
 	);
 
+	const contextInfo = {
+		page,
+		pageData,
+		pageDataVersion,
+		formData,
+		pageFilter,
+	};
+
 	return (
 		<div
 			ref={pageWrapperRef}
@@ -317,7 +343,10 @@ export default function SpotlightSearchPage({
 				value={{
 					page,
 					pageData,
+					pageDataVersion,
 					setPageData,
+					formData,
+					setFormData,
 					pageResolving: loading,
 					pageStatus,
 					setSpotlightState,
@@ -336,18 +365,54 @@ export default function SpotlightSearchPage({
 					onDataUpdated,
 					onEscape,
 					onClose,
+					content: () => {
+						let content = content || page?.content;
+						return typeof content == "function"
+							? content(contextInfo)
+							: content;
+					},
 					preview: () => {
 						let pagePreview = preview || page?.preview;
 						return typeof pagePreview == "function"
-							? pagePreview({ page, pageData })
+							? pagePreview(contextInfo)
 							: pagePreview;
 					},
 					setPreview,
+					pageFilter,
+					setPageFilter: (filter) => {
+						filterRef.current = filter;
+						_setPageFilter(filter);
+						refetch();
+					},
+					filters: () => {
+						const filters = page?.filters;
+						return typeof filters == "function"
+							? filters(contextInfo)
+							: filters;
+					},
+					formFields: () => {
+						let fields = page?.fields;
+						fields =
+							typeof fields == "function"
+								? fields(contextInfo)
+								: fields;
+						let field = page?.field;
+						field =
+							typeof field == "function"
+								? field(contextInfo)
+								: field;
+
+						return fields
+							? fields
+							: field
+							? { formField: field }
+							: {};
+					},
 					mainAction: () => {
 						let action = mainAction || page?.action;
 						action =
 							typeof action == "function"
-								? action({ page, pageData })
+								? action(contextInfo)
 								: action;
 
 						return action
@@ -365,7 +430,7 @@ export default function SpotlightSearchPage({
 						let action = secondaryAction || page?.secondaryAction;
 						action =
 							typeof action == "function"
-								? action({ page, pageData })
+								? action(contextInfo)
 								: action;
 
 						return action
@@ -383,12 +448,10 @@ export default function SpotlightSearchPage({
 							: pageActions;
 					},
 					setActions,
-					contextMenuActions,
-					setContextMenuActions,
 					onClick,
-					onActionMenuClick,
-					onContextMenuClick,
-					onContextMenuSelect,
+					onOpenActionMenu,
+					onChangeFilter,
+					onFilterChanged,
 					onSecondaryActionClick,
 					onMainActionClick,
 					onNavigateDown,

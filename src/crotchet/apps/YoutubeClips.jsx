@@ -310,6 +310,7 @@ const editVideo = async (title, payload, openForm, handler) => {
 	return await openForm({
 		title,
 		data: video,
+		liveUpdate: false,
 		resolve: () => video,
 		preview({ pageData: video }) {
 			if (!video) return null;
@@ -471,6 +472,10 @@ const getActions = (payload) => {
 					console.log(error);
 				}
 			},
+		},
+		addClip: {
+			label: "Add Clip",
+			handler: addClip,
 		},
 	};
 

@@ -165,7 +165,7 @@ export const exportContent = async function (
 	type = "txt"
 ) {
 	if (onDesktop())
-		return writeFile(`${fileName}.${type}`, content, {
+		return saveFile(`${fileName}.${type}`, content, {
 			folder: "downloads",
 			open: true,
 		});
@@ -210,7 +210,7 @@ export const objectTake = (obj = {}, excludedFields = []) => {
 export const cleanObject = (obj = {}) => {
 	const isValid = (value) =>
 		(value ?? "").toString().length &&
-		!["undefined", "false", "0", "null"].includes(value);
+		!["undefined", "false", "0", "null"].includes((value ?? "").toString());
 
 	return Object.fromEntries(
 		Object.entries(obj || {}).filter(
@@ -348,8 +348,6 @@ export const openUrl = async (path) => {
 
 	// showToast("Open url: " + path);
 	if (path.startsWith("crotchet://download/")) {
-		console.log("Download:", path.replace("crotchet://download/", ""));
-		// showToast("Download:", path.replace("crotchet://download/", ""));
 		return clickToDownload(path.replace("crotchet://download/", ""));
 	}
 
@@ -988,7 +986,7 @@ export const parseFields = (fields, data) => {
 		return {
 			__id: "id" + randomId(),
 			name,
-			label: label || name,
+			label: label ?? name,
 			type,
 			choices,
 			defaultValue: computedDefaultValue,
@@ -998,41 +996,104 @@ export const parseFields = (fields, data) => {
 	});
 };
 
-const writeFile = async (fileName, content, { folder, open } = {}) => {
+export const getWriteableFile = async (path) => {
+	const key = "getFile" + randomId();
+	if (onDesktop()) {
+		if (path) {
+			return readFile({ path }).then((contents) => {
+				if (!contents) return;
+
+				return {
+					path,
+					contents,
+					save: (contents, { open = false } = {}) =>
+						saveFile({ path }, contents, {
+							open,
+						}),
+				};
+			});
+		}
+
+		return new Promise((res) => {
+			var handler = async (e) => {
+				window.removeEventListener(`get-file-${key}`, handler);
+				const file = e.detail;
+
+				if (!file?.path) return res(null);
+				res({
+					...file,
+					save: (contents, { open = false } = {}) =>
+						saveFile({ path: file.path }, contents, {
+							open,
+						}),
+				});
+			};
+
+			window.addEventListener(`get-file-${key}`, handler);
+
+			dispatch("get-file", [
+				key,
+				{
+					properties: ["openFile"],
+					read: true,
+				},
+			]);
+		});
+	}
+
+	return;
+
+	// try {
+	// 	var res = await Filesystem.readFile({
+	// 		path: fileName,
+	// 		directory: Directory.Documents,
+	// 		encoding: Encoding.UTF8,
+	// 	});
+
+	// 	if (res) return res?.data;
+	// } catch (error) {
+	// 	//
+	// }
+};
+
+export const saveFile = async (props = {}, contents, { folder, open } = {}) => {
 	if (onDesktop()) {
 		return dispatch("write-file", {
-			name: fileName,
-			content,
+			name: props.name,
+			path: props.path,
+			contents,
 			folder,
 			open,
 		});
 	}
 
 	return await Filesystem.writeFile({
-		path: fileName,
-		data: content,
+		path: props.path || props.name,
+		data: contents,
 		directory: Directory.Documents,
 		encoding: Encoding.UTF8,
 	});
 };
 
-const readFile = async (fileName) => {
+const readFile = async (props) => {
+	const key = "getFile" + randomId();
+
 	if (onDesktop()) {
 		return new Promise((res) => {
 			var handler = async (e) => {
-				window.removeEventListener(`read-file:${fileName}`, handler);
+				window.removeEventListener(`read-file-${key}`, handler);
 				res(e.detail);
 			};
 
-			window.addEventListener(`read-file:${fileName}`, handler);
+			window.addEventListener(`read-file-${key}`, handler);
 
-			dispatch("read-file", fileName);
+			dispatch("read-file", { key, ...props });
 		});
 	}
 
 	try {
 		var res = await Filesystem.readFile({
-			path: fileName,
+			path: props.name || props.path,
 			directory: Directory.Documents,
 			encoding: Encoding.UTF8,
 		});
@@ -1044,7 +1105,7 @@ const readFile = async (fileName) => {
 };
 
 export const getToken = async (key) => {
-	let token = await readFile(`token-${key}.json`);
+	let token = await readFile({ name: `token-${key}.json` });
 
 	if (!token?.length) {
 		token = await window.__crotchet.openForm({
@@ -1069,7 +1130,7 @@ export const getToken = async (key) => {
 };
 
 export const getPreference = async (key, defaultValue = null, fromSave) => {
-	let res = await readFile("__crotchetPreferences.json");
+	let res = await readFile({ name: "__crotchetPreferences.json" });
 
 	if (!res?.length) {
 		res = {};
@@ -1091,16 +1152,56 @@ export const savePreference = async (key, value) => {
 	const prefs = getPreference(null, null, true);
 	if (key) prefs[key] = value;
 
-	return await writeFile(
-		"__crotchetPreferences.json",
+	return await saveFile(
+		{ name: "__crotchetPreferences.json" },
 		JSON.stringify(prefs, null, 4)
 	);
 };
 
 export const saveToken = async (key, value, expiresAt) => {
 	const token = JSON.stringify({ value, expiresAt }, null, 4);
-	await writeFile(`token-${key}.json`, token);
+	await saveFile({ name: `token-${key}.json` }, token);
 	return token;
+};
+
+export const loadExternalAsset = (url, { type, defer } = {}) => {
+	if (!url?.length) return null;
+
+	type = type || url.split(".").at(-1);
+
+	if (type == "css") {
+		return new Promise((resolve, reject) => {
+			if (document.querySelector('head link[href="' + url + '"]'))
+				return resolve();
+
+			const link = document.createElement("link");
+			link.rel = "stylesheet";
+			link.type = "text/css";
+			link.href = url;
+
+			document.querySelector("head").appendChild(link);
+
+			link.onload = () => setTimeout(() => resolve(), 300);
+
+			link.onerror = (e) => setTimeout(() => reject(e), 300);
+		});
+	}
+
+	return new Promise((resolve, reject) => {
+		if (document.querySelector('head script[src="' + url + '"]'))
+			return resolve();
+
+		const script = document.createElement("script");
+		script.setAttribute("type", "text/javascript");
+		script.setAttribute("src", url);
+		if (defer) script.setAttribute("defer", "defer");
+
+		document.querySelector("head").appendChild(script);
+
+		script.onload = () => setTimeout(() => resolve(), 300);
+
+		script.onerror = (e) => setTimeout(() => reject(e), 300);
+	});
 };
 
 export const getPromise = () => {

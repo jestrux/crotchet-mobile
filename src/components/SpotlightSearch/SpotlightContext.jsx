@@ -177,8 +177,12 @@ export function SpotlightProvider({ pages, open, children }) {
 
 	useEventListener("click", () => dispatch(`click-${getCurrentPageId()}`));
 
-	useEventListener("context-menu-select", (_, payload) =>
-		dispatch(`context-menu-select-${getCurrentPageId()}`, payload)
+	useEventListener("filter-changed", (_, payload) =>
+		dispatch(`filter-changed-${getCurrentPageId()}`, payload)
+	);
+
+	useEventListener("change-filter", (_, payload) =>
+		dispatch(`change-filter-${getCurrentPageId()}`, payload)
 	);
 
 	useEventListener("menu-closed", (_, payload) =>
@@ -222,8 +226,8 @@ export function SpotlightProvider({ pages, open, children }) {
 	});
 
 	useKeyDetector({
-		key: "Cmd + P",
-		action: () => dispatch(`context-menu-${getCurrentPageId()}`),
+		key: "Cmd + p",
+		action: () => dispatch(`change-filter-${getCurrentPageId()}`),
 	});
 
 	useKeyDetector({

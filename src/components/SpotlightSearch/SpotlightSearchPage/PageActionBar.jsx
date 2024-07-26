@@ -3,7 +3,7 @@ import { useRef } from "react";
 import useAlerts from "@/components/Alerts/useAlerts";
 import CommandKey from "@/components/CommandKey";
 import { useSpotlightPageContext } from "./SpotlightPageContext";
-import { dispatch, isValidAction, showToast } from "@/utils";
+import { dispatch, isValidAction } from "@/utils";
 import { onActionClick, Loader } from "@/crotchet";
 import SpotLightPageMenu from "./SpotLightPageMenu";
 import clsx from "clsx";
@@ -14,8 +14,7 @@ export default function PageActionBar() {
 		pageData,
 		pageResolving,
 		pageStatus,
-		onContextMenuClick,
-		onActionMenuClick,
+		onOpenActionMenu,
 		onSecondaryActionClick,
 		onMainActionClick,
 		mainAction: _mainAction,
@@ -37,11 +36,7 @@ export default function PageActionBar() {
 		return onActionClick(mainAction, { confirm })(payload);
 	};
 
-	onContextMenuClick(() => {
-		showToast("Context menu shortcut clicked");
-	});
-
-	onActionMenuClick(() => {
+	onOpenActionMenu(() => {
 		if (actionsButtonRef.current) actionsButtonRef.current.click();
 	});
 
@@ -213,7 +208,7 @@ export default function PageActionBar() {
 								);
 
 								if (action) {
-									dispatch("context-menu-select", value);
+									dispatch("action-selected", value);
 
 									onActionClick(action)(
 										{ pageData },
