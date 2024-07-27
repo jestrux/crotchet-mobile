@@ -144,14 +144,18 @@ module.exports = function socketServer(server) {
 		events[event](payload);
 	});
 
-	const handlReadFile = async ({ path, folder = "userData", name }) =>
-		new Promise((res) =>
-			fs.readFile(
-				path ? path : `${app.getPath(folder)}/${name}`,
-				"utf8",
-				(err, data) => res(err ? null : data)
-			)
-		);
+	const handlReadFile = async ({ path, folder, name }) =>
+		new Promise((res) => {
+			const actualPath = path
+				? path
+				: folder
+				? `${app.getPath(folder)}/${name}`
+				: `${app.getPath("userData")}/Crotchet/${name}`;
+
+			fs.readFile(actualPath, "utf8", (err, data) =>
+				res(err ? null : data)
+			);
+		});
 
 	ipcMain.handle(
 		"get-file",
@@ -181,20 +185,27 @@ module.exports = function socketServer(server) {
 
 	ipcMain.handle(
 		"write-file",
-		async (_, { name, path, contents, folder = "userData", open }) =>
-			new Promise((res) =>
-				fs.writeFile(
-					path ? path : `${app.getPath(folder)}/${name}`,
-					contents,
-					(err) => {
-						if (!err && open)
-							shell.showItemInFolder(
-								`${app.getPath(folder)}/${name}`
-							);
-						res(!err);
-					}
-				)
-			)
+		async (_, { name, path, contents, folder, open }) => {
+			const actualPath = path
+				? path
+				: folder
+				? `${app.getPath(folder)}/${name}`
+				: `${app.getPath("userData")}/Crotchet/${name}`;
+			const pathArray = actualPath.split("/");
+			const destinationFolder = pathArray
+				.filter((_, i) => i != pathArray.length - 1)
+				.join("/");
+
+			return new Promise((res) => {
+				if (!path && !folder && !fs.existsSync(destinationFolder))
+					fs.mkdir(destinationFolder, { recursive: true }, () => {});
+
+				fs.writeFile(actualPath, contents, (err) => {
+					if (!err && open) shell.showItemInFolder(actualPath);
+					res(!err);
+				});
+			});
+		}
 	);
 
 	ipcMain.on("toggle-app-window", (_, show = false) =>
