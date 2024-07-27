@@ -199,3 +199,64 @@ registerAction("editAsset", {
 		});
 	},
 });
+
+registerAction("editTemplate", {
+	label: "Page Builder - Edit Template",
+	global: true,
+	handler: async (
+		_,
+		{ openPage, loadExternalAsset, getWriteableFile, randomId, dispatch }
+	) => {
+		const referenceId = "ref-" + randomId();
+
+		const getTemplate = async (path) => {
+			const template = await getWriteableFile(path);
+
+			if (!template?.contents) return;
+
+			return parseTemplate(template, referenceId);
+		};
+
+		const template = await getTemplate();
+
+		if (typeof template?.render != "function") return;
+
+		return await openPage({
+			resolve: async () => {
+				await loadExternalAsset(
+					"https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.js"
+				);
+				await Promise.all(
+					[
+						"https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.css",
+						"https://cdn.jsdelivr.net/npm/code-mirror-themes@1.0.0/themes/bongzilla.min.css",
+						"https://raw.githubusercontent.com/codemirror/codemirror5/master/mode/javascript/javascript.js",
+					].map((item) =>
+						loadExternalAsset(item, {
+							name:
+								"codemirror-resource-" + item.split("/").at(-1),
+						})
+					)
+				);
+			},
+			title: "Edit " + template.name,
+			type: "form",
+			field: {
+				label: "",
+				type: "contentEditable",
+				defaultValue: template.file.contents,
+			},
+			noPadding: true,
+			fullWidth: true,
+			action: {
+				label: "Save",
+				handler: async (value) => {
+					if (!value) return;
+					template.file.save(value);
+					dispatch("page-template-updated");
+					return true;
+				},
+			},
+		});
+	},
+});
