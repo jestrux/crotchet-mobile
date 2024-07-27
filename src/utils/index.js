@@ -298,12 +298,15 @@ export const getShareUrl = (content, type = "text") => {
 	)}`;
 };
 
-export const crawlUrl = async (url) => {
-	var res = await fetch(
-		`https://us-central1-letterplace-c103c.cloudfunctions.net/api/crawl/${encodeURIComponent(
-			url
-		)}`
-	).then((res) => res.json());
+export const crawlUrl = async (url, name) => {
+	var res = await withCache(
+		name || new URL(url).hostname,
+		fetch(
+			`https://us-central1-letterplace-c103c.cloudfunctions.net/api/crawl/${encodeURIComponent(
+				url
+			)}`
+		).then((res) => res.json())
+	);
 
 	if (res?.meta) {
 		res.meta = cleanObject(res.meta);
@@ -1057,6 +1060,11 @@ export const getWriteableFile = async (path) => {
 };
 
 export const saveFile = async (props = {}, contents, { folder, open } = {}) => {
+	contents =
+		typeof contents == "object"
+			? JSON.stringify(contents, null, 4)
+			: contents;
+
 	if (onDesktop()) {
 		return dispatch("write-file", {
 			name: props.name,
@@ -1082,7 +1090,17 @@ const readFile = async (props) => {
 		return new Promise((res) => {
 			var handler = async (e) => {
 				window.removeEventListener(`read-file-${key}`, handler);
-				res(e.detail);
+				let file = e.detail;
+
+				if (file?.length) {
+					try {
+						file = JSON.parse(file);
+					} catch (_) {
+						//
+					}
+				}
+
+				res(file);
 			};
 
 			window.addEventListener(`read-file-${key}`, handler);
@@ -1105,9 +1123,9 @@ const readFile = async (props) => {
 };
 
 export const getToken = async (key) => {
-	let token = await readFile({ name: `token-${key}.json` });
+	let token = await getPreference(`token-${key}`);
 
-	if (!token?.length) {
+	if (!token?.value) {
 		token = await window.__crotchet.openForm({
 			title: "Enter Token",
 			field: {
@@ -1118,25 +1136,15 @@ export const getToken = async (key) => {
 		if (token) token = await saveToken(key, token);
 	}
 
-	if (token?.length) {
-		try {
-			token = JSON.parse(token);
-		} catch (_) {
-			//
-		}
-	}
-
 	return token;
 };
 
 export const saveToken = async (key, value, expiresAt) => {
-	const token = JSON.stringify({ value, expiresAt }, null, 4);
-	await saveFile({ name: `token-${key}.json` }, token);
-	return token;
+	return await savePreference(`token-${key}`, { value, expiresAt });
 };
 
 export const withCache = async (name, promise, { invalidateAfter } = {}) => {
-	let value = await readFile({ name: `cache-${name}` });
+	let value = await getFromCache(name);
 	const cacheAndReturn = () =>
 		promise.then((res) => {
 			if (res) cache(name, res);
@@ -1150,29 +1158,30 @@ export const withCache = async (name, promise, { invalidateAfter } = {}) => {
 	return value;
 };
 
-export const readCache = async (key) => {
-	return await readFile({ name: `cache-${key}` });
+export const getFromCache = async (key) => {
+	return await readFile({ name: `__cache/${key}` });
 };
 
 export const cache = async (key, value) => {
 	if (!value) return value;
-	await saveFile({ name: `cache-${key}` }, value);
+	await saveFile({ name: `__cache/${key}` }, value);
 	return value;
 };
 
-export const getPreference = async (key, defaultValue = null, fromSave) => {
+const getUserPreferences = async (fromSave) => {
 	let res = await readFile({ name: "__crotchetPreferences.json" });
 
-	if (!res?.length) {
+	if (!res) {
 		res = {};
-		if (!fromSave) await savePreference(null, {});
-	} else {
-		try {
-			res = JSON.parse(res);
-		} catch (_) {
-			//
-		}
+		if (!fromSave)
+			await saveFile({ name: "__crotchetPreferences.json" }, {});
 	}
+
+	return res;
+};
+
+export const getPreference = async (key, defaultValue = null) => {
+	let res = await getUserPreferences();
 
 	if (key) res = res?.[key] ?? defaultValue;
 
@@ -1180,13 +1189,13 @@ export const getPreference = async (key, defaultValue = null, fromSave) => {
 };
 
 export const savePreference = async (key, value) => {
-	const prefs = getPreference(null, null, true);
+	const prefs = await getUserPreferences(true);
+
 	if (key) prefs[key] = value;
 
-	return await saveFile(
-		{ name: "__crotchetPreferences.json" },
-		JSON.stringify(prefs, null, 4)
-	);
+	await saveFile({ name: "__crotchetPreferences.json" }, prefs);
+
+	return key ? value : prefs;
 };
 
 export const loadExternalAsset = async (url, { name, type } = {}) => {
@@ -1212,8 +1221,6 @@ export const loadExternalAsset = async (url, { name, type } = {}) => {
 		asset.innerHTML = contents;
 		asset.setAttribute("data-external-asset", name);
 		document.querySelector("head").appendChild(asset);
-
-		await someTime();
 	}
 
 	return;
