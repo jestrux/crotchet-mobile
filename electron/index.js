@@ -52,8 +52,16 @@ const createMainWindow = () => {
 		true
 	);
 
+	//const openDevTools = false;
 	if (isDev) {
-		// mainWindow.webContents.openDevTools({ mode: "detach" });
+		const devtools = typeof openDevTools == "boolean";
+		if (devtools) mainWindow.webContents.openDevTools({ mode: "detach" });
+		mainWindow.webContents.executeJavaScript(
+			devtools
+				? "localStorage.openDevTools = true"
+				: "localStorage.removeItem('openDevTools')",
+			true
+		);
 
 		mainWindow.loadURL("http://localhost:5173/");
 

@@ -198,6 +198,31 @@ export const kitTest = {
 	url: `crotchet://socket/run?command=code /Users/waky/.kenv`,
 };
 
+export const crotchetAppData = {
+	url: `crotchet://socket/run?command=open /Users/waky/Library/Application\\ Support/Electron/Crotchet`,
+};
+
+export const crotchetDevtools = {
+	handler: async (_, { getWriteableFile }) => {
+		const file = await getWriteableFile(
+			"/Users/waky/Documents/web/crotchet/electron/index.js"
+		);
+		const code = file.contents;
+		const inDev = code.indexOf("//const openDevTools = false;") == -1;
+		file.save(
+			inDev
+				? file.contents.replace(
+						"const openDevTools = false;",
+						"//const openDevTools = false;"
+				  )
+				: file.contents.replace(
+						"//const openDevTools = false;",
+						"const openDevTools = false;"
+				  )
+		);
+	},
+};
+
 export const tailwindCdn = {
 	hideApp: true,
 	url: 'crotchet://socket/copy-paste?arg=<script src="https://cdn.tailwindcss.com"></script>',
