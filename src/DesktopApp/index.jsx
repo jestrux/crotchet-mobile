@@ -53,6 +53,7 @@ export default function DesktopApp() {
 	};
 
 	const handleHideApp = () => {
+		if (localStorage.openDevTools) return;
 		if (document.body.className.indexOf("get-file-") != -1) return;
 		if (window.hideAppTimeout) clearTimeout(window.hideAppTimeout);
 		if (!app) window.hideAppTimeout = setTimeout(hideAppWindow, 10);
