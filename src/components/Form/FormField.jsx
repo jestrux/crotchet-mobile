@@ -498,9 +498,13 @@ const ContentEditableField = ({ value, name, optional, onChange }) => {
 			await Promise.all(
 				[
 					"https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.css",
+					"https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/mode/javascript/javascript.js",
 					"https://cdn.jsdelivr.net/npm/code-mirror-themes@1.0.0/themes/bongzilla.min.css",
-					"https://codemirror.net/mode/javascript/javascript.js",
-				].map(loadExternalAsset)
+				].map((item) =>
+					loadExternalAsset(item, {
+						name: "codemirror-resource-" + item.split("/").at(-1),
+					})
+				)
 			);
 
 			editorRef.current = window.CodeMirror.fromTextArea(
