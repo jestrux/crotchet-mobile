@@ -291,7 +291,7 @@ export default function SearchPage({ children }) {
 					children
 				) : (
 					<>
-						{!choiceSections?.length && (
+						{!choiceSections?.length && query?.length > 0 && (
 							<div className="rounded relative cursor-default select-none py-2 truncate text-[14px] text-content/30 text-center font-medium">
 								No results
 							</div>

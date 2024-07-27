@@ -1,4 +1,4 @@
-import { Children, cloneElement, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SpotlightPageProvider } from "./SpotlightPageContext";
 import useLoadableView from "@/hooks/useLoadableView";
 import SearchPage from "./SearchPage";
@@ -87,7 +87,6 @@ export default function SpotlightSearchPage({
 	onClose,
 	onPop,
 	onPopAll,
-	children,
 	page,
 }) {
 	const pageStatusResetTimeoutRef = useRef(null);
@@ -144,11 +143,7 @@ export default function SpotlightSearchPage({
 	const navigateUpHandler = useRef(() => {});
 	const onNavigateUp = (callback) => (navigateUpHandler.current = callback);
 
-	const {
-		refetch,
-		loading,
-		pendingView: pagePendingView,
-	} = useLoadableView({
+	const { refetch, loading } = useLoadableView({
 		data: async ({ fromRefetch }) => {
 			const filter = filterRef.current;
 			await someTime(5);
@@ -194,24 +189,6 @@ export default function SpotlightSearchPage({
 		}
 
 		_setPageStatus(payload);
-	};
-
-	const pageContent = () => {
-		if (pagePendingView != true) {
-			return loading ? (
-				<PageLoader />
-			) : (
-				<div className="py-4">{pagePendingView}</div>
-			);
-		}
-
-		return Children.map(children, (child) => {
-			if (!child?.type) return null;
-
-			return cloneElement(child, {
-				pageData,
-			});
-		});
 	};
 
 	const hasClass = (cls) => {
@@ -366,7 +343,7 @@ export default function SpotlightSearchPage({
 					onEscape,
 					onClose,
 					content: () => {
-						let content = content || page?.content;
+						const content = page?.content;
 						return typeof content == "function"
 							? content(contextInfo)
 							: content;
@@ -469,9 +446,7 @@ export default function SpotlightSearchPage({
 						onReady={onReady}
 						onEscape={onEscape}
 						onClose={onClose}
-					>
-						{pageContent()}
-					</DetailPage>
+					/>
 				) : (
 					<SearchPage
 						open={open}
@@ -483,9 +458,13 @@ export default function SpotlightSearchPage({
 						onReady={onReady}
 						onEscape={onEscape}
 						onClose={onClose}
-					>
-						{pageContent()}
-					</SearchPage>
+					/>
+				)}
+
+				{loading && (
+					<div className="fixed top-14 inset-x-0 z-50 pointer-events-none">
+						<PageLoader />
+					</div>
 				)}
 
 				<PageActionBar />

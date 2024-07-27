@@ -1,15 +1,16 @@
 import { useRef } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import SpotlightPageFilters from "./SpotlightPageFilters";
+import { useSpotlightPageContext } from "./SpotlightPageContext";
 import ActionPage from "./ActionPage";
 import FormPage from "./FormPage";
 
 export default function DetailPage({
 	page = { type: "detail" },
-	children,
 	onOpen,
 	onPop,
 }) {
+	const { pageResolving, content: _content } = useSpotlightPageContext();
 	const popoverTitleRef = useRef(null);
 	const containerRef = useRef(null);
 
@@ -29,7 +30,7 @@ export default function DetailPage({
 			[typeof page.fields, typeof page.field].includes("function") ||
 			Object.keys(page.fields ?? {}).length > 0 ||
 			page.field;
-		let content = children;
+		let content = _content();
 
 		if (pageHasFields) content = <FormPage page={page} />;
 
@@ -57,17 +58,19 @@ export default function DetailPage({
 					{page?.title}
 				</span>
 
-				<SpotlightPageFilters page={page} />
+				{!pageResolving && <SpotlightPageFilters page={page} />}
 			</div>
 
-			<div
-				id="popoverContent"
-				ref={containerRef}
-				className="-mt-0.5 relative w-screen overflow-auto focus:outline-none"
-				style={{ height: "calc(100vh - 100px)" }}
-			>
-				{renderPage()}
-			</div>
+			{!pageResolving && (
+				<div
+					id="popoverContent"
+					ref={containerRef}
+					className="-mt-0.5 relative w-screen overflow-auto focus:outline-none"
+					style={{ height: "calc(100vh - 100px)" }}
+				>
+					{renderPage()}
+				</div>
+			)}
 		</>
 	);
 }

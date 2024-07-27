@@ -39,7 +39,7 @@ export default function GenericPage({
 			? contentData({ dismiss })
 			: contentData;
 
-		if (!content) return <div>No content</div>;
+		if (!content) return <div></div>;
 
 		if (!_.isArray(content)) {
 			content = [
