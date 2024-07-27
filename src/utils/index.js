@@ -1129,6 +1129,37 @@ export const getToken = async (key) => {
 	return token;
 };
 
+export const saveToken = async (key, value, expiresAt) => {
+	const token = JSON.stringify({ value, expiresAt }, null, 4);
+	await saveFile({ name: `token-${key}.json` }, token);
+	return token;
+};
+
+export const withCache = async (name, promise, { invalidateAfter } = {}) => {
+	let value = await readFile({ name: `cache-${name}` });
+	const cacheAndReturn = () =>
+		promise.then((res) => {
+			if (res) cache(name, res);
+			return res;
+		});
+
+	if (!value) value = await cacheAndReturn();
+	else if (invalidateAfter) cacheAndReturn();
+
+	await someTime();
+	return value;
+};
+
+export const readCache = async (key) => {
+	return await readFile({ name: `cache-${key}` });
+};
+
+export const cache = async (key, value) => {
+	if (!value) return value;
+	await saveFile({ name: `cache-${key}` }, value);
+	return value;
+};
+
 export const getPreference = async (key, defaultValue = null, fromSave) => {
 	let res = await readFile({ name: "__crotchetPreferences.json" });
 
@@ -1158,50 +1189,34 @@ export const savePreference = async (key, value) => {
 	);
 };
 
-export const saveToken = async (key, value, expiresAt) => {
-	const token = JSON.stringify({ value, expiresAt }, null, 4);
-	await saveFile({ name: `token-${key}.json` }, token);
-	return token;
-};
-
-export const loadExternalAsset = (url, { type, defer } = {}) => {
+export const loadExternalAsset = async (url, { name, type } = {}) => {
 	if (!url?.length) return null;
 
 	type = type || url.split(".").at(-1);
 
-	if (type == "css") {
-		return new Promise((resolve, reject) => {
-			if (document.querySelector('head link[href="' + url + '"]'))
-				return resolve();
+	name = name || url.split("/").at(-1);
 
-			const link = document.createElement("link");
-			link.rel = "stylesheet";
-			link.type = "text/css";
-			link.href = url;
+	if (!document.querySelector(`[data-external-asset="${name}"]`)) {
+		const contents = await withCache(
+			name,
+			new Promise((resolve) =>
+				fetch(url)
+					.then((res) => res.text())
+					.then(resolve)
+			)
+		);
 
-			document.querySelector("head").appendChild(link);
+		const asset = document.createElement(
+			type == "css" ? "style" : "script"
+		);
+		asset.innerHTML = contents;
+		asset.setAttribute("data-external-asset", name);
+		document.querySelector("head").appendChild(asset);
 
-			link.onload = () => setTimeout(() => resolve(), 300);
-
-			link.onerror = (e) => setTimeout(() => reject(e), 300);
-		});
+		await someTime();
 	}
 
-	return new Promise((resolve, reject) => {
-		if (document.querySelector('head script[src="' + url + '"]'))
-			return resolve();
-
-		const script = document.createElement("script");
-		script.setAttribute("type", "text/javascript");
-		script.setAttribute("src", url);
-		if (defer) script.setAttribute("defer", "defer");
-
-		document.querySelector("head").appendChild(script);
-
-		script.onload = () => setTimeout(() => resolve(), 300);
-
-		script.onerror = (e) => setTimeout(() => reject(e), 300);
-	});
+	return;
 };
 
 export const getPromise = () => {
