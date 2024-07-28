@@ -55,7 +55,10 @@ const createMainWindow = () => {
 	//const openDevTools = false;
 	if (isDev) {
 		const devtools = typeof openDevTools == "boolean";
-		if (devtools) mainWindow.webContents.openDevTools({ mode: "detach" });
+		if (devtools) {
+			mainWindow.webContents.openDevTools({ mode: "detach" });
+			setTimeout(() => crotchetApp.toggleWindow(true), 500);
+		}
 		mainWindow.webContents.executeJavaScript(
 			devtools
 				? "localStorage.openDevTools = true"

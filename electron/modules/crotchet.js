@@ -110,6 +110,10 @@ module.exports = function Crotchet() {
 		globalShortcut.register("Alt+/", () => {
 			this.toggleWindow();
 		});
+		globalShortcut.register("Alt+Shift+d", () => {
+			this.toggleWindow();
+			this.socketEmit("run-action", "crotchetDevtools");
+		});
 	};
 
 	this.socketEmit = (event, payload, background) => {
