@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import ReactTextareaAutosize from "react-autosize-textarea";
+
 import {
 	camelCaseToSentenceCase,
 	loadExternalAsset,
@@ -703,6 +705,22 @@ const Field = ({ field, value, onChange, __data }) => {
 		default: {
 			let fieldType = field.type || "text";
 			if (["image"].includes(fieldType)) fieldType = "text";
+
+			if (fieldType == "text") {
+				return (
+					<ReactTextareaAutosize
+						className="placeholder:text-content/20"
+						id={field.label}
+						placeholder={field.placeholder}
+						type={fieldType}
+						size="md"
+						name={field.name}
+						value={value}
+						onChange={onChange}
+						required={field.required}
+					/>
+				);
+			}
 
 			return (
 				<input
