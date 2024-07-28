@@ -235,7 +235,7 @@ export default function SpotlightSearchPage({
 		"escape-" + page?._id,
 		pageInFocus((_, payload) => {
 			if (["error", "success"].includes(pageStatus?.status))
-				return setPageStatus({ status: "idle" });
+				setPageStatus({ status: "idle" });
 
 			escapeHandler.current(payload);
 		})
