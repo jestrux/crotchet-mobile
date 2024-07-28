@@ -62,6 +62,11 @@ export default function DesktopApp() {
 	useEventListener("focus", () => {
 		window.__crotchet.desktop.visible = true;
 		if (window.hideAppTimeout) clearTimeout(window.hideAppTimeout);
+
+		document.body.className
+			.split(" ")
+			.filter((cls) => cls.startsWith("get-file"))
+			.forEach((cls) => document.body.classList.remove(cls));
 	});
 
 	useEventListener("blur", () => {

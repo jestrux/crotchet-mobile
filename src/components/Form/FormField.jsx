@@ -6,6 +6,7 @@ import {
 	loadExternalAsset,
 	objectField,
 	randomId,
+	someTime,
 } from "@/utils";
 import useDebounce from "@/hooks/useDebounce";
 import { useThrottle } from "@/hooks/useThrottle";
@@ -476,6 +477,209 @@ const Select = ({ value, name, optional, choices: _choices, onChange }) => {
 	);
 };
 
+const ImageField = ({ value, name, meta, optional, onChange }) => {
+	const defaultState = {
+		preview: null,
+		value: null,
+		isFace: meta?.isFace,
+		uploading: false,
+		uploadPercent: 0,
+		error: "There was an error when uploading the file.",
+	};
+	const [
+		{ error, value: _value, preview: _preview, uploadPercent },
+		setData,
+	] = useState({ ...defaultState, value });
+	const preview = _value || _preview;
+	const refId = useRef(randomId());
+	const previewRef = useRef(null);
+	const uploaderRef = useRef(null);
+	const elRef = useRef(null);
+
+	const handleChange = (data = {}) => {
+		if (data?.preview) previewRef.current = data.preview;
+		setData((oldData) => ({ ...oldData, ...data, value: data.src }));
+		if (data?.src) onChange(data.src);
+	};
+
+	const handleReset = (e) => {
+		e.stopPropagation();
+		setData(defaultState);
+	};
+
+	const loadUploader = async () => {
+		try {
+			await loadExternalAsset(
+				"https://raw.githubusercontent.com/jestrux/file-uploader/main/dist/file-uploader.umd.cjs"
+			);
+
+			uploaderRef.current = window.FileUploader(elRef.current, {
+				uploadUrl: meta?.uploadUrl,
+				s3: meta?.s3,
+				onChange: handleChange,
+				upload: async () => {
+					await someTime(200);
+					return previewRef.current;
+				},
+			});
+
+			elRef.current.setAttribute("data-initialized", true);
+		} catch (error) {
+			console.log("Failed to load editor: ", error);
+		}
+	};
+
+	useOnInit(() => {
+		loadUploader();
+	});
+
+	return (
+		<div className="group w-full relative -mt-1" ref={elRef}>
+			<div className="hidden group-data-[initialized=true]:flex h-16 items-center bg-card border border-content/20 relative rounded-lg overflow-hidden">
+				<div
+					className={clsx(
+						"absolute inset-0 flex flex-col items-center justify-center border-[3px] border-dashed border-transparent group-data-[dragover=true]:border-content/10",
+						preview
+							? "hidden"
+							: "hidden group-data-[status=idle]:flex group-data-[status=success]:flex"
+					)}
+				>
+					<span className="opacity-40 group-data-[dragover=true]:opacity-80 transition text-sm">
+						Drop your file here to upload it.
+					</span>
+
+					<label
+						className="cusror-pointer relative text-sm/none text-primary px-1.5 py-1"
+						onClick={() =>
+							document.body.classList.add(
+								`get-file-${refId.current}`
+							)
+						}
+					>
+						or select a file
+						<input type="file" hidden />
+					</label>
+				</div>
+
+				<div className="hidden group-data-[status=loading]:flex flex-col pt-1 gap-1.5 items-center justify-center absolute inset-0">
+					<svg
+						className="animate-spin size-6"
+						fill="none"
+						viewBox="0 0 24 24"
+						strokeWidth="2"
+						stroke="currentColor"
+					>
+						<circle className="opacity-25" cx="12" cy="12" r="11" />
+						<circle
+							cx="12"
+							cy="12"
+							r="11"
+							strokeDasharray="100"
+							strokeDashoffset="80"
+						/>
+					</svg>
+
+					<div className="text-xs uppercase tracking-widest opacity-50">
+						Uploading...
+						{uploadPercent ? `${uploadPercent}%` : ""}
+					</div>
+				</div>
+
+				<div className="hidden group-data-[status=error]:flex flex-col gap-1.5 items-center justify-center absolute inset-0 text-center bg-red-100 text-red-900">
+					<div className="size-8 bg-black/10 rounded-full flex items-center justify-center">
+						<svg
+							className="size-4 mb-0.5"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+						>
+							<path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+						</svg>
+					</div>
+					<p className="text-black/70 text-sm">{error}</p>
+					<button
+						type="button"
+						onClick={handleReset}
+						className="absolute z-10 right-1 top-1 size-8 rounded-full opacity-50 hover:opacity-80 transition flex items-center justify-center"
+					>
+						<svg
+							className="w-6 h-6 text-black"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+							style={{
+								filter: "drop-shadow(0 0 2px rgba(0,0,0,0.3))",
+							}}
+						>
+							<path
+								fillRule="evenodd"
+								d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z"
+								clipRule="evenodd"
+							/>
+						</svg>
+					</button>
+				</div>
+
+				<a
+					href={preview}
+					target="_blank"
+					title={preview}
+					className={clsx(
+						"group relative p-1 h-full overflow-hidden flex items-center gap-1.5",
+						!preview
+							? "hidden"
+							: "hidden group-data-[status=idle]:flex group-data-[status=success]:flex"
+					)}
+					rel="noreferrer"
+				>
+					<div
+						className={clsx(
+							"h-full aspect-[1/1] flex-shrink-0 relative overflow-hidden flex items-center justify-center border border-content/10",
+							meta?.isFace ? "rounded-full" : "rounded"
+						)}
+					>
+						<img
+							src={preview}
+							alt=""
+							className="absolute inset-0 size-full object-cover"
+						/>
+					</div>
+					<div className="min-w-0 space-y-2">
+						<h3 className="text-sm/none truncate">{preview}</h3>
+						<p className="text-xs/none truncate opacity-50">
+							( Click to see image )
+						</p>
+					</div>
+
+					<button
+						type="button"
+						onClick={handleReset}
+						className="absolute z-10 right-1 top-1 opacity-0 group-hover:opacity-50 hover:opacity-80 transition flex items-center justify-center"
+					>
+						<svg
+							className="w-5 h-5"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+						>
+							<path
+								fillRule="evenodd"
+								d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z"
+								clipRule="evenodd"
+							/>
+						</svg>
+					</button>
+				</a>
+			</div>
+
+			<ReactTextareaAutosize
+				type="text"
+				name={name}
+				className="group-data-[initialized=true]:hidden"
+				value={value}
+				required={!optional}
+			/>
+		</div>
+	);
+};
+
 const ContentEditableField = ({ value, name, optional, onChange }) => {
 	const editorRef = useRef(null);
 	const textareaRef = useRef(null);
@@ -560,7 +764,7 @@ const Field = ({ field, value, onChange, __data }) => {
 
 		case "boolean":
 			return (
-				<div>
+				<div className="pt-2">
 					<label
 						htmlFor={field.name}
 						className="cursor-pointer inline-flex items-center gap-2"
@@ -702,6 +906,16 @@ const Field = ({ field, value, onChange, __data }) => {
 				/>
 			);
 
+		case "image":
+			return (
+				<ImageField
+					{...field}
+					{...(field.meta || {})}
+					value={value}
+					onChange={onChange}
+				/>
+			);
+
 		default: {
 			let fieldType = field.type || "text";
 			if (["image"].includes(fieldType)) fieldType = "text";
@@ -752,7 +966,7 @@ export default function FormField({
 	const [value, setValue] = useState(field.value ?? field.defaultValue ?? "");
 	const handleChange = (e) => {
 		let value = e;
-		if (e.target) {
+		if (e?.target) {
 			const el = e.target;
 			value = ["checkbox", "radio"].includes(el.type)
 				? el.checked
