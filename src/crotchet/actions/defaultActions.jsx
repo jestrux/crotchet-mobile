@@ -228,6 +228,11 @@ export const tailwindCdn = {
 	url: 'crotchet://socket/copy-paste?arg=<script src="https://cdn.tailwindcss.com"></script>',
 };
 
+export const pierDesktop = {
+	hideApp: true,
+	url: `crotchet://socket/run?cwd=/Users/waky/Documents/web/pier-desktop&command=yarn dev`,
+};
+
 export const trimNewLines = {
 	handler: async (_, { hideApp, readClipboard, socketEmit }) => {
 		const value = (await readClipboard())?.value

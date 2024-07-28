@@ -10,6 +10,7 @@ module.exports = function runScript(command, args, callback) {
 
 	var child = child_process.exec(command, {
 		shell: true,
+		...(args?.cwd ? { cwd: args.cwd } : {}),
 	});
 	// var child = child_process.spawn(command, args, {
 	// 	encoding: "utf8",
