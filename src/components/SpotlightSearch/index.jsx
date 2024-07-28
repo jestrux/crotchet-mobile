@@ -5,18 +5,20 @@ import { dispatch, getPreference, savePreference } from "@/utils";
 
 const getFavoriteCommands = () => getPreference("favorite-commands", []);
 
-const toggleCommandInFavorites = async (command) => {
+const toggleCommandInFavorites = async (command, status) => {
 	const favorites = await getFavoriteCommands();
+	const newStatus = status ?? !favorites.includes(command);
+
 	await savePreference(
 		"favorite-commands",
-		favorites.includes(command)
-			? favorites.filter((c) => c != command)
-			: [...favorites, command]
+		newStatus
+			? [...favorites, command]
+			: favorites.filter((c) => c != command)
 	);
 
 	dispatch("app-commands-updated");
 
-	return;
+	return newStatus;
 };
 
 const commandProps = (item, section, favorites) => {
@@ -36,11 +38,26 @@ const commandProps = (item, section, favorites) => {
 					window.__crotchet.withLoader(
 						() => toggleCommandInFavorites(item.name),
 						{
-							successMessage: `${item.label} ${
-								faved
-									? "removed from favorites"
-									: "added to favorites"
-							}`,
+							successMessage: (status) =>
+								`${item.label} ${
+									status
+										? "added to favorites"
+										: "removed from favorites"
+								}`,
+						}
+					);
+				},
+			},
+			{
+				label: "Move to top",
+				handler: () => {
+					window.__crotchet.withLoader(
+						async () => {
+							await toggleCommandInFavorites(item.name, false);
+							await toggleCommandInFavorites(item.name, true);
+						},
+						{
+							successMessage: `${item.label} moved to top`,
 						}
 					);
 				},
