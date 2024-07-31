@@ -76,7 +76,7 @@ export default function FormPage({ page }) {
 				formId={formId.current}
 				horizontalLayout={horizontalLayout}
 				onChange={(data) => {
-					if (!page.liveUpdate ?? true) setFormData(data);
+					if (page.liveUpdate ?? true) setFormData(data);
 
 					dispatch("form-data-changed", {
 						...data,
