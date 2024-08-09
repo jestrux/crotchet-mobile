@@ -21,8 +21,14 @@ function DataWidgetContent({
 		layout,
 		columns = 2,
 		previewOnly,
+		meta,
 	} = {
 		...(source?.layoutProps || {}),
+		...props,
+	};
+
+	const { entryActions } = {
+		...(source || {}),
 		...props,
 	};
 
@@ -55,7 +61,20 @@ function DataWidgetContent({
 				status: entry.status,
 				url: entry.url,
 				share: entry.share,
-				onHold: entry.onHold,
+				onHold:
+					typeof entryActions != "function"
+						? null
+						: () =>
+								window.__crotchet.openActionSheet({
+									actions: entryActions(entry),
+									preview: _.pick(entry, [
+										"icon",
+										"image",
+										"video",
+										"title",
+										"subtitle",
+									]),
+								}),
 				onDoubleClick: entry.onDoubleClick,
 			}));
 
@@ -63,7 +82,7 @@ function DataWidgetContent({
 				<DragDropList items={items} onChange={onReorder}>
 					{({ item }) => (
 						<div key={item._id} className="pb-2 w-full">
-							<CardListItem {...item} />
+							<CardListItem {...item} meta={meta} />
 						</div>
 					)}
 				</DragDropList>
@@ -84,7 +103,20 @@ function DataWidgetContent({
 					status: entry.status,
 					url: entry.url,
 					share: entry.share,
-					onHold: entry.onHold,
+					onHold:
+						typeof entryActions != "function"
+							? null
+							: () =>
+									window.__crotchet.openActionSheet({
+										actions: entryActions(entry),
+										preview: _.pick(entry, [
+											"icon",
+											"image",
+											"video",
+											"title",
+											"subtitle",
+										]),
+									}),
 					onDoubleClick: entry.onDoubleClick,
 				};
 
@@ -98,11 +130,12 @@ function DataWidgetContent({
 							color={entry.color}
 							height={entry.height}
 							width={entry.width}
+							meta={meta}
 						/>
 					);
 				}
 
-				return <ListItem key={_id} {...entryProps} />;
+				return <ListItem key={_id} {...entryProps} meta={meta} />;
 			});
 
 			if (masonry || grid) {

@@ -143,7 +143,7 @@ const updateDataSourceWidget = async (name, key, value) => {
 						"url",
 					])
 				),
-				group: "group.tz.co.crotchet",
+				group: "group.tz.co.crotchety",
 			});
 
 			await WidgetsBridgePlugin.reloadTimelines({
@@ -160,7 +160,7 @@ const updateDataSourceWidget = async (name, key, value) => {
 		await WidgetsBridgePlugin.setItem({
 			key: "dataSources",
 			value: validDataSources,
-			group: "group.tz.co.crotchet",
+			group: "group.tz.co.crotchety",
 		});
 	} catch (error) {
 		//
@@ -181,7 +181,7 @@ const updateDataSourceWidget = async (name, key, value) => {
 				title: source.label,
 				subtitle: data.length + " records",
 			}),
-			group: "group.tz.co.crotchet",
+			group: "group.tz.co.crotchety",
 		});
 	} catch (error) {
 		// console.log("Update widget: error: ", error);
@@ -201,7 +201,7 @@ const updateDataSourceWidget = async (name, key, value) => {
 			await WidgetsBridgePlugin.setItem({
 				key: name + "Latest",
 				value: JSON.stringify(latestData),
-				group: "group.tz.co.crotchet",
+				group: "group.tz.co.crotchety",
 			});
 		} catch (error) {
 			//
@@ -223,7 +223,7 @@ const updateDataSourceWidget = async (name, key, value) => {
 			await WidgetsBridgePlugin.setItem({
 				key: name + "Random",
 				value: JSON.stringify(randomData),
-				group: "group.tz.co.crotchet",
+				group: "group.tz.co.crotchety",
 			});
 
 			// await await WidgetsBridgePlugin.reloadAllTimelines();

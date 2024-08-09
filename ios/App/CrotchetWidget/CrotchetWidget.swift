@@ -21,7 +21,7 @@ struct Provider: AppIntentTimelineProvider {
     func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
         var entries: [SimpleEntry] = []
         
-        let sharedDefaults = UserDefaults.init(suiteName: "group.tz.co.crotchet")
+        let sharedDefaults = UserDefaults.init(suiteName: "group.tz.co.crotchety")
         
         var image: String? = nil
         var video: String? = nil
@@ -119,7 +119,7 @@ struct CrotchetWidgetEntryView : View {
             let source = entry.configuration.dataSource;
             let slug = source == nil ? "" : "search/" + source!.id;
             
-            Link(destination: URL(string: entry.url ?? "crotchet://" + slug)!) {
+            Link(destination: URL(string: entry.url ?? "crotchety://" + slug)!) {
                 Group {
                     if let imageData = try? Data(contentsOf: image),
                        let uiImage = UIImage(data: imageData) {
@@ -181,7 +181,7 @@ struct CrotchetWidgetEntryView : View {
         let sourceName = source == nil ? "Source not set" : source!.id
         let subtitle = source == nil ? "Hold widget to select source" : entry.subtitle
         let searchPlaceholder = "Search \(toTitleCase(text: sourceName))..."
-        let searchPath = source != nil ? "crotchet://search/\(sourceName)" : "crotchet://";
+        let searchPath = source != nil ? "crotchety://search/\(sourceName)" : "crotchety://";
         let searchUrl = URL(string: searchPath)!
         let contentUrl = URL(string: entry.url ?? searchPath)!
         let hasData = !sourceName.isEmpty

@@ -23,25 +23,25 @@ function getIp() {
 }
 
 const capacitorConfig = {
-	appId: "tz.co.crotchet",
-	appName: "Crotchet",
+	appId: "tz.co.crotchety",
+	appName: "Crotchety",
 	webDir: "docs",
 	server: {
 		androidScheme: "https",
 	},
 	electron: {
-		customUrlScheme: "crotchet",
+		customUrlScheme: "crotchety",
 		trayIconAndMenuEnabled: true,
 		splashScreenEnabled: false,
 		splashScreenImageName: "splash.png",
 		hideMainWindowOnLaunch: false,
 		deepLinkingEnabled: true,
-		deepLinkingCustomProtocol: "crotchet",
+		deepLinkingCustomProtocol: "crotchety",
 	},
 };
 
 if (process.env.NODE_ENV == "dev") {
-	capacitorConfig.server.url = `http://${getIp()}:5173`;
+	capacitorConfig.server.url = `http://${getIp()}:5178`;
 	capacitorConfig.server.cleartext = true;
 }
 

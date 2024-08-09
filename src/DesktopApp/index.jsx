@@ -4,6 +4,7 @@ import useEventListener from "../hooks/useEventListener";
 import clsx from "clsx";
 import useKeyDetector from "@/hooks/useKeyDetector";
 import SpotlightSearch from "@/components/SpotlightSearch";
+import ThemeOverlay from "@/components/ThemeOverlay";
 
 export default function DesktopApp() {
 	const toastTimerRef = useRef();
@@ -134,6 +135,12 @@ export default function DesktopApp() {
 	return (
 		<div
 			className="h-screen w-screen text-content pointer-events-auto"
+			style={{
+				"--canvas-color": "0 0 0",
+				"--card-color": "20 20 20",
+				"--stroke-color": "53 53 53",
+				"--content-color": "255 255 255",
+			}}
 			onMouseMove={handleMouseMove}
 		>
 			<div
@@ -145,7 +152,7 @@ export default function DesktopApp() {
 					className="relative bg-canvas/[0.985] size-full overflow-hidden"
 					onMouseMove={handleMouseMove}
 				>
-					{/* <div className="pointer-events-none fixed inset-0 bg-stone-50/0.05 blur-3xl"></div> */}
+					<ThemeOverlay />
 
 					<SpotlightSearch open={!app?.scheme} />
 

@@ -7,6 +7,7 @@ import { dispatch, isValidAction } from "@/utils";
 import { onActionClick, Loader } from "@/crotchet";
 import SpotLightPageMenu from "./SpotLightPageMenu";
 import clsx from "clsx";
+import ThemeOverlay from "@/components/ThemeOverlay";
 
 export default function PageActionBar() {
 	const {
@@ -165,10 +166,12 @@ export default function PageActionBar() {
 	};
 
 	return (
-		<div className="rounded-b-xl bg-card fixed bottom-0 inset-x-0 h-11 px-3 flex gap-4 items-center border-t z-10">
+		<div className="rounded-b-xl bg-card/[0.985] fixed bottom-0 inset-x-0 h-11 px-3 flex gap-4 items-center border-t z-10">
+			<ThemeOverlay height="44px" />
+
 			{!pageResolving && (
 				<>
-					<div className="h-full flex-1 flex items-center gap-4">
+					<div className="relative h-full flex-1 flex items-center gap-4">
 						{renderSecondaryContent()}
 					</div>
 

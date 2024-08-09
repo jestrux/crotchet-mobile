@@ -4,7 +4,7 @@
 <dict>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.tz.co.crotchet</string>
+		<string>group.tz.co.crotchety</string>
 	</array>
 </dict>
 </plist>

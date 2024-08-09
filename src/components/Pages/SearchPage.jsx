@@ -69,7 +69,7 @@ export default function SearchPage({
 
 				setFilters([
 					...new Set(
-						data.map((entry) => entry[source.filter]).flat()
+						data.map((entry) => entry[source.filterBy]).flat()
 					),
 				]);
 			});
@@ -173,14 +173,16 @@ export default function SearchPage({
 								autoFocus={autoFocus}
 								type="text"
 								className={clsx(
-									"w-full h-12 dark:bg-content/5 border border-content/5 text-xl/none placeholder:text-content/30 focus:outline-none",
-									filterColor?.length
-										? `bg-[${filterColor}]`
-										: "bg-content/5",
+									"w-full h-12 !bg-card/85 dark:!bg-content/5 text-content border !border-content/10 text-xl/none placeholder:text-content/30 focus:outline-none",
 									inBottomSheet
 										? "rounded-full px-10"
 										: "rounded-md px-4"
 								)}
+								style={{
+									backgroundColor: filterColor?.length
+										? filterColor
+										: "rgb(var(--content-color) / 0.05)",
+								}}
 								placeholder={placeholder}
 								autoComplete="off"
 								name="q"
@@ -258,7 +260,7 @@ export default function SearchPage({
 						{...(!source?.filter
 							? {}
 							: {
-									filters: { [source.filter]: filter },
+									filters: { [source.filterBy]: filter },
 							  })}
 						widgetProps={{ noPadding: true }}
 					/>

@@ -473,10 +473,14 @@ const getActions = (payload) => {
 				}
 			},
 		},
-		addClip: {
-			label: "Add Clip",
-			handler: addClip,
-		},
+		...(!onDesktop()
+			? {}
+			: {
+					addClip: {
+						label: "Add Clip",
+						handler: addClip,
+					},
+			  }),
 	};
 
 	return Object.entries(actions).reduce((agg, [name, action]) => {
@@ -607,7 +611,6 @@ registerAction("searchYoutubeClips", {
 registerAction("addToYoutubeClips", {
 	context: "share",
 	icon: appIcon,
-	scheme: "youtubeClips",
 	match: ({ url }) => url?.toString().length && getYoutubeId(url),
 	handler: addClip,
 });

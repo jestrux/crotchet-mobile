@@ -21,8 +21,8 @@ const server = expressServer();
 
 socketServer(server);
 
-server.listen(3127, () => {
-	console.log("Listen on the port 3127...");
+server.listen(3125, () => {
+	console.log("Listen on the port 3125...");
 });
 
 const createMainWindow = () => {
@@ -66,7 +66,7 @@ const createMainWindow = () => {
 			true
 		);
 
-		mainWindow.loadURL("http://localhost:5173/");
+		mainWindow.loadURL("http://localhost:5178/");
 
 		try {
 			require("electron-reloader")(module);
@@ -110,7 +110,7 @@ const createBackgroundWindow = () => {
 	);
 
 	if (isDev) {
-		backgroundWindow.loadURL("http://localhost:5173/");
+		backgroundWindow.loadURL("http://localhost:5178/");
 		backgroundWindow.setHiddenInMissionControl(true);
 		// backgroundWindow.webContents.openDevTools({ mode: "detach" });
 

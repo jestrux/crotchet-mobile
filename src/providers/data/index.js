@@ -21,7 +21,6 @@ export const getterFields = [
 	"searchable",
 	"searchFields",
 	"searchQuery",
-	"filters",
 ];
 
 export const sourceGet = async (source, props = {}) => {
@@ -38,7 +37,6 @@ export const sourceGet = async (source, props = {}) => {
 		searchable,
 		searchFields = ["title", "subtitle", "tags"],
 		searchQuery,
-		filters,
 	} = objectTake({ ...source, ...props }, getterFields);
 
 	let handler;
@@ -59,14 +57,15 @@ export const sourceGet = async (source, props = {}) => {
 
 	if (!Array.isArray(res)) return res;
 
-	const validFilters = cleanObject(filters);
+	const validFilters = cleanObject(props?.filters || {});
 	if (
 		Object.values(validFilters).length > 0
 		// && ![true, false].includes(source.filterable)
 	) {
+		console.log("Valid filters: ", validFilters);
 		res = res.reduce((agg, entry) => {
-			if (typeof source.mapEntry == "function")
-				entry = { ...entry, ...source.mapEntry(entry) };
+			if (typeof mapEntry == "function")
+				entry = { ...entry, ...mapEntry(entry) };
 
 			const matches = Object.entries(validFilters).every(
 				([key, value]) =>
@@ -76,7 +75,7 @@ export const sourceGet = async (source, props = {}) => {
 
 			return [...agg, ...(matches ? [entry] : [])];
 		}, []);
-	} else if (typeof source.mapEntry == "function") res = res.map(mapEntry);
+	} else if (typeof mapEntry == "function") res = res.map(mapEntry);
 
 	if (searchable !== false && res?.length && searchQuery?.length) {
 		res = matchSorter(res, searchQuery, {

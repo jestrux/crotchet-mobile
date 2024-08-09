@@ -33,6 +33,9 @@ registerDataSource("crotchet://pier", "renters", {
 	searchFields: ["name"],
 	layoutProps: {
 		layout: "grid",
+		meta: {
+			face: true,
+		},
 	},
 });
 

@@ -185,18 +185,15 @@ export default function RegularListItem({
 	onRemove = () => {},
 	onClick,
 	onHold,
-	share,
 	onDoubleClick,
 	meta = {},
 }) {
 	const gestures = useLongPress(() => {
-		if (!_.isFunction(onHold) && !share) return;
+		if (!_.isFunction(onHold)) return;
 
 		Haptics.impact({ style: ImpactStyle.Medium });
 
 		if (_.isFunction(onHold)) return onHold();
-
-		openUrl(share);
 	});
 	const [actionLoading, setActionLoading] = useState(false);
 	const [removed, setRemoved] = useState(false);
@@ -233,7 +230,7 @@ export default function RegularListItem({
 						className={clsx(
 							"mr-2 h-8 relative flex-shrink-0 bg-content/10 border border-content/10 overflow-hidden",
 							meta?.face
-								? "aspect-square rounded-full"
+								? "aspect-[1/1] rounded-full"
 								: "aspect-[1.3/1] rounded"
 						)}
 					>

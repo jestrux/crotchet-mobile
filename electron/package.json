@@ -1,6 +1,6 @@
 {
-	"name": "crotchet",
-	"productName": "Crotchet",
+	"name": "crotchety",
+	"productName": "Crotchety",
 	"author": {
 		"name": "Walter Kimaro"
 	},
@@ -27,7 +27,7 @@
 		"socket.io": "^4.7.4"
 	},
 	"build": {
-		"appId": "tz.co.akil.crotchet",
+		"appId": "tz.co.akil.crotchety",
 		"mac": {
 			"extendInfo": {
 				"hardenedRuntime": false,

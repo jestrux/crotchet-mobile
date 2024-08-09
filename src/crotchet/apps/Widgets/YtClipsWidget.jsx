@@ -3,7 +3,6 @@ import { useAppContext } from "@/providers/app";
 
 export default function YtClipsWidget() {
 	const { dataSources } = useAppContext();
-	const source = dataSources.youtubeClips;
 
 	return (
 		<Widget
@@ -14,7 +13,7 @@ export default function YtClipsWidget() {
 				</svg>
 			}
 			title="Yt Clips"
-			source={source.random}
+			source={dataSources.youtubeClips.random}
 			actions={(data) => [
 				...(data
 					? [

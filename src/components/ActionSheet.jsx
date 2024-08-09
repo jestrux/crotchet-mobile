@@ -8,7 +8,7 @@ import useLoadableView from "@/hooks/useLoadableView";
 export default function ActionSheet({
 	noHeading,
 	dismiss,
-	// preview: _preview,
+	preview: _preview,
 	// mainActions = [],
 	actions: _actions,
 	onChange = () => {},
@@ -16,9 +16,9 @@ export default function ActionSheet({
 }) {
 	const [groupFilter, setGroupFilter] = useState();
 	const [sheetProps, setSheetProps] = useState({
+		preview: _preview,
 		...payload,
 		actions: [],
-		// preview: _preview,
 	});
 
 	const { pendingView, loading } = useLoadableView({

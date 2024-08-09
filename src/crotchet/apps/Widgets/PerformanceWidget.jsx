@@ -10,8 +10,13 @@ registerDataSource("airtable", "performance", {
 		subtitle: `${entry.user_department}, ${entry.billed}`,
 		progress: entry.progress,
 	}),
-	filter: "user_department",
+	filterBy: "user_department",
 	searchFields: ["user_name"],
+	layoutProps: {
+		meta: {
+			face: true,
+		},
+	},
 });
 
 export default function PerformanceWidget() {

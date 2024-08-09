@@ -97,8 +97,8 @@ export const BottomNavButton = ({
 				page == "home" && selected
 					? {
 							background:
-								"linear-gradient(45deg, #d3ffff, #f2ddb0)",
-							color: "#3E3215",
+								"linear-gradient(45deg, #D6D821, #F2B0D3)",
+							color: "#FFF",
 					  }
 					: {}
 			}

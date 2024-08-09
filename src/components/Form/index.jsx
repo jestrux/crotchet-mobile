@@ -207,7 +207,7 @@ export default function Form({
 				})}
 			</div>
 
-			<div className={formId ? "hidden" : ""}>
+			<div className={formId ? "hidden" : "mt-4"}>
 				<Button type="submit">Submit</Button>
 			</div>
 		</form>

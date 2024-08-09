@@ -7,6 +7,9 @@ import { fileURLToPath } from "url";
 export default defineConfig({
 	plugins: [react()],
 	base: "",
+	server: {
+		port: 5178,
+	},
 	build: {
 		rollupOptions: {
 			maxParallelFileOps: 50,

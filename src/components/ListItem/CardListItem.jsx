@@ -13,17 +13,14 @@ export default function CardListItem({
 	trailing,
 	onClick,
 	onHold,
-	share,
 	onDoubleClick,
 }) {
 	const gestures = useLongPress(() => {
-		if (!_.isFunction(onHold) && !share) return;
+		if (!_.isFunction(onHold)) return;
 
 		Haptics.impact({ style: ImpactStyle.Medium });
 
-		if (_.isFunction(onHold)) return onHold();
-
-		openUrl(share);
+		return onHold();
 	});
 
 	const [actionLoading, setActionLoading] = useState(false);
@@ -100,14 +97,14 @@ export default function CardListItem({
 					)}
 				</div>
 
-				<div className="flex-1 mr-3 min-w-0 space-y-2">
+				<div className="flex-1 mr-3 min-w-0">
 					{title?.length > 0 && (
-						<h5 className="text-content text-sm/none font-medium line-clamp-1 first-letter:capitalize">
+						<h5 className="text-content font-medium truncate first-letter:capitalize">
 							{title}
 						</h5>
 					)}
 					{subtitle?.toString().length > 0 && (
-						<p className="text-xs/none line-clamp-1">{subtitle}</p>
+						<p className="text-sm line-clamp-2">{subtitle}</p>
 					)}
 				</div>
 

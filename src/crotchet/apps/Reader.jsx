@@ -6,6 +6,7 @@ import {
 	registerAction,
 	getShareUrl,
 	registerActionSheet,
+	onDesktop,
 } from "@/crotchet";
 
 const appIcon = (
@@ -89,6 +90,10 @@ registerDataSource("db", "reader", {
 			}),
 		};
 	},
+	layoutProps: {
+		layout: "card",
+	},
+	filterBy: "group",
 	filter: {
 		field: "group",
 		defaultValue: "",
@@ -147,10 +152,14 @@ registerDataSource("db", "reader", {
 					});
 				},
 			},
-			{
-				label: "Add New Entry",
-				handler: (_, crotchet) => addItem(null, crotchet),
-			},
+			...(!onDesktop()
+				? []
+				: [
+						{
+							label: "Add New Entry",
+							handler: (_, crotchet) => addItem(null, crotchet),
+						},
+				  ]),
 		];
 	},
 });
@@ -213,7 +222,7 @@ registerApp("reader", () => {
 			const { dataSources } = useAppContext();
 			return (
 				<SearchPage
-					background="linear-gradient(45deg, #d3ffff, #f2ddb0)"
+					background="linear-gradient(45deg, #D6D821, #F2B0D3)"
 					filterColor="white"
 					title="Reader"
 					autoFocus={false}
