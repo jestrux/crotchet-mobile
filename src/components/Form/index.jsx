@@ -14,12 +14,14 @@ const fieldIsVisible = (field, data) => {
 
 export default function Form({
 	onClose = () => {},
+	fieldsRequired = true,
 	horizontalLayout = false,
 	formId,
 	onChange,
 	onSubmit,
 	...props
 }) {
+	const [loading, setLoading] = useState(false);
 	const allData = props.data
 		? props.data
 		: props.field && props.field.value
@@ -103,8 +105,15 @@ export default function Form({
 
 		const savedValues = processFieldValues();
 
-		if (typeof onSubmit == "function") onSubmit(savedValues);
-		else onClose(savedValues);
+		if (typeof onSubmit == "function") {
+			try {
+				setLoading(true);
+				await onSubmit(savedValues);
+				setLoading(false);
+			} catch (error) {
+				setLoading(false);
+			}
+		} else onClose(savedValues);
 
 		// 	// try {
 		// 	// 	const res = await withToast(
@@ -184,6 +193,7 @@ export default function Form({
 								className={` ${widthClass} ${
 									field.noMargin && "-mt-3"
 								}`}
+								required={fieldsRequired}
 								field={field}
 								__data={data}
 								onChange={(newProps) => {
@@ -207,8 +217,10 @@ export default function Form({
 				})}
 			</div>
 
-			<div className={formId ? "hidden" : "mt-4"}>
-				<Button type="submit">Submit</Button>
+			<div className={formId ? "hidden" : "mt-5"}>
+				<Button type="submit" loading={loading}>
+					{props.action?.label || "Submit"}
+				</Button>
 			</div>
 		</form>
 	);

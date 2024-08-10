@@ -20,10 +20,12 @@ function DataWidgetContent({
 	const {
 		layout,
 		columns = 2,
+		gap = "0.5rem",
 		previewOnly,
+		aspectRatio,
 		meta,
 	} = {
-		...(source?.layoutProps || {}),
+		...(source?.layoutProps || props.layoutProps || {}),
 		...props,
 	};
 
@@ -62,10 +64,12 @@ function DataWidgetContent({
 				url: entry.url,
 				share: entry.share,
 				onHold:
-					typeof entryActions != "function"
+					typeof entry.onHold == "function"
+						? entry.onHold
+						: typeof entryActions != "function"
 						? null
 						: () =>
-								window.__crotchet.openActionSheet({
+								window.openActionSheet({
 									actions: entryActions(entry),
 									preview: _.pick(entry, [
 										"icon",
@@ -104,10 +108,12 @@ function DataWidgetContent({
 					url: entry.url,
 					share: entry.share,
 					onHold:
-						typeof entryActions != "function"
+						typeof entry.onHold == "function"
+							? entry.onHold
+							: typeof entryActions != "function"
 							? null
 							: () =>
-									window.__crotchet.openActionSheet({
+									window.openActionSheet({
 										actions: entryActions(entry),
 										preview: _.pick(entry, [
 											"icon",
@@ -128,8 +134,7 @@ function DataWidgetContent({
 							grid={grid}
 							masonry={masonry}
 							color={entry.color}
-							height={entry.height}
-							width={entry.width}
+							aspectRatio={aspectRatio}
 							meta={meta}
 						/>
 					);
@@ -175,11 +180,11 @@ function DataWidgetContent({
 						<div
 							className={clsx(
 								"pb-2",
-								{ "grid gap-4": grid },
+								{ grid: grid },
 								columnClasses
 							)}
 							style={{
-								columnGap: "0.5rem",
+								gap,
 							}}
 						>
 							{items}
@@ -194,6 +199,14 @@ function DataWidgetContent({
 
 	return (
 		<Widget {...widgetProps} refresh={refetch}>
+			{props.title && (
+				<div className="px-1 mb-1">
+					<h2 className="text-xl font-semibold text-content">
+						{props.title}
+					</h2>
+				</div>
+			)}
+
 			{content}
 		</Widget>
 	);

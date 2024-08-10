@@ -10,7 +10,7 @@ import {
 } from "@/utils";
 import useDebounce from "@/hooks/useDebounce";
 import { useThrottle } from "@/hooks/useThrottle";
-import { useOnInit } from "@/crotchet";
+import { Loader, useOnInit } from "@/crotchet";
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 
@@ -41,7 +41,7 @@ const useDefferedValue = (
 	{ defaultValue, dependencies, args } = {}
 ) => {
 	const { current: _id } = useRef(randomId());
-	const { data } = useQuery({
+	const { data, isLoading } = useQuery({
 		queryKey: [
 			_id,
 			__value,
@@ -58,7 +58,7 @@ const useDefferedValue = (
 		initialData: defaultValue,
 	});
 
-	return data;
+	return { data, isLoading };
 };
 
 const supportedKeyValueFieldTypes = [
@@ -93,7 +93,7 @@ const KeyValueInput = ({
 	const [searchQuery, setSearchQuery] = useState("");
 	const [value, setValue] = useState(useRef(defaultValue).current);
 	const debouncedValue = useDebounce(value, 500);
-	const allChoices = useDefferedValue(_choices, {
+	const { data: allChoices } = useDefferedValue(_choices, {
 		args: value,
 	});
 	const choices = useSearch(allChoices, searchQuery);
@@ -232,11 +232,11 @@ const KeyValueEditor = ({
 	onChange,
 	...props
 }) => {
-	const choices = useDefferedValue(_choices, {
+	const { data: choices } = useDefferedValue(_choices, {
 		args: { data: __data },
 		label: "Choices",
 	});
-	const schema = useDefferedValue(_schema, {
+	const { data: schema } = useDefferedValue(_schema, {
 		args: __data,
 	});
 	const [focusedRow, setFocusedRow] = useState(-1);
@@ -444,14 +444,15 @@ const KeyValueEditor = ({
 };
 
 const Select = ({ value, name, optional, choices: _choices, onChange }) => {
-	const choices = useDefferedValue(_choices);
+	const { data: choices, isLoading } = useDefferedValue(_choices);
 	return (
-		<div>
+		<div className="relative">
 			<select
 				onChange={onChange}
 				value={value}
 				name={name}
 				required={!optional}
+				disabled={isLoading}
 			>
 				<option
 					value=""
@@ -473,6 +474,12 @@ const Select = ({ value, name, optional, choices: _choices, onChange }) => {
 					);
 				})}
 			</select>
+
+			{isLoading && (
+				<div className="absolute right-2 inset-y-2 bg-card flex items-center justify-center">
+					<Loader size={24} className="opacity-20" />
+				</div>
+			)}
 		</div>
 	);
 };
@@ -795,7 +802,19 @@ const Field = ({ field, value, onChange, __data }) => {
 				</div>
 			);
 
-		case "radio":
+		case "radio": {
+			if (field.choiceType == "color") {
+				field.renderChoice = (choice, selected) => {
+					return `
+					<span class="rounded-full bg-gray-500 inline-block p-0.5" style="width: 30px; height: 30px; background: ${choice}">
+						<span class="border-2 border-${
+							selected ? "white" : "transparent"
+						} rounded-full w-full h-full block"></span>
+					</span>
+				`;
+				};
+			}
+
 			return (
 				<div
 					className={`flex items-center flex-wrap gap-1.5 ${
@@ -813,6 +832,23 @@ const Field = ({ field, value, onChange, __data }) => {
 						const hasFocus = choiceValue === focused;
 						const customRenderer =
 							typeof field.renderChoice == "function";
+						let choiceRender;
+
+						if (customRenderer) {
+							choiceRender = customRenderer
+								? field.renderChoice(choiceValue, selected)
+								: null;
+
+							if (typeof choiceRender == "string") {
+								choiceRender = (
+									<div
+										dangerouslySetInnerHTML={{
+											__html: choiceRender,
+										}}
+									></div>
+								);
+							}
+						}
 
 						return (
 							<label
@@ -824,7 +860,7 @@ const Field = ({ field, value, onChange, __data }) => {
 									customRenderer
 										? ""
 										: selected
-										? "bg-content/5 pointer-events-none"
+										? "bg-content/10 pointer-events-none"
 										: hasFocus
 										? "border-content/50 bg-content/10"
 										: "text-content/70"
@@ -842,13 +878,13 @@ const Field = ({ field, value, onChange, __data }) => {
 								/>
 
 								{customRenderer ? (
-									field.renderChoice(choiceValue, selected)
+									choiceRender
 								) : (
 									<div className="inline-flex items-center gap-1.5 mr-0.5">
 										<svg
 											className={`w-3.5 h-3.5 ${
 												selected
-													? "text-primary"
+													? "text-primary dark:text-white"
 													: "text-content/40"
 											}`}
 											fill="currentColor"
@@ -869,9 +905,10 @@ const Field = ({ field, value, onChange, __data }) => {
 
 											{selected && (
 												<path
+													className="text-on-primary dark:text-black"
 													transform="translate(3 3) scale(0.7)"
 													d="M4.5 12.75l6 6 9-13.5"
-													stroke="white"
+													stroke="currentColor"
 													fill="none"
 													strokeWidth="3"
 												/>
@@ -885,6 +922,7 @@ const Field = ({ field, value, onChange, __data }) => {
 					})}
 				</div>
 			);
+		}
 
 		case "choice":
 			return (
@@ -931,14 +969,13 @@ const Field = ({ field, value, onChange, __data }) => {
 						name={field.name}
 						value={value}
 						onChange={onChange}
-						required={field.required}
+						required={!field.optional}
 					/>
 				);
 			}
 
 			return (
 				<input
-					autoFocus
 					className="block bg-transparent placeholder:text-content/20"
 					id={field.name}
 					placeholder={field.placeholder}
@@ -957,11 +994,12 @@ const Field = ({ field, value, onChange, __data }) => {
 export default function FormField({
 	className,
 	__data,
+	required,
 	field,
 	horizontal,
 	onChange = () => {},
 }) {
-	field.optional = field.optional ?? !(field.required ?? false);
+	field.optional = field.optional ?? !(field.required ?? required);
 	// const { user } = useAppContext();
 	const [value, setValue] = useState(field.value ?? field.defaultValue ?? "");
 	const handleChange = (e) => {
@@ -995,7 +1033,7 @@ export default function FormField({
 	return (
 		<div className={`@container  ${className}`}>
 			<div
-				className={`flex flex-col gap-1 ${
+				className={`flex flex-col gap-px ${
 					horizontal
 						? "@lg:grid grid-cols-12 @lg:gap-3 @lg:items-center"
 						: ""

@@ -302,7 +302,7 @@ export const registerDataSource = (provider, name, props = {}) => {
 		return res;
 	};
 
-	window.__crotchet.dataSources[name] = {
+	const source = {
 		...objectExcept(props, getterFields),
 		_id: randomId(),
 		provider,
@@ -318,6 +318,9 @@ export const registerDataSource = (provider, name, props = {}) => {
 		deleteRow,
 		listenForUpdates,
 	};
+
+	window.__crotchet.dataSources[name] = source;
+	window.dataSources[name] = source;
 
 	setTimeout(() => {
 		updateDataSourceWidget(name);
@@ -383,7 +386,7 @@ export const registerAction = (name, action) => {
 		return _handler(payload ?? {}, window.__crotchet);
 	};
 
-	window.__crotchet.actions[name] = {
+	const __action = {
 		_id: randomId(),
 		type,
 		icon,
@@ -401,6 +404,9 @@ export const registerAction = (name, action) => {
 		handler,
 		actions,
 	};
+
+	window.actions[name] = __action;
+	window.__crotchet.actions[name] = __action;
 
 	window.addEventListener(`menu-item-click:${name}`, async () => {
 		// console.log("Handling...", label);

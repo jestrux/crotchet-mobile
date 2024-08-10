@@ -15,12 +15,14 @@ export default function GridListItem({
 	title,
 	subtitle,
 	color,
-	width,
-	height,
 	onClick,
 	onHold,
+	aspectRatio = "16/9",
 	onDoubleClick,
+	meta,
 }) {
+	const inset = meta?.inset;
+	const imagePlaceholder = meta?.imagePlaceholder;
 	const gestures = useLongPress(() => {
 		if (!_.isFunction(onHold)) return;
 
@@ -52,14 +54,7 @@ export default function GridListItem({
 					{(image?.length || video?.length) && (
 						<div
 							className="relative flex-shrink-0 bg-content/10 border border-stroke rounded overflow-hidden w-full"
-							style={
-								width && height
-									? {
-											aspectRatio: `${width}/${height}`,
-											backgroundColor: color,
-									  }
-									: { backgroundColor: color }
-							}
+							style={{ aspectRatio, backgroundColor: color }}
 						>
 							<img
 								className="w-full"
@@ -94,8 +89,12 @@ export default function GridListItem({
 		return (
 			<div
 				className={clsx(
-					"min-h-full w-full flex flex-col gap-2",
-					icon?.length > 0 ? "items-center" : "items-start"
+					"min-h-full w-full space-y-1",
+					icon?.length > 0 ? "items-center" : "items-start",
+					{
+						"bg-card shadow border border-content/10 dark:border-content/10 rounded-lg overflow-hidden":
+							inset,
+					}
 				)}
 			>
 				{icon?.length ? (
@@ -104,8 +103,22 @@ export default function GridListItem({
 						dangerouslySetInnerHTML={{ __html: icon }}
 					/>
 				) : (
-					<div className="relative flex-shrink-0 bg-content/10 border border-stroke rounded overflow-hidden w-full aspect-[16/9]">
-						{(image?.length || video?.length) && (
+					<div
+						className={clsx(
+							"relative flex-shrink-0 overflow-hidden w-full bg-content/10",
+							{ "dark:border rounded-lg": !inset }
+						)}
+						style={{
+							aspectRatio,
+							...(color
+								? {
+										backgroundColor: color,
+										color: "white",
+								  }
+								: {}),
+						}}
+					>
+						{(image || video || imagePlaceholder) && (
 							<>
 								{image == "placeholder" ? (
 									<div className="h-full flex items-center justify-center">
@@ -123,16 +136,25 @@ export default function GridListItem({
 											/>
 										</svg>
 									</div>
-								) : (
+								) : image || video ? (
 									<img
 										className={
 											"absolute size-full object-cover pointer-events-none"
 										}
-										src={image?.length ? image : video}
+										src={image ? image : video}
 										alt=""
 									/>
+								) : (
+									<div className="h-full flex items-center justify-center">
+										<span
+											dangerouslySetInnerHTML={{
+												__html: imagePlaceholder,
+											}}
+										></span>
+									</div>
 								)}
-								{video?.length && (
+
+								{video && (
 									<div className="absolute inset-0 bg-black/50 flex items-center justify-center">
 										<div className="relative w-8 h-8 flex items-center justify-center rounded-full overflow-hidden bg-card">
 											<div className="absolute inset-0 bg-content/60"></div>
@@ -158,24 +180,20 @@ export default function GridListItem({
 				{!previewOnly && (
 					<div
 						className={clsx(
-							"flex-1 min-w-0 space-y-1",
-							icon?.length && "text-center"
+							"flex-1 min-w-0 space-y-0.5",
+							icon?.length && "text-center",
+							inset
+								? "min-h-8 flex flex-col justify-center px-3 pt-0.5 pb-2.5"
+								: "px-1.5"
 						)}
 					>
 						{title?.length > 0 && (
-							<h5 className="line-clamp-1 text-content text-sm/none font-medium first-letter:capitalize">
+							<h5 className="truncate text-content font-medium first-letter:capitalize">
 								{title}
 							</h5>
 						)}
 						{subtitle?.toString().length > 0 && (
-							<p
-								className={clsx(
-									"text-xs/none line-clamp-1",
-									title?.length && "mt-1.5"
-								)}
-							>
-								{subtitle}
-							</p>
+							<p className="text-sm/none truncate">{subtitle}</p>
 						)}
 					</div>
 				)}

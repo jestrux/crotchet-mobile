@@ -17,6 +17,7 @@ export default function ActionGrid({
 	color: _color,
 	maxLines,
 	colorDark: _colorDark,
+	entryActions,
 	onClose = () => {},
 }) {
 	const { loading, data: actions } = useSourceGet(() => {
@@ -26,26 +27,30 @@ export default function ActionGrid({
 	});
 
 	const typeInline = type == "inline";
+	const typeGrid = type == "grid";
 	const typeWrap = type == "wrap";
 
 	const ActionItem = ({ action }) => {
 		const color = action.color ?? _color;
 		const colorDark = action.colorDark ?? _colorDark;
+		const onHold =
+			typeof action.onHold == "function"
+				? action.onHold
+				: typeof entryActions != "function"
+				? null
+				: () =>
+						window.openActionSheet({
+							actions: entryActions(action),
+							preview: _.pick(action, [
+								"icon",
+								"image",
+								"video",
+								"title",
+								"subtitle",
+							]),
+						});
 
-		action.icon = action.icon || (
-			<svg
-				fill="none"
-				viewBox="0 0 24 24"
-				strokeWidth={1.5}
-				stroke="currentColor"
-			>
-				<path
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					d={fallbackIcon}
-				/>
-			</svg>
-		);
+		action.icon = action.icon || fallbackIcon;
 
 		const colorClasses = [
 			color
@@ -60,16 +65,15 @@ export default function ActionGrid({
 			return (
 				<ActionButton
 					action={action}
+					onHold={onHold}
 					className="w-full h-12 flex items-center gap-3 pl-4 pr-2.5"
 				>
-					<div className="size-5 opacity-60">
-						<Icon icon={action.icon} />
-					</div>
+					<Icon icon={action.icon} />
 
-					<div className="">{action.label}</div>
+					<div className="">{action.label || action.title}</div>
 
 					<svg
-						className="ml-auto size-5 opacity-30"
+						className="ml-auto size-5 opacity-20"
 						fill="none"
 						viewBox="0 0 24 24"
 						strokeWidth={1.5}
@@ -84,10 +88,26 @@ export default function ActionGrid({
 				</ActionButton>
 			);
 
+		if (typeGrid)
+			return (
+				<ActionButton
+					action={action}
+					onHold={onHold}
+					className="bg-card dark:bg-content/5 shadow dark:border border-content/5 rounded-lg py-2 px-3 flex flex-col gap-1.5 items-start"
+				>
+					<Icon icon={action.icon} />
+
+					<div className="text-left text-xs line-clamp-1 font-semibold">
+						{action.label || action.title}
+					</div>
+				</ActionButton>
+			);
+
 		if (typeWrap) {
 			return (
 				<ActionButton
 					action={action}
+					onHold={onHold}
 					className="inline-flex items-center gap-1.5 bg-card dark:bg-content/5 shadow dark:border border-stroke rounded-full"
 				>
 					<div
@@ -136,34 +156,37 @@ export default function ActionGrid({
 	if (!actions?.length) return null;
 
 	return (
-		<div className="space-y-1.5" onClick={onClose}>
-			<h3 className="text-sm/none text-content/50">{title}</h3>
+		<div onClick={onClose}>
+			{title && (
+				<div className="px-1 mb-1">
+					<h2 className="text-xl font-semibold">{title}</h2>
+				</div>
+			)}
 
 			{typeWrap && maxLines ? (
 				<div className="-mx-4 px-4 space-y-1.5 overflow-x-auto">
-					{_.chunk(
-						actions,
-						Math.ceil(actions.length / maxLines)
-					).map((actions, index) => (
-						<div
-							key={index}
-							className="flex gap-x-1.5 gap-y-2 justify-start"
-						>
-							{actions.map((action, index) => {
-								return (
-									<div
-										key={action._id + index}
-										className="flex-shrink-0"
-									>
-										<ActionItem
-											key={action._id}
-											action={action}
-										/>
-									</div>
-								);
-							})}
-						</div>
-					))}
+					{_.chunk(actions, Math.ceil(actions.length / maxLines)).map(
+						(actions, index) => (
+							<div
+								key={index}
+								className="flex gap-x-1.5 gap-y-2 justify-start"
+							>
+								{actions.map((action, index) => {
+									return (
+										<div
+											key={action._id + index}
+											className="flex-shrink-0"
+										>
+											<ActionItem
+												key={action._id}
+												action={action}
+											/>
+										</div>
+									);
+								})}
+							</div>
+						)
+					)}
 				</div>
 			) : (
 				<div

@@ -52,7 +52,7 @@ export const getDbTables = async () => {
 };
 export const queryDb = async (
 	table,
-	{ rowId, orderBy: _orderBy, filter } = {}
+	{ rowId, orderBy: _orderBy = "updatedAt,desc", filter } = {}
 ) => {
 	if (filter && _.isObject(filter)) filter = _.first(Object.entries(filter));
 

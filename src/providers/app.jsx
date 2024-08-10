@@ -415,12 +415,15 @@ export default function AppProvider({ children }) {
 				else if (status == "error" && typeof payload == "string")
 					message = payload;
 
-				dispatch("with-loader-status-change", {
-					status,
-					message,
-				});
+				if (onDesktop()) {
+					dispatch("with-loader-status-change", {
+						status,
+						message,
+					});
 
-				onChange(status, payload);
+					onChange(status, payload);
+				} else if (status != "idle")
+					window.showToast([status, message].join(": "));
 			};
 
 			let resolve, reject;
@@ -548,6 +551,8 @@ export default function AppProvider({ children }) {
 	Object.assign(window.__crotchet, {
 		...appContextValue,
 	});
+
+	Object.assign(window, _.pick(appContextValue, ["withLoader"]));
 
 	let App;
 

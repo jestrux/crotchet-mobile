@@ -237,6 +237,13 @@ export const isValidUrl = (urlString) => {
 	return !!urlPattern.test(urlString);
 };
 
+export const isReactComponent = (child) => {
+	return (
+		typeof child === "function" &&
+		String(child).includes("return React.createElement")
+	);
+};
+
 export const isValidEmail = (email) =>
 	email && email.length < 256 && /^[^@]+@[^@]{2,}\.[^@]{2,}$/.test(email);
 
@@ -977,12 +984,17 @@ export const parseFields = (fields, data) => {
 
 		let dataValue = data?.[name];
 
-		const computedDefaultValue = dataValue ?? defaultValue;
+		let computedDefaultValue = dataValue ?? defaultValue;
+
+		if (!computedDefaultValue && type == "date")
+			computedDefaultValue = window.moment(new Date()).format("y-MM-DD");
 
 		if (
 			choices &&
 			Array.isArray(choices) &&
-			!choices.includes(computedDefaultValue)
+			!objectFieldChoices(choices)
+				.map(({ value }) => value)
+				.includes(computedDefaultValue)
 		)
 			choices.push(computedDefaultValue);
 

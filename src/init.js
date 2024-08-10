@@ -8,18 +8,22 @@ import * as crotchet from "@/crotchet";
 if (!window.__crotchet) window.__crotchet = {};
 window.__ = window.__crotchet;
 
-Object.assign(window.__crotchet, {
+const crotChetProps = {
 	...crotchet,
 	_,
 	lodash,
 	moment,
 	favoriteCommands: [],
 	__crotchetApp: {
-		name: "Crotchet",
+		name: "SetHero",
 		colors: {
-			primary: "#84cc16",
-			primaryDark: "#a3e635",
+			primary: "#003376",
 		},
+		// name: "Crotchet",
+		// colors: {
+		// 	primary: "#84cc16",
+		// 	primaryDark: "#a3e635",
+		// },
 		// name: "iPF Softwares",
 		// colors: {
 		// 	primary: "#197AE4",
@@ -43,4 +47,7 @@ Object.assign(window.__crotchet, {
 	actionSheets: {},
 	_promiseResolvers: {},
 	desktop: {},
-});
+};
+
+Object.assign(window, crotChetProps);
+Object.assign(window.__crotchet, crotChetProps);

@@ -1,13 +1,16 @@
-import { useState } from "react";
 import { dispatch, randomId } from "@/utils";
+import { useState } from "react";
 
 export default function useAlerts() {
 	const [alerts, setAlerts] = useState([]);
 
-	const notifyParent = (id, status) => {
-		const spotlightParent = document.querySelector(
-			"[data-current-spotlight-page]"
-		);
+	const notifyParent = (newValue, id, status) => {
+		window.alerts = newValue;
+		setTimeout(() => {
+			dispatch("alerts-changed");
+		}, 10);
+
+		const spotlightParent = document.querySelector("[data-current-page]");
 
 		if (!spotlightParent) return console.log("No parent found!!");
 
@@ -21,11 +24,15 @@ export default function useAlerts() {
 	};
 
 	const hideAlert = (alertId) => {
-		setAlerts((alerts) => alerts.filter(({ id }) => id !== alertId));
-		notifyParent(alertId, false);
+		setAlerts((alerts) => {
+			const newValue = alerts.filter(({ id }) => id !== alertId);
+			notifyParent(newValue, alertId, false);
+			return newValue;
+		});
 	};
 
 	const showAlert = (alert) => {
+		alert = typeof alert == "string" ? { message: alert } : alert;
 		const promise = new Promise((resolve) => {
 			const oldCallback = alert.callback || ((data) => data);
 			alert.callback = (data) => resolve(oldCallback(data));
@@ -50,9 +57,9 @@ export default function useAlerts() {
 				? alerts
 				: alerts.filter(({ id }) => id !== alerts.at(-1)?.id);
 
-			notifyParent(id, true);
-
-			return [...currentValue, alert];
+			const newValue = [...currentValue, alert];
+			notifyParent(newValue, id, false);
+			return newValue;
 		});
 
 		if (typeof alert.onCreate == "function") alert.onCreate(alert);
@@ -97,6 +104,30 @@ export default function useAlerts() {
 		return confirmAction({ dangerous: true });
 	}
 
+	const openActionSheet = (userProps = {}) =>
+		showAlert({
+			...userProps,
+			type: "sheet",
+		});
+
+	const openChoicePicker = ({ choices } = {}) =>
+		showAlert({
+			type: "choice-picker",
+			actions: choices,
+		});
+
+	const openAlertForm = (props) =>
+		showAlert({
+			...props,
+			type: "form",
+		});
+
+	const showToast = (...message) =>
+		showAlert({
+			message: [...message].join(" "),
+			type: "toast",
+		});
+
 	return {
 		alerts,
 		confirmAction,
@@ -104,5 +135,9 @@ export default function useAlerts() {
 		showAlert,
 		hideAlert,
 		openActionDialog,
+		openActionSheet,
+		openChoicePicker,
+		openAlertForm,
+		showToast,
 	};
 }
