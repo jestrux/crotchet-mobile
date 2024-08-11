@@ -28,7 +28,7 @@ export const icon = (icon, props) => svg(iconMap[icon] || iconMap.list, props);
 
 export function svg(
 	path,
-	{ filled, size = "20px", strokeWidth = 1.8, color = "currentColor" } = {}
+	{ filled, size = "auto", strokeWidth = 1.8, color = "currentColor" } = {}
 ) {
 	const fillStroke = filled
 		? {

@@ -269,8 +269,8 @@ export default function PageProvider({
 			ref={pageWrapperRef}
 			id="pageWrapper"
 			{...(isOpen ? { "data-current-page": true } : {})}
-			className={clsx("fixed inset-0", {
-				"opacity-0 pointer-events-none": !isOpen,
+			className={clsx({
+				none: !isOpen,
 			})}
 		>
 			<PageContext.Provider

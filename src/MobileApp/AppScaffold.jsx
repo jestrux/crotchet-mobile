@@ -20,22 +20,35 @@ export default function AppScaffold({ rootPage: _rootPage } = {}) {
 	});
 
 	return (
-		<div data-app-scaffold="true">
-			<NavRootProvider
-				isOpen={activePage == 0}
-				scaffold={{ nav }}
-				rootPage={rootPage}
-			/>
+		<div
+			data-app-scaffold="true"
+			className="fixed inset-0 overflow-hidden flex @container"
+		>
+			<div className="w-24 hidden @md:flex flex-col items-center border-r dark:border-content/5">
+				<div className="h-48"></div>
 
-			{pages?.map((page, index) => {
+				<div className="flex-1"></div>
+
+				<div className="h-64"></div>
+			</div>
+
+			<div className="flex-1 h-screen overflow-y-auto">
 				<NavRootProvider
-					isOpen={activePage == index}
+					isOpen={activePage == 0}
 					scaffold={{ nav }}
-					rootPage={page}
-				/>;
-			})}
+					rootPage={rootPage}
+				/>
 
-			<PageNav {...{ nav, activePage, setActivePage }} />
+				{pages?.map((page, index) => {
+					<NavRootProvider
+						isOpen={activePage == index}
+						scaffold={{ nav }}
+						rootPage={page}
+					/>;
+				})}
+
+				<PageNav {...{ nav, activePage, setActivePage }} />
+			</div>
 		</div>
 	);
 }

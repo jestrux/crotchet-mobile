@@ -65,30 +65,51 @@ export default function PageNav({ nav, activePage, setActivePage }) {
 	if (!nav?.length) return null;
 
 	return (
-		<motion.div
-			className="pointer-events-none z-50 fixed inset-x-0 bottom-0 lg:bottom-8 lg:mb-[env(safe-area-inset-bottom)] flex items-center justify-center"
-			animate={{
-				opacity: hideFloatingUI ? 0 : 1,
-				y: hideFloatingUI ? "3%" : 0,
-			}}
-			style={{
-				marginBottom: "calc(env(safe-area-inset-bottom)*-0.3)",
-			}}
-		>
-			<div className="border dark:border border-content/5 shadow-sm bg-stone-100/95 dark:bg-card/95 backdrop-blur-sm w-full lg:w-auto min-w-96 px-2 lg:rounded-full overflow-hidden">
-				<div className="h-14 px-3 lg:px-0 mb-[env(safe-area-inset-bottom)] lg:mb-0 flex items-center justify-between gap-4 lg:gap-2 lg:max-w-sm mx-auto">
-					{nav.map((item, index) => {
-						return (
-							<BottomNavButton
-								key={item.label + "" + index}
-								{...item}
-								selected={index == activePage}
-								onClick={() => setActivePage(index)}
-							/>
-						);
-					})}
-				</div>
+		<div className="@container-normal fixed inset-x-0 pointer-events-none">
+			<div className="pointer-events-auto fixed left-0 top-48 bottom-64 w-24 px-2 hidden @md:flex flex-col gap-14 items-center justify-center">
+				{nav?.map((item, index) => {
+					const selected = index == activePage;
+					return (
+						<button
+							key={item.label + "" + index}
+							className={clsx(
+								"w-full flex flex-col gap-1.5 items-center justify-center",
+								selected ? "" : "opacity-50"
+							)}
+							onClick={() => setActivePage(index)}
+						>
+							<span className="size-6">{item.icon}</span>
+							<span className="text-xs/none">{item.label}</span>
+						</button>
+					);
+				})}
 			</div>
-		</motion.div>
+
+			<motion.div
+				className="@md:hidden pointer-events-none z-50 fixed inset-x-0 bottom-0 lg:bottom-12 lg:mb-[env(safe-area-inset-bottom)] flex items-center justify-center"
+				animate={{
+					opacity: hideFloatingUI ? 0 : 1,
+					y: hideFloatingUI ? "3%" : 0,
+				}}
+				style={{
+					marginBottom: "calc(env(safe-area-inset-bottom)*-0.3)",
+				}}
+			>
+				<div className="border dark:border border-content/5 shadow-sm bg-stone-100/95 dark:bg-card/95 backdrop-blur-sm w-full lg:w-auto min-w-96 px-2 lg:rounded-full overflow-hidden">
+					<div className="h-14 px-3 lg:px-0 mb-[env(safe-area-inset-bottom)] lg:mb-0 flex items-center justify-between gap-4 lg:gap-2 lg:max-w-sm mx-auto">
+						{nav.map((item, index) => {
+							return (
+								<BottomNavButton
+									key={item.label + "" + index}
+									{...item}
+									selected={index == activePage}
+									onClick={() => setActivePage(index)}
+								/>
+							);
+						})}
+					</div>
+				</div>
+			</motion.div>
+		</div>
 	);
 }

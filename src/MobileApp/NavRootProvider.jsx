@@ -203,8 +203,8 @@ export default function NavRootProvider({
 	return (
 		<div
 			{...(isOpen ? { "data-current-nav-root": true } : {})}
-			className={clsx("fixed inset-0", {
-				"opacity-0 pointer-events-none": !isOpen,
+			className={clsx({
+				hidden: !isOpen,
 			})}
 		>
 			<NavRootContext.Provider value={value}>

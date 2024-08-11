@@ -5,7 +5,7 @@ import GridListItem from "./ListItem/GridListItem";
 
 function GridListContent({ source, data, isLoading, ...props }) {
 	const {
-		columns = 2,
+		columns = "xs:2,md:3,xl:4",
 		gap = "0.5rem",
 		aspectRatio,
 		meta,
