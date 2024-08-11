@@ -5,6 +5,7 @@ import {
 	AlertDialogLabel,
 } from "@reach/alert-dialog";
 import { DragHandle } from "./DraggableElement";
+import useKeyboard from "@/hooks/useKeyboard";
 
 function Button({
 	type = "button",
@@ -148,6 +149,7 @@ const Modal = ({
 	dragProps,
 	noHeading,
 }) => {
+	useKeyboard({ mode: "native" });
 	const cancelRef = useRef();
 	const { listeners, attributes, setNodeRef, style, reset } = dragProps || {};
 
@@ -156,7 +158,7 @@ const Modal = ({
 			onDismiss={dismissible ? onClose : () => {}}
 			isOpen={true}
 			leastDestructiveRef={cancelRef}
-			className={`fixed overflow-y-auto inset-0 z-50 flex justify-center py-16 px-3
+			className={`fixed overflow-hidden inset-0 z-50 flex justify-center py-16 px-3
 				${centered ? "items-center" : "items-start"}
                 ${showOverlayBg && "bg-black/20 dark:bg-black/70"}
             `}
@@ -168,7 +170,7 @@ const Modal = ({
 			</div>
 
 			<div
-				className={`group bg-card text-content border shadow-2xl rounded-lg overflow-hidden w-full relative
+				className={`max-h-full group bg-card text-content border shadow-2xl rounded-lg overflow-hidden overflow-y-auto w-full relative
                     ${className}
                     ${size == "xs" && "max-w-xs"}
                     ${size == "sm" && "max-w-sm"}
@@ -186,7 +188,7 @@ const Modal = ({
 				}}
 			>
 				{!noHeading && (onClose || title?.length) && (
-					<div className="h-12 pl-4 pr-2 border-b flex items-center justify-between">
+					<div className="sticky bg-card z-10 top-0 h-12 pl-4 pr-2 border-b flex items-center justify-between">
 						<div>
 							<h3
 								className="text-base leading-6 font-bold"

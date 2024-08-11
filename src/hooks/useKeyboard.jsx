@@ -2,14 +2,15 @@ import { Capacitor } from "@capacitor/core";
 import { useEffect, useRef, useState } from "react";
 import { Keyboard } from "@capacitor/keyboard";
 
-export default function useKeyboard() {
+export default function useKeyboard({ mode: _mode = "none" } = {}) {
+	const [mode, setMode] = useState(_mode);
 	const [keyboardHeight, setKeyboardHeight] = useState(0);
 	let keyboardPlugin = useRef();
 
 	useEffect(() => {
-		initialize();
+		initialize(mode);
 		return () => cleanKeyboardListeners();
-	});
+	}, [mode]);
 
 	const cleanKeyboardListeners = async () => {
 		// try {
@@ -35,7 +36,7 @@ export default function useKeyboard() {
 			});
 
 			Keyboard.setResizeMode({
-				mode: "none",
+				mode,
 			});
 
 			Keyboard.addListener("keyboardDidShow", (info) => {

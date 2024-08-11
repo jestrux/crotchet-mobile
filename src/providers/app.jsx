@@ -576,10 +576,10 @@ export default function AppProvider({ children }) {
 			"withLoader",
 			"globalActions",
 			"openUrl",
-			"openForm",
 			"utils",
 		]),
-		utils
+		utils,
+		{ openForm: (props) => window.openAlertForm(props) }
 	);
 
 	let App;
