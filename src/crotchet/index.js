@@ -13,7 +13,6 @@ import {
 	shuffle,
 } from "@/utils";
 import { WidgetsBridgePlugin } from "capacitor-widgetsbridge-plugin";
-import { useEffect, useRef, useState } from "react";
 
 export { default as clsx } from "clsx";
 export { useSpotlightContext } from "@/components/SpotlightSearch/SpotlightContext";
@@ -43,84 +42,11 @@ export * from "@/utils";
 
 export * as utils from "@/utils";
 
-export const useOnInit = (callback) => {
-	const initialized = useRef(false);
-
-	useEffect(() => {
-		if (!initialized.current) {
-			callback();
-			initialized.current = true;
-		}
-
-		return () => (initialized.current = false);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
-};
-
-export const onActionClick = (
-	action,
-	{ propagate, actionTypeMap = {}, confirm } = {}
-) => {
-	return async (e, ...args) => {
-		if (!propagate && typeof e?.stopPropagation == "function")
-			e.stopPropagation();
-
-		if (!action) return null;
-
-		if (typeof confirm == "function" && action?.destructive) {
-			const res = await confirm({
-				title: action.label + "?",
-				actionType: "danger",
-				okayText: action.confirmText || "Yes, Continue",
-			});
-
-			if (!res) return;
-		}
-
-		if (typeof action.handler == "function")
-			return await Promise.resolve(action.handler(e, ...args));
-		else if (typeof action.onClick == "function")
-			return await Promise.resolve(action.onClick(e, ...args));
-		else if (typeof actionTypeMap[action?.type] == "function")
-			return await Promise.resolve(
-				actionTypeMap[action?.type](e, ...args)
-			);
-		else if (action.url) return await Promise.resolve(openUrl(action.url));
-		else if (typeof action == "function")
-			return await Promise.resolve(action(e, ...args));
-		else if (typeof action == "string")
-			return await Promise.resolve(openUrl(action));
-
-		return null;
-	};
-};
-
-export const useActionClick = (
-	action,
-	{ propagate = false, actionTypeMap = {} } = {}
-) => {
-	const loadingRef = useRef();
-	const [loading, setLoading] = useState(false);
-
-	const onClick = async (e) => {
-		if (!action) return null;
-
-		loadingRef.current = setTimeout(() => {
-			setLoading(true);
-		}, 500);
-
-		await onActionClick(action, { propagate, actionTypeMap })(e);
-
-		setLoading(false);
-
-		if (loadingRef.current) clearInterval(loadingRef.current);
-	};
-
-	return {
-		onClick,
-		loading,
-	};
-};
+export { default as useOnInit } from "@/hooks/useOnInit";
+export {
+	onActionClick,
+	default as useActionClick,
+} from "@/hooks/useActionClick";
 
 const updateDataSourceWidget = async (name, key, value) => {
 	const dataSources = window.__crotchet.dataSources;
@@ -341,68 +267,51 @@ export const registerDataSource = (provider, name, props = {}) => {
 };
 
 export const registerAction = (name, action) => {
-	let _label = name,
-		_handler = action,
+	const {
+		label,
+		handler,
+		hideApp: actionHidesApp,
 		actions,
 		tags = [],
-		type,
 		icon,
-		global = false,
+		global = true,
 		context,
 		match,
-		scheme,
-		sheet,
 		shortcut,
 		desktopOnly = false,
-		mobileOnly = false;
+		mobileOnly = false,
+	} = typeof action != "function"
+		? action
+		: {
+				handler: action,
+				label: name,
+		  };
 
-	if (typeof action != "function") {
-		icon = action.icon;
-		type = action.type;
-		global = action.global;
-		context = action.context;
-		match = action.match;
-		scheme = action.scheme;
-		sheet = action.sheet;
-		shortcut = action.shortcut;
-		desktopOnly = action.desktopOnly;
-		mobileOnly = action.mobileOnly;
-		_label = action.label;
-		_handler = action.handler
-			? action.handler
-			: action.url
-			? () => openUrl(action.url)
-			: null;
-		actions = action.actions || [];
-		tags = action.tags || [];
-	}
+	const _handler = (payload) => {
+		if (actionHidesApp) hideApp();
 
-	const label = camelCaseToSentenceCase(
-		(_label || name).replace("-", " ").replace("_", " ")
-	);
+		if (typeof handler == "function")
+			return handler(payload ?? {}, window.__crotchet);
 
-	const handler = (payload) => {
-		if (action.hideApp) hideApp();
-		return _handler(payload ?? {}, window.__crotchet);
+		return openUrl(action?.url);
 	};
 
 	const __action = {
 		_id: randomId(),
-		type,
 		icon,
 		name,
-		label,
+		label: camelCaseToSentenceCase(
+			label || name.replace("-", " ").replace("_", " ")
+		),
 		tags,
 		global,
 		context,
 		match,
-		scheme,
-		sheet,
 		shortcut,
 		mobileOnly,
 		desktopOnly,
-		handler,
 		actions,
+		handler: _handler,
 	};
 
 	window.actions[name] = __action;
@@ -413,6 +322,19 @@ export const registerAction = (name, action) => {
 		await handler();
 		// console.log("Handled: ", label, res);
 	});
+};
+
+export const registerPage = (name, page) => {
+	const { resolve, title, content, action, actions, nav } = page;
+	window.pages[name] = {
+		_id: randomId(),
+		resolve,
+		title,
+		content,
+		nav,
+		action,
+		actions,
+	};
 };
 
 export const registerAutomationAction = (name, action) => {

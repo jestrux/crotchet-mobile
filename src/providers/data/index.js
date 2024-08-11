@@ -85,7 +85,7 @@ export const sourceGet = async (source, props = {}) => {
 
 	if (orderBy) res = _.orderBy(res, ...orderBy.split(","));
 
-	if (random) res = doShuffle(doShuffle(res));
+	if (random == true) res = doShuffle(doShuffle(res));
 
 	if (single || first) return res[0];
 

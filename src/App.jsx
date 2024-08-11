@@ -1,51 +1,19 @@
-import { BottomNav } from "@/components/BottomNav";
 import { SendIntent } from "send-intent";
-import { useEffect, useState } from "react";
-import clsx from "clsx";
+import { useEffect } from "react";
 import { Filesystem } from "@capacitor/filesystem";
 import { App as CapacitorApp } from "@capacitor/app";
 import {
 	getLinksFromText,
 	isValidUrl,
 	objectIsEmpty,
-	objectTake,
-	onDesktop,
 	openUrl,
 	useAppContext,
-	usePrefsState,
 } from "@/crotchet";
-
-const AppScreen = ({ scheme }) => {
-	const { apps } = useAppContext();
-	const App = apps?.[scheme]?.main;
-
-	if (!App) {
-		return (
-			<div className="h-screen flex items-center justify-center">
-				Unkown app {scheme}
-			</div>
-		);
-	}
-
-	// return (
-	// 	<div
-	// 		style={{
-	// 			paddingTop: "env(safe-area-inset-top)",
-	// 			paddingBottom: "env(safe-area-inset-bottom)",
-	// 		}}
-	// 	>
-	// 		<GlobalSearch />
-	// 	</div>
-	// );
-
-	return <App />;
-};
+import CrotchetHomePage from "./MobileApp/CrotchetHomePage";
+import AppScaffold from "./MobileApp/AppScaffold";
 
 const App = () => {
-	const { bottomSheets, openShareSheet } = useAppContext();
-	const [currentPage, setCurrentPage] = useState("home");
-	const [pinnedApps] = usePrefsState("pinnedApps");
-
+	const { __crotchetApp } = useAppContext();
 	const handleShareIntent = async (result, fromOpen) => {
 		if (window.shareTimeout) {
 			clearTimeout(window.shareTimeout);
@@ -70,26 +38,38 @@ const App = () => {
 			let [, resultType] = decodeURIComponent(result.type).split("/");
 			let payload = {
 				incoming: true,
+				type: resultType,
+			};
+			let preview = {
+				image: null,
+				title: null,
+				subtitle: null,
 			};
 
 			if (resultType == "plain") {
+				preview.subtitle = resultUrl;
+
 				if (isValidUrl(resultUrl)) payload.url = resultUrl;
 				else {
 					payload.text = resultUrl;
 					payload.url = getLinksFromText(resultUrl, true);
 				}
 			} else if (["jpg", "png"].includes(resultType)) {
-				payload.title = resultUrl.split("/").at(-1).split(".").at(0);
-				payload.subtitle = `image/${resultType}`;
-				payload.image = await Filesystem.readFile({
+				preview.title = resultUrl.split("/").at(-1).split(".").at(0);
+				preview.subtitle = `image/${resultType}`;
+				preview.type = `image/${resultType}`;
+				var file = await Filesystem.readFile({
 					path: resultUrl,
 				}).then(
 					async (content) =>
 						`data:image/${resultType};base64,${content.data}`
 				);
+				payload.file = file;
+				preview.image = file;
 			} else if (["pdf"].includes(resultType)) {
-				payload.title = resultUrl.split("/").at(-1).split(".").at(0);
-				payload.subtitle = `document/${resultType}`;
+				preview.title = resultUrl.split("/").at(-1).split(".").at(0);
+				preview.subtitle = `document/${resultType}`;
+				payload.type = `document/${resultType}`;
 				payload.file = await Filesystem.readFile({
 					path: resultUrl,
 				}).then(
@@ -99,13 +79,18 @@ const App = () => {
 			}
 
 			if (
-				objectIsEmpty(
-					objectTake(payload, ["text", "image", "url", "file"])
-				)
+				objectIsEmpty(_.pick(payload, ["text", "image", "url", "file"]))
 			)
 				return;
 
-			openShareSheet(payload);
+			setTimeout(() => {
+				window.openActionSheet({
+					inset: false,
+					title: "Select an action",
+					payload,
+					preview: !objectIsEmpty(preview) ? preview : null,
+				});
+			}, 300);
 		} catch (error) {
 			// alert("Share error: " + error);
 		}
@@ -143,9 +128,9 @@ const App = () => {
 	useEffect(() => {
 		listenForOpen();
 
-		// 	handleShareIntent();
+		handleShareIntent();
 
-		// window.addEventListener("sendIntentReceived", handleShareIntent, false);
+		window.addEventListener("sendIntentReceived", handleShareIntent, false);
 
 		return () => {
 			window.removeEventListener(
@@ -159,72 +144,10 @@ const App = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	const BottomNavPlaceholder = () => {
-		return <div style={{ height: 60 }}>&nbsp;</div>;
-	};
+	if (__crotchetApp.homePage)
+		return <AppScaffold rootPage={__crotchetApp.homePage} />;
 
-	return (
-		<div
-			id="crotchetAppWrapper"
-			className="h-screen overflow-hidden"
-			style={{
-				paddingTop: "env(safe-area-inset-top)",
-				paddingBottom: "env(safe-area-inset-bottom)",
-			}}
-		>
-			<div className="pointer-events-none">
-				<div
-					className="dark:hidden bg-cover fixed inset-0 blur-xl"
-					style={{
-						"--tw-blur": "blur(380px)",
-						backgroundImage: `url(img/light-wallpaper.jpg)`,
-					}}
-				></div>
-
-				<div
-					className="hidden dark:block bg-cover fixed inset-0 blur-xl"
-					style={{
-						"--tw-blur": "blur(150px)",
-						backgroundImage: `url(img/dark-wallpaper.jpg)`,
-					}}
-				></div>
-
-				<div
-					className="fixed z-50 bg-canvas/5 inset-x-0 top-0 backdrop-blur-sm"
-					style={{
-						"--tw-backdrop-blur": "blur(1px)",
-						height: "env(safe-area-inset-top)",
-					}}
-				></div>
-			</div>
-
-			{(pinnedApps || ["", "home", ""]).map((app, index) => (
-				<div
-					key={app + index}
-					className={clsx("fixed inset-0 overflow-auto", {
-						hidden: currentPage != app,
-						// "opacity-0 pointer-events-none": currentPage != app,
-					})}
-				>
-					<AppScreen scheme={app} />
-					<BottomNavPlaceholder />
-				</div>
-			))}
-
-			<div className="lg:hidden">
-				{!onDesktop() && (
-					<BottomNav
-						{...{
-							pinnedApps,
-							currentPage,
-							setCurrentPage,
-						}}
-						hidden={bottomSheets.length}
-					/>
-				)}
-			</div>
-		</div>
-	);
+	return <CrotchetHomePage />;
 };
 
 export default App;

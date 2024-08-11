@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 
-export function useLongPress(callback = () => {}, duration = 500) {
+export function useLongPress(callback, duration = 500) {
 	const timeout = useRef(null);
 
 	const onPressStart = useCallback(
@@ -13,6 +13,8 @@ export function useLongPress(callback = () => {}, duration = 500) {
 	);
 
 	const cancelTimeout = useCallback(() => clearTimeout(timeout.current), []);
+
+	if (typeof callback != "function") return {};
 
 	return {
 		onMouseDown: onPressStart,

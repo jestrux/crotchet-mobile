@@ -5,7 +5,6 @@ import { useLongPress } from "@/hooks/useLongPress";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 
 export default function GridListItem({
-	grid,
 	masonry,
 	previewOnly,
 	icon,
@@ -208,7 +207,7 @@ export default function GridListItem({
 			onDoubleClick={onDoubleClick}
 			className={clsx(
 				"lg:group w-full text-left flex items-center relative",
-				!grid && "py-2"
+				masonry && "py-2"
 			)}
 		>
 			{content()}

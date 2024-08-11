@@ -107,8 +107,10 @@ export default function AlertsWrapper() {
 					return (
 						<Sheet
 							key={alert.id}
+							inset
+							noHeading={!alert?.title?.length}
 							onClose={alert.close}
-							actions={objectFieldChoices(alert.actions)}
+							actions={objectFieldChoices(alert.choices)}
 						/>
 					);
 				}
@@ -134,7 +136,10 @@ export default function AlertsWrapper() {
 												await alert.action?.handler(
 													values
 												);
-											if (!res) return;
+											if (!res)
+												return console.log(
+													"No return..."
+												);
 
 											alert.close(res);
 										} catch (error) {

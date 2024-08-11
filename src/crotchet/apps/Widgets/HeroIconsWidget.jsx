@@ -338,6 +338,55 @@ registerDataSource("crawler", "heroIcons", {
 	icon: `<svg viewBox="0 0 24 24" fill="currentColor">
 			<path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
 		</svg>`,
+	entryAction: (entry) => {
+		return {
+			hideApp: true,
+			label: "Copy JSX",
+			handler: async () => {
+				await window.hideApp();
+				window.withLoader(
+					window.copyToClipboard(getIcon(entry.path, true)),
+					"Copied JSX"
+				);
+			},
+		};
+	},
+	entryActions: (entry) => {
+		return [
+			{
+				label: "Copy JSX",
+				handler: async () => {
+					await window.hideApp();
+					return window.withLoader(
+						window.copyToClipboard(getIcon(entry.path, true)),
+						"Copied JSX"
+					);
+				},
+			},
+			{
+				hideApp: true,
+				label: "Copy SVG",
+				handler: async () => {
+					await window.hideApp();
+					window.withLoader(
+						window.copyToClipboard(getIcon(entry.path)),
+						"Copied SVG"
+					);
+				},
+			},
+			{
+				hideApp: true,
+				label: "Copy Path",
+				handler: async () => {
+					await window.hideApp();
+					window.withLoader(
+						window.copyToClipboard(entry.path),
+						"Copied path"
+					);
+				},
+			},
+		];
+	},
 });
 
 registerActionSheet(

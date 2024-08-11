@@ -2,6 +2,7 @@ import lodash from "lodash";
 window._ = lodash;
 import moment from "moment";
 window.moment = moment;
+import * as UI from "./providers/ui";
 
 import * as crotchet from "@/crotchet";
 
@@ -29,6 +30,7 @@ const crotChetProps = {
 		// 	primary: "#197AE4",
 		// }
 	},
+	setHomePage: (page) => (window.__crotchetApp.homePage = window.pages[page]),
 	apps: {},
 	backgroundApps: {},
 	visibleBackgroundApps: [],
@@ -37,6 +39,7 @@ const crotChetProps = {
 	remoteActions: {},
 	automationActions: {},
 	actions: {},
+	pages: {},
 	dataSources: {},
 	pinnedApps: [
 		"youtubeClips",
@@ -47,7 +50,8 @@ const crotChetProps = {
 	actionSheets: {},
 	_promiseResolvers: {},
 	desktop: {},
+	refs: {},
 };
 
-Object.assign(window, crotChetProps);
+Object.assign(window, crotChetProps, { UI });
 Object.assign(window.__crotchet, crotChetProps);

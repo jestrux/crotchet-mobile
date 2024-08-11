@@ -349,7 +349,7 @@ registerAutomationAction("readClipboard", {
 	),
 	handler: async (_, { readClipboard, showToast, utils }) => {
 		const { type, value } = await readClipboard();
-		const payload = utils.processShareData(value, type);
+		const { payload } = utils.processShareData(value, type);
 
 		if (!payload) return showToast("Nothing in clipboard");
 

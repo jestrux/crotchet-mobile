@@ -28,15 +28,23 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "./firebaseApp";
 import { io } from "socket.io-client";
 import ActionSheet from "@/components/ActionSheet";
-import Form from "@/components/Form";
 import DesktopApp from "@/DesktopApp";
 import BackgroundApp from "@/DesktopApp/BackgroundApp";
 import DataPreviewer from "@/components/DataPreviewer";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import AlertsWrapper from "@/components/Alerts";
+import FormPage from "@/components/Pages/FormPage";
 
 const AppContext = createContext({
 	dataSources: {},
+	__crotchetApp: {
+		name: "Crotchet",
+		colors: {
+			primary: "#84cc16",
+			primaryDark: "#a3e635",
+		},
+		homePage: null,
+	},
 	apps: {},
 	backgroundApps: {},
 	backgroundActions: {},
@@ -305,7 +313,7 @@ export default function AppProvider({ children }) {
 		if (onDesktop()) props.dismiss = window.__crotchet.desktop.closePage;
 
 		if (type == "form")
-			content = [{ type: "custom", value: <Form {...props} /> }];
+			content = [{ type: "custom", value: <FormPage {...props} /> }];
 
 		let page = (
 			<GenericPage
@@ -398,15 +406,15 @@ export default function AppProvider({ children }) {
 		openBottomSheet,
 		openShareSheet,
 		openActionSheet,
-		withLoader: async (
-			action,
-			{
+		withLoader: async (action, props) => {
+			const {
 				successMessage = "Success!",
 				errorMessage = "Unknown Error!",
 				onChange = () => {},
-			} = {}
-		) => {
-			const handleChange = (status, payload) => {
+			} = typeof props == "string"
+				? { successMessage: props }
+				: props || {};
+			const handleChange = async (status, payload) => {
 				let message = { success: successMessage, error: errorMessage }[
 					status
 				];
@@ -415,15 +423,22 @@ export default function AppProvider({ children }) {
 				else if (status == "error" && typeof payload == "string")
 					message = payload;
 
+				const isMessageStatus = !["idle", "loading"].includes(status);
+
 				if (onDesktop()) {
+					if (isMessageStatus) {
+						await window.__crotchet.someTime(20);
+						if (!document.body.getAttribute("data-visible"))
+							window.__crotchet.backgroundToast(message);
+					}
+
 					dispatch("with-loader-status-change", {
 						status,
 						message,
 					});
 
 					onChange(status, payload);
-				} else if (status != "idle")
-					window.showToast([status, message].join(": "));
+				} else if (isMessageStatus) window.showToast(message);
 			};
 
 			let resolve, reject;
@@ -552,7 +567,20 @@ export default function AppProvider({ children }) {
 		...appContextValue,
 	});
 
-	Object.assign(window, _.pick(appContextValue, ["withLoader"]));
+	Object.assign(
+		window,
+		_.pick(appContextValue, [
+			"registerDataSource",
+			"registerAction",
+			"registerPage",
+			"withLoader",
+			"globalActions",
+			"openUrl",
+			"openForm",
+			"utils",
+		]),
+		utils
+	);
 
 	let App;
 

@@ -5,7 +5,6 @@ import {
 	registerDataSource,
 	registerAction,
 	getShareUrl,
-	registerActionSheet,
 	onDesktop,
 } from "@/crotchet";
 
@@ -30,22 +29,19 @@ const formFields = {
 		choices: ["📺 Watch", "🧪 Learn", "🎧 Listen", "🌎 General"],
 		defaultValue: "🌎 General",
 	},
-	image: "text",
+	image: "image",
 	title: "text",
 	description: "text",
 	url: "text",
 };
 
-const addItem = async (
-	item,
-	{ withLoader, openForm, dataSources, cleanObject }
-) => {
-	var res = await openForm({
+const addItem = async (item) =>
+	window.openForm({
 		title: "Add to reading list",
 		data: item
 			? {
 					// group: (await Preferences.get({ key: "groupFilter" })).value ?? "",
-					group: "🌎 General",
+					group: item.group || "🌎 General",
 					image: item.image,
 					title: item.title,
 					description: item.description || item.subtitle,
@@ -53,15 +49,15 @@ const addItem = async (
 			  }
 			: null,
 		fields: formFields,
+		action: {
+			label: "Save",
+			handler: (data) =>
+				window.withLoader(
+					window.dataSources.reader.insertRow(data),
+					"Added to reading list"
+				),
+		},
 	});
-
-	if (!res) return;
-
-	return withLoader(await dataSources.reader.insertRow(cleanObject(res)), {
-		successMessage: `${res.title || "Entry"} Added `,
-		errorMessage: `Failed to add ${res.title}`,
-	});
-};
 
 registerDataSource("db", "reader", {
 	table: "reader",
@@ -115,13 +111,8 @@ registerDataSource("db", "reader", {
 		return [
 			{
 				label: "Edit",
-				handler: async (
-					{ previewImage },
-					{ withLoader, openForm, dataSources }
-				) => {
-					if (!item.image && previewImage) item.image = previewImage;
-
-					var res = await openForm({
+				handler: async () => {
+					const res = await window.openForm({
 						title: "Edit reading list item",
 						data: item,
 						fields: formFields,
@@ -129,27 +120,24 @@ registerDataSource("db", "reader", {
 
 					if (!res) return;
 
-					withLoader(dataSources.reader.updateRow(item._id, res), {
-						successMessage: `${res.title || "Entry"} Updated `,
-						errorMessage: `Failed to update ${res.title}`,
-					});
+					window.withLoader(
+						window.dataSources.reader.updateRow(item._id, res),
+						"Changes saved"
+					);
 				},
 			},
 			{
-				label: "Delete Item",
+				label: "Remove from reading list",
 				destructive: true,
-				handler: async (
-					item,
-					{ dataSources, confirmDangerousAction, withLoader }
-				) => {
-					const confirmed = await confirmDangerousAction();
+				handler: async () => {
+					const confirmed = await window.confirmDangerousAction();
 
 					if (!confirmed) return;
 
-					withLoader(dataSources.reader.deleteRow(item._id), {
-						successMessage: `${item.title || "Entry"} Deleted`,
-						errorMessage: `Failed to delete ${item.title}`,
-					});
+					window.withLoader(
+						window.dataSources.reader.deleteRow(item._id),
+						"Removed from reading list"
+					);
 				},
 			},
 			...(!onDesktop()
@@ -167,30 +155,32 @@ registerDataSource("db", "reader", {
 registerAction("addToReadingList", {
 	context: "share",
 	icon: appIcon,
-	match: ({ url }) => url?.toString().length,
-	handler: async ({ previewImage, title, subtitle, url }, crotchet) => {
-		const { utils, openUrl } = crotchet;
-		var payload = await openUrl(
-			`crotchet://action/crawlUrl?${utils.objectToQueryParams({
-				preview: previewImage,
-				title,
-				subtitle,
+	match: "url",
+	handler: async ({ preview, url }) =>
+		addItem(
+			{
+				...(preview?.image ? preview : await window.crawlUrl(url)),
 				url,
-				open: false,
-			})}`
-		);
-
-		return addItem(payload, crotchet);
-	},
+				group: "🧪 Learn",
+			},
+			window
+		),
 });
 
-registerActionSheet(
-	"reader",
-	[{ label: "Open reader", url: "crotchet://app/youtubeClips" }]
-	// async (payload = {}) => {
-	// 	console.log("Reader sheet: ");
-	// }
-);
+registerAction("addToWatchList", {
+	context: "share",
+	icon: appIcon,
+	match: "url",
+	handler: async ({ preview, url }) =>
+		addItem(
+			{
+				...(preview?.image ? preview : await window.crawlUrl(url)),
+				url,
+				group: "📺 Watch",
+			},
+			window
+		),
+});
 
 registerApp("reader", () => {
 	return {

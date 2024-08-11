@@ -15,15 +15,17 @@ export default function MutliGestureButton({
 		onClick,
 		onDoubleClick,
 	});
-	const gestures = useLongPress(() => {
-		if (!_.isFunction(onHold)) return;
+	const gestures = useLongPress(
+		!_.isFunction(onHold)
+			? null
+			: () => {
+					recentlyHeld.current = true;
 
-		recentlyHeld.current = true;
+					Haptics.impact({ style: ImpactStyle.Medium });
 
-		Haptics.impact({ style: ImpactStyle.Medium });
-
-		onHold();
-	});
+					onHold();
+			  }
+	);
 
 	return (
 		<button

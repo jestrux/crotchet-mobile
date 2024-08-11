@@ -315,6 +315,12 @@ export const crawlUrl = async (url, name) => {
 		).then((res) => res.json())
 	);
 
+	try {
+		res = JSON.parse(res);
+	} catch (error) {
+		//
+	}
+
 	if (res?.meta) {
 		res.meta = cleanObject(res.meta);
 		res.meta.subtitle = res.meta.description;
@@ -534,7 +540,7 @@ export const openUrl = async (path) => {
 	window.open(path, "_blank");
 };
 
-export const randomId = () => Math.random().toString(36).slice(2);
+export const randomId = () => "id" + Math.random().toString(36).slice(2);
 
 export const isEmptyObj = (obj) => Object.keys(obj).length === 0;
 
@@ -642,7 +648,7 @@ export const readClipboard = async () => {
 
 export const copyToClipboard = (
 	content,
-	{ withToast = true, message } = {}
+	{ withToast = false, message } = {}
 ) => {
 	if (!content?.length) return console.log("Nothing to copy: ", content);
 
@@ -857,26 +863,35 @@ export const getLinksFromText = (text, first) => {
 	return links;
 };
 
-export const processShareData = (value, type = "text") => {
-	if (!value?.trim()?.length) return null;
+export const processShareData = (value, type = "text", meta = {}) => {
+	if (!value?.trim()?.length) return {};
 
 	let payload = {
-		fromClipboard: true,
+		...meta,
 		text: value,
 	};
 
-	if (type.includes("image"))
-		payload = {
-			image: value,
-		};
+	let preview = {
+		image: null,
+		title: null,
+		subtitle: value,
+	};
 
-	if (isValidUrl(value))
-		payload = {
-			url: value,
-		};
+	if (type.includes("image")) {
+		preview.title = value.split("/").at(-1).split(".").at(0);
+		preview.subtitle = type;
+		preview.type = type;
+
+		payload.image = value;
+	}
+
+	if (isValidUrl(value)) payload.url = value;
 	else payload.url = getLinksFromText(value, true);
 
-	return payload;
+	return {
+		payload,
+		preview: !objectIsEmpty(preview) ? preview : null,
+	};
 };
 
 export const getShareActions = (

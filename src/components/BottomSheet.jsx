@@ -12,11 +12,12 @@ export default function BottomSheet({
 	noScroll = false,
 	peekSize = 0,
 	dismissible = true,
-	fullHeight = false,
+	// fullHeight = false,
 	minHeight,
 	children,
 	onClose = () => {},
 }) {
+	const fullHeight = true;
 	const { KeyboardPlaceholder } = useKeyboard();
 	// const dragControls = useDragControls();
 	// function onDragStart(e, info) {
@@ -107,11 +108,6 @@ export default function BottomSheet({
 	};
 
 	useEffect(() => {
-		const parent = document.querySelector("#crotchetAppWrapper");
-		if (parent) {
-			parent.style.overflow = collapsed ? "" : "hidden";
-		}
-
 		if (!initialized.current) {
 			initialized.current = true;
 			return;

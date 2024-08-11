@@ -110,10 +110,10 @@ export default function useAlerts() {
 			type: "sheet",
 		});
 
-	const openChoicePicker = ({ choices } = {}) =>
+	const openChoicePicker = (props) =>
 		showAlert({
+			...(_.isArray(props) ? { choices: props } : props),
 			type: "choice-picker",
-			actions: choices,
 		});
 
 	const openAlertForm = (props) =>

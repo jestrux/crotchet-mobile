@@ -11,21 +11,12 @@ import Button from "../Button";
 import { marked } from "marked";
 
 export default function GenericPage({
-	noPadding = false,
-	noHeading = false,
-	centerContent = false,
-	image,
-	icon,
 	title,
-	subtitle,
 	source,
 	pageData,
 	content,
-	fullHeight,
-	maxHeight,
 	dismiss,
 }) {
-	const headingSet = (!noHeading && image) || title || subtitle;
 	let { data: contentData, pendingView } = useLoadableView({
 		data: content,
 		dismiss,
@@ -75,10 +66,7 @@ export default function GenericPage({
 				if (isImage || isVideo) {
 					content = (
 						<div
-							className={clsx(
-								"relative bg-content/5 border-4 border-content/10 rounded-md overflow-hidden",
-								index == 0 && headingSet && "mt-2"
-							)}
+							className="relative bg-content/5 border-4 border-content/10 rounded-md overflow-hidden"
 							style={{
 								aspectRatio,
 							}}
@@ -213,65 +201,18 @@ export default function GenericPage({
 	};
 
 	return (
-		<div
-			className={clsx(
-				"relative flex flex-col items-stretch",
-				noHeading ? "p-3" : !noPadding ? "px-6 py-10" : ""
-			)}
-			style={
-				fullHeight
-					? {
-							height: maxHeight + "px",
-					  }
-					: {
-							borderTopLeftRadius: 32,
-							borderTopRightRadius: 32,
-					  }
-			}
-		>
-			{!noHeading && (
-				<div
-					className={clsx(
-						"sticky top-0 z-10 flex items-center justify-between gap-2 mb-2",
-						!noPadding || fullHeight ? "-mt-6" : ""
-					)}
-					style={
-						fullHeight
-							? {
-									paddingTop: "env(safe-area-inset-top)",
-							  }
-							: {}
-					}
-				>
-					<div className="flex-1">
-						<div className="flex items-center gap-3">
-							{icon && (
-								<div className="s-mr-0.5 bg-content/5 border border-content/5 rounded-lg size-10 flex items-center justify-center">
-									<div
-										className="size-5 flex items-center justify-center"
-										// dangerouslySetInnerHTML={{ __html: icon }}
-									>
-										{icon}
-									</div>
-								</div>
-							)}
-
-							{headingSet && (
-								<div>
-									{title && (
-										<h3 className="text-lg/none font-bold first-letter:uppercase">
-											{title}
-										</h3>
-									)}
-
-									{subtitle && (
-										<p className="mt-1 text-sm/none text-content/80 line-clamp-3">
-											{subtitle}
-										</p>
-									)}
-								</div>
-							)}
-						</div>
+		<>
+			<div
+				className={clsx("sticky top-0 z-50 bg-card border-b")}
+				style={{ paddingTop: "env(safe-area-inset-top)" }}
+			>
+				<div className="h-14 flex items-center justify-between gap-2 px-6">
+					<div className="flex-1 -translate-y-px">
+						{title && (
+							<h3 className="text-2xl font-bold first-letter:uppercase">
+								{title}
+							</h3>
+						)}
 					</div>
 
 					<button
@@ -293,109 +234,9 @@ export default function GenericPage({
 						</svg>
 					</button>
 				</div>
-			)}
-			{/* <div
-				className={clsx(
-					"sticky top-0 z-10 flex items-center justify-end pointer-events-none",
-					!noPadding ? "-translate-y-6 translate-x-2" : ""
-				)}
-				style={{
-					marginTop: fullHeight ? "env(safe-area-inset-top)" : "",
-				}}
-			>
-				<button
-					className="pointer-events-auto w-6 h-6 flex items-center justify-center bg-content text-card shadow-sm rounded-full"
-					onClick={dismiss}
-				>
-					<svg
-						className="w-4"
-						fill="none"
-						viewBox="0 0 24 24"
-						strokeWidth="2"
-						stroke="currentColor"
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							d="M6 18 18 6M6 6l12 12"
-						></path>
-					</svg>
-				</button>
 			</div>
 
-			{headingSet && (
-				<div
-					className={clsx(
-						"pb-2 border-content/10 overflow-hidden flex flex-col",
-						image && !noPadding && "-mt-10 -mx-6"
-					)}
-				>
-					{image && (
-						<div
-							className="mb-4 bg-content/5 relative"
-							style={{
-								aspectRatio:
-									image == "gradient" ? "2/0.3" : "2/0.5",
-								background:
-									image == "gradient"
-										? getGradient(gradient)
-										: "",
-								paddingTop: "env(safe-area-inset-top)",
-							}}
-						>
-							{image == "gradient" ? null : [
-									true,
-									"random",
-							  ].includes(image) ? (
-								<DataFetcher
-									source={dataSources.unsplash}
-									first
-									shuffle
-									contentOnly
-								>
-									{({ data }) => (
-										<img
-											className="absolute inset-0 size-full object-cover"
-											src={data.urls.regular}
-										/>
-									)}
-								</DataFetcher>
-							) : (
-								<img
-									className="absolute inset-0 size-full object-cover"
-									src={image}
-								/>
-							)}
-						</div>
-					)}
-
-					<div className={`${image && "px-6"}`}>
-						{title && (
-							<h3 className="text-lg font-bold first-letter:uppercase">
-								{title}
-							</h3>
-						)}
-
-						{subtitle && (
-							<p
-								className="mb-2 text-sm text-content/80 max-lines"
-								style={{
-									"--max-lines": 3,
-								}}
-							>
-								{subtitle}
-							</p>
-						)}
-					</div>
-				</div>
-			)} */}
-
-			<div
-				className={clsx("flex-1 flex flex-col gap-4", {
-					"justify-center": centerContent,
-					"pt-2": !fullHeight && !noHeading,
-				})}
-			>
+			<div className="relative px-6 py-3 space-y-4">
 				{source ? (
 					<DataWidget
 						large
@@ -407,6 +248,6 @@ export default function GenericPage({
 					renderContent()
 				)}
 			</div>
-		</div>
+		</>
 	);
 }

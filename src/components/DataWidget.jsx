@@ -17,6 +17,7 @@ function DataWidgetContent({
 	onReorder = () => {},
 	...props
 }) {
+	widgetProps = widgetProps ?? { noPadding: props.noPadding };
 	const {
 		layout,
 		columns = 2,
@@ -199,7 +200,7 @@ function DataWidgetContent({
 
 	return (
 		<Widget {...widgetProps} refresh={refetch}>
-			{props.title && (
+			{props.title && data?.length && (
 				<div className="px-1 mb-1">
 					<h2 className="text-xl font-semibold text-content">
 						{props.title}

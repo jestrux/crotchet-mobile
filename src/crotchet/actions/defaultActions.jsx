@@ -1,5 +1,4 @@
 import { firebaseUploadFile } from "@/providers/data/firebase/useFirebase";
-import { readClipboard, showToast, toggleAppWindow } from "@/crotchet";
 import RemoteApp from "@/crotchet/apps/Remote/RemoteApp";
 
 // export const uploadFile = async (_, { showToast }) => {
@@ -155,18 +154,20 @@ export const clipboard = {
 	),
 	global: true,
 	// mobileOnly: true,
-	handler: async (_, { openShareSheet, utils, showToast }) => {
+	handler: async () => {
 		try {
-			await toggleAppWindow(true);
-			if (utils.onDesktop()) await utils.someTime(200);
-			const { type, value } = await readClipboard();
-			const payload = utils.processShareData(value, type);
+			await window.toggleAppWindow(true);
+			if (window.onDesktop()) await window.someTime(200);
+			const { type, value } = await window.readClipboard();
+			const { payload, preview } = window.processShareData(value, type, {
+				fromClipboard: true,
+			});
 
-			if (!payload) return showToast("Nothing in clipboard");
+			if (!payload) return window.showToast("Nothing in clipboard");
 
-			return openShareSheet(payload);
+			return window.openActionSheet({ inset: false, payload, preview });
 		} catch (error) {
-			showToast("Error: " + error);
+			window.showToast("Error: " + error);
 		}
 	},
 };

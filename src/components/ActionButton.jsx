@@ -8,16 +8,17 @@ export default function ActionButton({
 	className,
 	children,
 	propagate = true,
+	onClick,
 	onHold,
 }) {
-	const { loading, onClick } = useActionClick(action, {
+	const { loading, onClick: _onClick } = useActionClick(action, {
 		propagate,
 	});
 
 	return (
 		<MutliGestureButton
 			// disabled={loading}
-			onClick={onClick}
+			onClick={onClick || _onClick}
 			onHold={onHold}
 			className={clsx("relative", className)}
 		>

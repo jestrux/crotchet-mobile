@@ -1,12 +1,16 @@
 import { useRef } from "react";
 import clsx from "clsx";
 import useStickyObserver from "@/hooks/useStickyObserver";
+import { usePageContext } from "../PageProvider";
 
-export default function PageHeader({ title, onClose }) {
+export default function PageHeader({ refreshKey }) {
+	const { page, title: _title, onClose } = usePageContext();
+	const title = _title();
+
 	const navRef = useRef(null);
 	const stuck = useStickyObserver(navRef.current, -50);
 	const pageHasHeader = title?.length;
-	const pageCanPop = typeof onClose == "function";
+	const pageCanPop = typeof onClose == "function" && page?._id != "root";
 
 	if (!pageHasHeader) {
 		return (
@@ -71,6 +75,8 @@ export default function PageHeader({ title, onClose }) {
 								{title}
 							</div>
 						)}
+
+						<span className="hidden">{refreshKey}</span>
 					</div>
 				</div>
 			)}

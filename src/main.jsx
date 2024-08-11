@@ -14,15 +14,15 @@ import "./crotchet/actions";
 import "./crotchet/apps";
 
 import AppProvider from "./providers/app";
-// import App from "./App";
-import SetHero from "./MobileApp/SetHero";
+import App from "./App";
+import "./MobileApp/SetHero";
 
 const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
 	<QueryClientProvider client={queryClient}>
 		<AppProvider>
-			<SetHero />
+			<App />
 		</AppProvider>
 	</QueryClientProvider>
 );

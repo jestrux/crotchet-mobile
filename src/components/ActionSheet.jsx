@@ -86,7 +86,7 @@ export default function ActionSheet({
 		return <PreviewCard {...preview} />;
 	};
 
-	const actions = sheetProps.actions.map((action) => {
+	const actions = (sheetProps.actions || []).map((action) => {
 		action.__id = randomId();
 		let handler = action.handler;
 

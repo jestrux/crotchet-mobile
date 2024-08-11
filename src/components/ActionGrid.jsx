@@ -1,6 +1,6 @@
-import { useSourceGet } from "@/crotchet";
 import ActionButton from "./ActionButton";
 import clsx from "clsx";
+import { useDataLoader } from "@/hooks";
 
 const Icon = ({ icon, fallback }) => {
 	if (icon && typeof icon == "string")
@@ -18,13 +18,16 @@ export default function ActionGrid({
 	maxLines,
 	colorDark: _colorDark,
 	entryActions,
+	hideTrailing = false,
+	payload,
 	onClose = () => {},
 }) {
-	const { loading, data: actions } = useSourceGet(() => {
-		if (_.isFunction(data)) return data();
+	const { loading, data: actions } = useDataLoader({ handler: data });
 
-		return data;
-	});
+	const handleClick = (action) => {
+		onClose(action?.handler ? null : action?.value || action);
+		action?.handler?.(payload);
+	};
 
 	const typeInline = type == "inline";
 	const typeGrid = type == "grid";
@@ -65,26 +68,33 @@ export default function ActionGrid({
 			return (
 				<ActionButton
 					action={action}
+					onClick={() => handleClick(action)}
 					onHold={onHold}
 					className="w-full h-12 flex items-center gap-3 pl-4 pr-2.5"
 				>
-					<Icon icon={action.icon} />
+					{action.icon && (
+						<div className="size-5">
+							<Icon icon={action.icon} />
+						</div>
+					)}
 
 					<div className="">{action.label || action.title}</div>
 
-					<svg
-						className="ml-auto size-5 opacity-20"
-						fill="none"
-						viewBox="0 0 24 24"
-						strokeWidth={1.5}
-						stroke="currentColor"
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							d="m8.25 4.5 7.5 7.5-7.5 7.5"
-						/>
-					</svg>
+					{!hideTrailing && (
+						<svg
+							className="ml-auto size-5 opacity-20"
+							fill="none"
+							viewBox="0 0 24 24"
+							strokeWidth={1.5}
+							stroke="currentColor"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								d="m8.25 4.5 7.5 7.5-7.5 7.5"
+							/>
+						</svg>
+					)}
 				</ActionButton>
 			);
 
@@ -95,7 +105,21 @@ export default function ActionGrid({
 					onHold={onHold}
 					className="bg-card dark:bg-content/5 shadow dark:border border-content/5 rounded-lg py-2 px-3 flex flex-col gap-1.5 items-start"
 				>
-					<Icon icon={action.icon} />
+					{action.icon && (
+						<div
+							className="size-8 rounded-full p-1.5 bg-content/5"
+							style={
+								action.color
+									? {
+											backgroundColor: action.color,
+											color: "white",
+									  }
+									: {}
+							}
+						>
+							<Icon icon={action.icon} />
+						</div>
+					)}
 
 					<div className="text-left text-xs line-clamp-1 font-semibold">
 						{action.label || action.title}
@@ -156,7 +180,7 @@ export default function ActionGrid({
 	if (!actions?.length) return null;
 
 	return (
-		<div onClick={onClose}>
+		<div>
 			{title && (
 				<div className="px-1 mb-1">
 					<h2 className="text-xl font-semibold">{title}</h2>
@@ -198,8 +222,11 @@ export default function ActionGrid({
 							: "grid grid-cols-3 gap-2"
 					}
 				>
-					{actions.map((action) => (
-						<ActionItem key={action._id} action={action} />
+					{actions.map((action, index) => (
+						<ActionItem
+							key={action._id + " " + index}
+							action={action}
+						/>
 					))}
 				</div>
 			)}

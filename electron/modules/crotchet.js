@@ -19,6 +19,9 @@ module.exports = function Crotchet() {
 
 	this.fullScreenTimeout = { then: (resolve) => setTimeout(resolve, 40) };
 
+	this.runJS = (js) =>
+		this.mainWindow.webContents.executeJavaScript(js, true);
+
 	this.backgroundAction = async (_action, allProps = {}) => {
 		const { permissions, ...props } = allProps;
 		try {
@@ -78,15 +81,12 @@ module.exports = function Crotchet() {
 			this.mainWindow.maximize();
 		} else this.resize(width && height ? { width, height } : undefined);
 
-		this.mainWindow.webContents.executeJavaScript(
-			/*js*/ `
+		this.runJS(/*js*/ `
 				window.__crotchet.desktop.openApp({
 					scheme: "${scheme}",
 					url: "${url}",
 				});
-			`,
-			true
-		);
+			`);
 
 		this.mainWindow.focus();
 
@@ -96,6 +96,9 @@ module.exports = function Crotchet() {
 	this.setMainWindow = (window) => {
 		this.mainWindow = window;
 		this.registerShortcuts();
+		this.runJS(/*js*/ `
+				document.body.setAttribute("data-visible", true);
+			`);
 	};
 
 	this.setBackgroundWindow = (window) => {
@@ -193,6 +196,12 @@ module.exports = function Crotchet() {
 		}
 
 		this.showWindow = show;
+
+		this.runJS(
+			show
+				? 'document.body.setAttribute("data-visible", true)'
+				: 'document.body.removeAttribute("data-visible")'
+		);
 
 		return show;
 	};
