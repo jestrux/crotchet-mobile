@@ -149,7 +149,7 @@ const Modal = ({
 	dragProps,
 	noHeading,
 }) => {
-	useKeyboard({ mode: "native" });
+	// useKeyboard({ mode: "native" });
 	const cancelRef = useRef();
 	const { listeners, attributes, setNodeRef, style, reset } = dragProps || {};
 

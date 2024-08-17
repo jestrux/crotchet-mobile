@@ -133,7 +133,7 @@ const WidgetContent = ({ inset, content, loading, actionTypeMap }) => {
 				></div>
 			)}
 
-			{loading && <Loader fillParent />}
+			{loading && <Loader showScrim={false} fillParent />}
 
 			{content && (
 				<>

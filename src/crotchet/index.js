@@ -337,6 +337,9 @@ export const registerPage = (name, page) => {
 	};
 };
 
+export const setHomePage = (page) =>
+	(window.__crotchetApp.homePage = window.pages[page]);
+
 export const registerAutomationAction = (name, action) => {
 	let _label = name,
 		_handler = action,
