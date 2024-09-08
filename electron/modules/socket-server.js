@@ -158,6 +158,14 @@ module.exports = function socketServer(server) {
 		});
 
 	ipcMain.handle(
+		"read-network-file",
+		async (_, { url, blob = false, json = false } = {}) =>
+			fetch(url).then((res) =>
+				blob ? (json ? res.json() : res.blob()) : res.text()
+			)
+	);
+
+	ipcMain.handle(
 		"get-file",
 		async (_, { read, properties }) =>
 			new Promise((res) =>

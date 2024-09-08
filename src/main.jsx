@@ -15,7 +15,6 @@ import "./crotchet/apps";
 
 import AppProvider from "./providers/app";
 import App from "./App";
-import "./MobileApp/SetHero";
 
 const queryClient = new QueryClient();
 

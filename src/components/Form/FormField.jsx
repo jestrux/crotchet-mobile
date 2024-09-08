@@ -687,7 +687,13 @@ const ImageField = ({ value, name, meta, optional, onChange }) => {
 	);
 };
 
-const ContentEditableField = ({ value, name, optional, onChange }) => {
+const ContentEditableField = ({
+	value,
+	mode = "javascript",
+	name,
+	optional,
+	onChange,
+}) => {
 	const editorRef = useRef(null);
 	const textareaRef = useRef(null);
 	const handleChange = (cm) => {
@@ -723,7 +729,7 @@ const ContentEditableField = ({ value, name, optional, onChange }) => {
 			editorRef.current = window.CodeMirror.fromTextArea(
 				textareaRef.current,
 				{
-					mode: "javascript",
+					mode,
 					lineNumbers: true,
 					onChange: handleChange,
 				}

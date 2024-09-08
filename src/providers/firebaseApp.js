@@ -21,6 +21,7 @@ import {
 	ref,
 	getDownloadURL,
 	uploadString,
+	uploadBytes,
 } from "firebase/storage";
 
 // Cors for firebase storage
@@ -157,4 +158,23 @@ export const uploadDataUrl = async (content) => {
 		"data_url"
 	);
 	return await getDownloadURL(fileRef);
+};
+
+export const uploadStringAsFile = async (
+	content,
+	{ name = randomId() + ".txt", type = "text/plain" }
+) => {
+	const file = new Blob([content], {
+		type,
+	});
+
+	console.log("File ref: ", "crotchet-uploads/file-" + name);
+
+	const fileRef = ref(storage, "crotchet-uploads/file-" + name);
+
+	var res = await uploadBytes(fileRef, file, { type });
+
+	return await getDownloadURL(res.ref);
+
+	// https://firebasestorage.googleapis.com/v0/b/letterplace-c103c.appspot.com/o/crotchet-uploads%2Ffile-ipf-os-app.json?alt=media&token=2b0672b7-279e-497c-8bb9-bf1f51520e4b
 };

@@ -10,6 +10,15 @@ window.addEventListener("socket-emit", (e) => {
 	ipcRenderer.send("socket-emit", { event, payload });
 });
 
+window.addEventListener("read-network-file", (e) => {
+	const [key, props] = e.detail;
+	ipcRenderer
+		.invoke("read-network-file", props)
+		.then((result) =>
+			window.dispatchEvent(new CustomEvent(key, { detail: result }))
+		);
+});
+
 window.addEventListener("get-file", (e) => {
 	const [key, props] = e.detail;
 	document.body.classList.add(`get-file-${key}`);

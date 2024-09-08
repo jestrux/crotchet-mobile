@@ -62,6 +62,21 @@ const commandProps = (item, section, favorites) => {
 					);
 				},
 			},
+			{
+				section: "Clear",
+				label: "Clear Favorites",
+				handler: () => {
+					window.__crotchet.withLoader(
+						async () => {
+							await savePreference("favorite-commands", []);
+							dispatch("app-commands-updated");
+						},
+						{
+							successMessage: "Favorites cleared",
+						}
+					);
+				},
+			},
 		],
 	};
 

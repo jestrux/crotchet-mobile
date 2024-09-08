@@ -1,5 +1,7 @@
 import { firebaseUploadFile } from "@/providers/data/firebase/useFirebase";
 import RemoteApp from "@/crotchet/apps/Remote/RemoteApp";
+import { readNetworkFile } from "@/utils";
+import { uploadStringAsFile } from "@/providers/firebaseApp";
 
 // export const uploadFile = async (_, { showToast }) => {
 // 	await firebaseUploadFile();
@@ -243,5 +245,64 @@ export const trimNewLines = {
 			.join(" ");
 		hideApp();
 		socketEmit("copy-paste", value);
+	},
+};
+
+export const openCrotchetFlutterBuild = {
+	url: `crotchet://socket/run?command=open /Users/waky/Documents/flutter/crotchet-flutter/build/ios/iphoneos`,
+};
+
+export const editIpfApp = {
+	global: true,
+	handler: async (_, { openPage }) => {
+		// const realUrl = "https://firebasestorage.googleapis.com/v0/b/ipfos-91775.appspot.com/o/crotchet-uploads%2Ffile-ipf-os-app.json?alt=media&token=cb53771e-73a7-4c9f-bf45-bd48c39a6102";
+		const url =
+			"https://firebasestorage.googleapis.com/v0/b/letterplace-c103c.appspot.com/o/crotchet-uploads%2Ffile-ipf-os-app.json?alt=media&token=5670f9c6-417f-4c1a-a3cd-471815050659";
+		return openPage({
+			title: "Edit iPF App",
+			type: "form",
+			resolve: () =>
+				readNetworkFile(url).then((res) =>
+					JSON.stringify(JSON.parse(res), null, 4)
+				),
+			noPadding: true,
+			fullWidth: true,
+			field: ({ pageData }) => {
+				if (!pageData) return null;
+
+				return {
+					label: "",
+					type: "contentEditable",
+					value: pageData,
+					// meta: {
+					// 	mode: "text/json"
+					// },
+				};
+			},
+			// resolve: () =>
+			// 	readNetworkFile(url, { json: true }).then((res) =>
+			// 		JSON.parse(res)
+			// 	),
+			// fields: ({ pageData }) => {
+			// 	if (!pageData) return null;
+
+			// 	return {
+			// 		name: { value: pageData.name },
+			// 		color: { type: "color", value: pageData.color },
+			// 	};
+			// },
+			action: {
+				label: "Save App",
+				handler: async (data) =>
+					uploadStringAsFile(data, {
+						type: "application/json",
+						name: "ipf-os-app.json",
+					}),
+			},
+		});
+		// window.uploadRawString(JSON.stringify(dt), {
+		// 	type: "application/json",
+		// 	name: "ipf-os-app.json",
+		// });
 	},
 };
