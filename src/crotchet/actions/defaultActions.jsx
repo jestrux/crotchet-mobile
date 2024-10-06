@@ -1,7 +1,7 @@
 import { firebaseUploadFile } from "@/providers/data/firebase/useFirebase";
 import RemoteApp from "@/crotchet/apps/Remote/RemoteApp";
 import { readNetworkFile } from "@/utils";
-import { uploadStringAsFile } from "@/providers/firebaseApp";
+import { dbUpdate, uploadStringAsFile } from "@/providers/firebaseApp";
 
 // export const uploadFile = async (_, { showToast }) => {
 // 	await firebaseUploadFile();
@@ -250,6 +250,48 @@ export const trimNewLines = {
 
 export const openCrotchetFlutterBuild = {
 	url: `crotchet://socket/run?command=open /Users/waky/Documents/flutter/crotchet-flutter/build/ios/iphoneos`,
+};
+
+export const editCrotchetExtension = {
+	global: true,
+	handler: async (_, { openPage, queryDb, dispatch }) => {
+		const choice = await openPage({
+			type: "search",
+			resolve: () =>
+				queryDb("__crotchetExtensions").then((res) =>
+					res.map((e) => ({
+						value: e._id,
+						label: e.name,
+						action: {
+							label: "Select",
+							handler: () => dispatch("close-page", e),
+						},
+					}))
+				),
+		});
+
+		if (!choice) return;
+
+		return openPage({
+			title: `Edit ${choice.name}`,
+			type: "form",
+			noPadding: true,
+			fullWidth: true,
+			field: {
+				label: "",
+				type: "contentEditable",
+				value: choice.contents,
+			},
+			action: {
+				label: "Save Changes",
+				handler: async (contents) => {
+					dbUpdate("__crotchetExtensions", choice._rowId, {
+						contents,
+					});
+				},
+			},
+		});
+	},
 };
 
 export const editIpfApp = {
