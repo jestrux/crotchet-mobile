@@ -237,10 +237,10 @@ const getYoutubeVideoDetails = async (url) => {
 						const duration = player.getDuration();
 						playerEl.remove();
 
-						if (!duration) {
-							showToast("Invalid youtube video");
-							return resolve(null);
-						}
+						// if (!duration) {
+						// 	showToast("Invalid youtube video");
+						// 	return resolve(null);
+						// }
 
 						resolve({
 							id: videoId,
@@ -299,21 +299,25 @@ const getYoutubeVideoEditor = async (url, openPage, oldValues = {}) => {
 	});
 };
 
-const editVideo = async (title, payload, openForm, handler) => {
-	const video = {
-		...payload,
-		title: payload.title || payload.name,
-		start: payload.crop?.at(0) || 0,
-		end: payload.crop?.at(1) || payload.duration,
-	};
-
-	return await openForm({
-		title,
-		data: video,
+const editVideo = async ({ title, resolve, openForm, handler }) => {
+	return openForm({
+		title: title
+			? title
+			: ({ pageData: video }) =>
+					`${video?._rowId ? "Edit" : "Add"} Youtube Clip`,
 		liveUpdate: false,
-		resolve: () => video,
+		resolve: async () => {
+			const payload =
+				typeof resolve == "function" ? await resolve() : resolve;
+			return {
+				...payload,
+				title: payload.title || payload.name,
+				start: payload.crop?.at(0) || 0,
+				end: payload.crop?.at(1) || payload.duration,
+			};
+		},
 		preview({ pageData: video }) {
-			if (!video) return null;
+			if (!video) return <div />;
 
 			return (
 				<div className="aspect-[16/10] bg-black">
@@ -334,16 +338,21 @@ const editVideo = async (title, payload, openForm, handler) => {
 		},
 		action: {
 			label: "Save Clip",
+			successMessage: "Clip Saved",
 			handler: (res) => {
 				if (!res) return null;
 
 				const { start, end, ...video } = res;
 
-				return handler({
+				const payload = {
 					...(video ?? {}),
 					name: video.title,
 					crop: [start, end],
-				});
+				};
+
+				if (typeof handler == "function") return handler(payload);
+
+				return payload;
 			},
 		},
 	});
@@ -405,19 +414,19 @@ const getActions = (payload) => {
 			label: "Edit Video",
 			section: "Edit",
 			handler: async (_, { dataSources, openForm }) => {
-				return editVideo(
-					"Edit Youtube Clip",
-					payload,
+				return editVideo({
+					title: "Edit Youtube Clip",
+					resolve: payload,
 					openForm,
-					(editedVideo) => {
+					handler: (editedVideo) => {
 						if (!editedVideo) return;
 
 						return dataSources.youtubeClips.updateRow(
 							payload._id,
 							editedVideo
 						);
-					}
-				);
+					},
+				});
 			},
 		},
 		editYoutubeClipSource: {
@@ -495,61 +504,51 @@ const getActions = (payload) => {
 	}, []);
 };
 
-const addClip = async (
-	{ url },
-	{ readClipboard, openForm, dataSources, withLoader }
-) => {
-	const video = url
-		? await withLoader(() => getYoutubeVideoDetails(url))
-		: await openForm({
-				title: "Add Youtube Clip",
-				field: {
-					label: "Video URL",
-					defaultValue: await readClipboard().then(({ value } = {}) =>
-						getYoutubeId(value) ? value : ""
-					),
-				},
-				action: {
-					handler: async (url) => {
-						if (!url?.length) throw "Video URL is required";
+const addClip = async ({ url }, { readClipboard, openForm, dataSources }) => {
+	const saveVideo = (video) => {
+		var id = video?.rowId || video?._id || video.id;
 
-						const videoId = getYoutubeId(url);
-						if (!videoId) throw `${url} is not a vaild Youtube URL`;
+		if (!id) return;
 
-						return await getYoutubeVideoDetails(
-							getYoutubeActualUrl({
-								_id: videoId,
-							})
-						);
-					},
-				},
-		  });
-
-	if (!video?._id) return;
-
-	if (video._rowId) {
-		return editVideo(
-			"Edit Youtube Clip",
-			video,
-			openForm,
-			(editedVideo) => {
-				if (!editedVideo) return;
-
-				return dataSources.youtubeClips.updateRow(
-					video._rowId,
-					editedVideo
-				);
-			}
-		);
-	}
-
-	return editVideo("Add Youtube Clip", video, openForm, (res) => {
-		if (!res?.id) return;
+		if (video._rowId)
+			return dataSources.youtubeClips.updateRow(video._rowId, video);
 
 		return dataSources.youtubeClips.insertRow({
-			...res,
-			_rowId: res._id,
+			...video,
+			_rowId: id,
 		});
+	};
+
+	url =
+		url ||
+		(await openForm({
+			title: "Add Youtube Clip",
+			field: {
+				label: "Video URL",
+				defaultValue: await readClipboard().then(({ value } = {}) =>
+					getYoutubeId(value) ? value : ""
+				),
+			},
+			action: {
+				handler: async (url) => {
+					if (!url?.length) throw "Video URL is required";
+
+					const videoId = getYoutubeId(url);
+					if (!videoId) throw `${url} is not a vaild Youtube URL`;
+
+					return getYoutubeActualUrl({
+						_id: videoId,
+					});
+				},
+			},
+		}));
+
+	if (!url) return;
+
+	return editVideo({
+		resolve: () => getYoutubeVideoDetails(url),
+		openForm,
+		handler: saveVideo,
 	});
 };
 
