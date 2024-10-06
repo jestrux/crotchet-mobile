@@ -58,6 +58,7 @@ export default function SearchPage({ children }) {
 		setMainAction,
 		setActions,
 		onClose,
+		fallbackSearchResults,
 		onPop,
 		onPopAll,
 		onOpen,
@@ -76,11 +77,27 @@ export default function SearchPage({ children }) {
 	const { grid, aspectRatio, columns } = layoutDetails(page);
 	const choices = pageData || [];
 	const choiceSections = sectionedChoices(choices, query);
+	const searchResults = choiceSections?.length
+		? choiceSections
+		: sectionedChoices(
+				_.map(fallbackSearchResults(query) || [], (result) => ({
+					...result,
+					section: `Use "${query}" with`,
+				}))
+		  );
 
 	const getContainer = () => containerRef.current;
 
 	const getActionForValue = (value) => {
-		const choice = objectFieldChoices(choices).find(
+		const searchQuery = inputRef.current.value;
+		const results = sectionedChoices(choices, searchQuery)?.length
+			? choices
+			: _.map(fallbackSearchResults(searchQuery) || [], (result) => ({
+					...result,
+					section: `Use "${searchQuery}" with`,
+			  }));
+
+		const choice = objectFieldChoices(results).find(
 			(choice) => choice.value == value
 		);
 		let action, actions;
@@ -291,12 +308,12 @@ export default function SearchPage({ children }) {
 					children
 				) : (
 					<>
-						{!choiceSections?.length && query?.length > 0 && (
+						{!searchResults?.length && query?.length > 0 && (
 							<div className="rounded relative cursor-default select-none py-2 truncate text-[14px] text-content/30 text-center font-medium">
 								No results
 							</div>
 						)}
-						{choiceSections.map(([section, choices], idx) => {
+						{searchResults.map(([section, choices], idx) => {
 							if (grid) {
 								return (
 									<SpotlightGrid
@@ -317,11 +334,19 @@ export default function SearchPage({ children }) {
 									key={section + "" + idx}
 									className={clsx({
 										"border-b border-content/5":
-											idx != choiceSections.length - 1,
+											idx != searchResults.length - 1,
 									})}
 								>
 									{section && section != "undefined" && (
-										<span className="mt-5 mb-1 uppercase tracking-wide text-xs font-semibold opacity-50 px-4 flex items-center">
+										<span
+											className={clsx(
+												"mt-5 mb-1 tracking-wide text-xs font-semibold opacity-50 px-4 flex items-center",
+												{
+													uppercase:
+														choiceSections?.length,
+												}
+											)}
+										>
 											{section}
 										</span>
 									)}

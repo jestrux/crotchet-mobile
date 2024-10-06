@@ -1,9 +1,30 @@
 import SpotlightSearchPage from "./SpotlightSearchPage";
 import { SpotlightProvider, useSpotlightContext } from "./SpotlightContext";
 import DraggableElement from "@/components/DraggableElement";
-import { dispatch, getPreference, savePreference } from "@/utils";
+import {
+	dispatch,
+	getPreference,
+	getShareActions,
+	processShareData,
+	savePreference,
+} from "@/utils";
+import { useRef } from "react";
 
 const getFavoriteCommands = () => getPreference("favorite-commands", []);
+const getCommandRanking = () => getPreference("command-ranking", {});
+
+const updateCommandRanking = async (command, position) => {
+	const ranking = await getCommandRanking();
+	const newPosition = position ?? (ranking[command] || 0) + 1;
+	if (newPosition != -1) ranking[command] = newPosition;
+	else delete ranking[command];
+
+	await savePreference("command-ranking", ranking);
+
+	dispatch("app-commands-updated");
+
+	return newPosition;
+};
 
 const toggleCommandInFavorites = async (command, status) => {
 	const favorites = await getFavoriteCommands();
@@ -58,6 +79,20 @@ const commandProps = (item, section, favorites) => {
 						},
 						{
 							successMessage: `${item.label} moved to top`,
+						}
+					);
+				},
+			},
+			{
+				label: "Reset Ranking",
+				handler: () => {
+					window.__crotchet.withLoader(
+						async () => {
+							await updateCommandRanking(item.name, -1);
+							dispatch("app-commands-updated");
+						},
+						{
+							successMessage: "Ranking reset",
 						}
 					);
 				},
@@ -150,13 +185,69 @@ export function SpotlightSearchWrapper({ open, children }) {
 		popSpotlightToRoot,
 		...props
 	} = useSpotlightContext();
+	const rankingRef = useRef({});
 
 	const rootPage = {
 		open,
 		id: "root",
 		_id: "root",
 		type: "search",
-		resolve: getCommands,
+		fallbackSearchResults: ({ searchQuery }) => {
+			const payload = {
+				...((processShareData(searchQuery) || {}).payload || {}),
+				fromClipboard: true,
+			};
+
+			return getShareActions(payload).map((item) => {
+				const ranking = rankingRef.current;
+
+				return {
+					pinned: ranking[item.name] ?? -1,
+					name: item.name,
+					label: item.label,
+					value: item.label,
+					trailing: "Action",
+					action: {
+						label: "Select action",
+						handler: () => {
+							updateCommandRanking(item.name).then(
+								(newPosition) =>
+									(ranking[item.name] = newPosition)
+							);
+							return item.handler(payload, window.__crotchet);
+						},
+					},
+					actions: (...payload) => [
+						...(typeof item.actions == "function"
+							? item.actions(...payload)
+							: item.actions
+							? item.actions
+							: []),
+						{
+							label: "Reset Ranking",
+							handler: () => {
+								window.__crotchet.withLoader(
+									async () => {
+										await updateCommandRanking(
+											item.name,
+											-1
+										);
+										dispatch("app-commands-updated");
+									},
+									{
+										successMessage: "Ranking reset",
+									}
+								);
+							},
+						},
+					],
+				};
+			});
+		},
+		resolve: async () => {
+			rankingRef.current = await getCommandRanking();
+			return getCommands();
+		},
 		listenForUpdates: (callback = () => {}) => {
 			window.addEventListener("app-commands-updated", callback, false);
 

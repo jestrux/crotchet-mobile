@@ -342,6 +342,22 @@ export default function SpotlightSearchPage({
 					onDataUpdated,
 					onEscape,
 					onClose,
+					fallbackSearchResults: (searchQuery) => {
+						const fallbackSearchResults =
+							page?.fallbackSearchResults;
+						return typeof fallbackSearchResults == "function"
+							? fallbackSearchResults({
+									...contextInfo,
+									searchQuery,
+							  })
+							: fallbackSearchResults || [];
+					},
+					get title() {
+						const title = page?.title;
+						return typeof title == "function"
+							? title(contextInfo)
+							: title;
+					},
 					content: () => {
 						const content = page?.content;
 						return typeof content == "function"

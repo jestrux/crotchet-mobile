@@ -10,7 +10,11 @@ export default function DetailPage({
 	onOpen,
 	onPop,
 }) {
-	const { pageResolving, content: _content } = useSpotlightPageContext();
+	const {
+		pageResolving,
+		content: _content,
+		title,
+	} = useSpotlightPageContext();
 	const popoverTitleRef = useRef(null);
 	const containerRef = useRef(null);
 
@@ -54,9 +58,7 @@ export default function DetailPage({
 					</button>
 				)}
 
-				<span className="w-full text-base font-bold">
-					{page?.title}
-				</span>
+				<span className="w-full text-base font-bold">{title}</span>
 
 				{!pageResolving && <SpotlightPageFilters page={page} />}
 			</div>
