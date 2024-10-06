@@ -169,7 +169,7 @@ export default function AppProvider({ children }) {
 	useDataLoader({
 		handler: async () => {
 			const theme = await getPreference("crotchet-app-theme", {
-				colorScheme: "light",
+				colorScheme: "system",
 			});
 			const themeProps = getThemeProps(theme);
 			window.__crotchet["crotchet-app-theme"] = themeProps;

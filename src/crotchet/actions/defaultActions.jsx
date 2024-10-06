@@ -32,6 +32,41 @@ const defaultThemes = {
 	"Roses are Red": { colorScheme: "dark", tintColor: "#be123c" },
 };
 
+const getThemes = ({ filter, savePreference, inlineActions = false } = {}) =>
+	Object.keys(defaultThemes).reduce((agg, name) => {
+		const themeProps = defaultThemes[name];
+		themeProps.name = name;
+		let { colorScheme } = themeProps;
+		colorScheme = colorScheme?.toLowerCase();
+
+		const handler = async () => {
+			await savePreference("crotchet-app-theme", themeProps);
+			window.__crotchet["crotchet-app-theme"] = themeProps;
+			dispatch("crotchet-app-theme-updated");
+			dispatch("with-loader-status-change", {
+				status: "success",
+				message: `Theme set to ${name}`,
+			});
+		};
+
+		const theme = {
+			label: name,
+			value: name,
+			...(inlineActions
+				? { section: "Set Theme", handler }
+				: {
+						action: () => ({
+							label: "Select Theme",
+							handler,
+						}),
+				  }),
+		};
+
+		if (!filter || filter == colorScheme) agg.push(theme);
+
+		return agg;
+	}, []);
+
 export const appTheme = {
 	icon: (
 		<svg
@@ -50,6 +85,11 @@ export const appTheme = {
 		</svg>
 	),
 	global: true,
+	actions: () =>
+		getThemes({
+			savePreference: window.__crotchet.savePreference,
+			inlineActions: true,
+		}),
 	handler: async (_, { openPage, savePreference }) => {
 		await openPage({
 			title: "Set App Theme",
@@ -62,43 +102,7 @@ export const appTheme = {
 			filters: [{ label: "All", value: "" }, "Dark", "Light", "System"],
 			resolve: ({ filters }) => {
 				const filter = filters?.type?.toLowerCase();
-
-				const themes = Object.keys(defaultThemes).reduce(
-					(agg, name) => {
-						const themeProps = defaultThemes[name];
-						themeProps.name = name;
-						let { colorScheme } = themeProps;
-						colorScheme = colorScheme?.toLowerCase();
-
-						const theme = {
-							label: name,
-							value: name,
-							action: () => ({
-								label: "Select Theme",
-								handler: async () => {
-									await savePreference(
-										"crotchet-app-theme",
-										themeProps
-									);
-									window.__crotchet["crotchet-app-theme"] =
-										themeProps;
-									dispatch("crotchet-app-theme-updated");
-									dispatch("with-loader-status-change", {
-										status: "success",
-										message: `Theme set to ${name}`,
-									});
-								},
-							}),
-						};
-
-						if (!filter || filter == colorScheme) agg.push(theme);
-
-						return agg;
-					},
-					[]
-				);
-
-				return themes;
+				return getThemes({ filter, savePreference });
 			},
 		});
 	},
