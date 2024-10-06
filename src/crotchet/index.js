@@ -274,7 +274,7 @@ export const registerAction = (name, action) => {
 		actions,
 		tags = [],
 		icon,
-		global = true,
+		global = false,
 		context,
 		match,
 		shortcut,
