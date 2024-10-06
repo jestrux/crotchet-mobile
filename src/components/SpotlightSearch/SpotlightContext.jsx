@@ -94,7 +94,7 @@ export function SpotlightProvider({ pages, open, children }) {
 	const pushSpotlightPage = (page) => {
 		const [newPage, resolver] = getNewPage(page);
 
-		setSpotlightInnerPages([...spotlightInnerPages, newPage]);
+		setSpotlightInnerPages((pages) => [...pages, newPage]);
 
 		window.__crotchet.desktop.currentPageId = newPage._id;
 
