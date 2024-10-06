@@ -50,6 +50,7 @@ const SpotlightPageContext = createContext({
 	onSecondaryActionClick: () => {},
 	onNavigateDown: () => {},
 	onNavigateUp: () => {},
+	contextInfo: {},
 });
 
 export function SpotlightPageProvider({ value, children }) {

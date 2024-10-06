@@ -24,6 +24,7 @@ import {
 
 import { matchSorter } from "match-sorter";
 import Switch from "@/components/Switch";
+import ThemeBg from "@/components/ThemeBg";
 import useEventListener from "@/hooks/useEventListener";
 
 function useSearch(data, term) {
@@ -542,7 +543,10 @@ const ImageField = ({ value, name, meta, optional, onChange }) => {
 
 	return (
 		<div className="group w-full relative -mt-1" ref={elRef}>
-			<div className="hidden group-data-[initialized=true]:flex h-16 items-center bg-card border border-content/20 relative rounded-lg overflow-hidden">
+			<ThemeBg
+				overlay
+				className="hidden group-data-[initialized=true]:flex h-16 items-center bg-card border border-content/20 relative rounded-lg overflow-hidden"
+			>
 				<div
 					className={clsx(
 						"absolute inset-0 flex flex-col items-center justify-center border-[3px] border-dashed border-transparent group-data-[dragover=true]:border-content/10",
@@ -674,7 +678,7 @@ const ImageField = ({ value, name, meta, optional, onChange }) => {
 						</svg>
 					</button>
 				</a>
-			</div>
+			</ThemeBg>
 
 			<ReactTextareaAutosize
 				type="text"

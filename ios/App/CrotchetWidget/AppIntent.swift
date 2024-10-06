@@ -21,7 +21,7 @@ struct WidgetDataSource: AppEntity {
 
 struct WidgetDataSourceQuery: EntityQuery {
     func getSources() ->[WidgetDataSource] {
-        let sharedDefaults = UserDefaults.init(suiteName: "group.tz.co.crotchety")
+        let sharedDefaults = UserDefaults.init(suiteName: "group.tz.co.crotchet")
 
         if(sharedDefaults != nil) {
             let sources = sharedDefaults?.string(forKey: "dataSources") ?? ""

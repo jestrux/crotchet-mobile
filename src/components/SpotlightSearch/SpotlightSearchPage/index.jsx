@@ -305,6 +305,15 @@ export default function SpotlightSearchPage({
 		pageDataVersion,
 		formData,
 		pageFilter,
+		onPop: (payload) => {
+			if (typeof onPop == "function") return onPop(payload);
+			if (typeof onClose == "function") onClose(payload);
+		},
+		onPopToRoot: () => {
+			if (onPopAll == "function") return onPopAll();
+			if (typeof onPop == "function") return onPop();
+			if (typeof onClose == "function") onClose();
+		},
 	};
 
 	return (
@@ -437,7 +446,7 @@ export default function SpotlightSearchPage({
 					actions: () => {
 						const pageActions = actions || page?.actions;
 						return typeof pageActions == "function"
-							? pageActions({ pageData })
+							? pageActions(contextInfo)
 							: pageActions;
 					},
 					setActions,
@@ -449,6 +458,7 @@ export default function SpotlightSearchPage({
 					onMainActionClick,
 					onNavigateDown,
 					onNavigateUp,
+					contextInfo,
 				}}
 			>
 				{page.type != "search" ? (

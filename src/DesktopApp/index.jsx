@@ -4,7 +4,7 @@ import useEventListener from "../hooks/useEventListener";
 import clsx from "clsx";
 import useKeyDetector from "@/hooks/useKeyDetector";
 import SpotlightSearch from "@/components/SpotlightSearch";
-import ThemeOverlay from "@/components/ThemeOverlay";
+import ThemeBg from "@/components/ThemeBg";
 
 export default function DesktopApp() {
 	const toastTimerRef = useRef();
@@ -132,32 +132,44 @@ export default function DesktopApp() {
 		return <App {...(props || {})} />;
 	};
 
+	const appTheme = Object.entries(
+		_.omit(window.__crotchet["crotchet-app-theme"] || {}, [
+			"name",
+			"colorScheme",
+			"tintColor",
+		])
+	)
+		.map(([key, value]) => `${key}: ${value}`)
+		.join("; ");
+
 	return (
 		<div
 			className="h-screen w-screen text-content pointer-events-auto"
-			style={{
-				"--canvas-color": "0 0 0",
-				"--card-color": "20 20 20",
-				"--stroke-color": "53 53 53",
-				"--content-color": "255 255 255",
-			}}
 			onMouseMove={handleMouseMove}
 		>
+			<style>
+				{
+					/*css*/ `
+					:root {
+						${appTheme}
+					}
+				`
+				}
+			</style>
+
 			<div
 				className={clsx("relative h-full", {
 					"opacity-0": app?.scheme,
 				})}
 			>
-				<div
-					className="relative bg-canvas/[0.985] size-full overflow-hidden"
+				<ThemeBg
+					className="size-full overflow-hidden"
 					onMouseMove={handleMouseMove}
 				>
-					<ThemeOverlay />
-
 					<SpotlightSearch open={!app?.scheme} />
 
 					<div className="border border-transparent dark:border-content/30 rounded-xl fixed inset-0 pointer-events-none z-50"></div>
-				</div>
+				</ThemeBg>
 			</div>
 
 			{app?.scheme && (

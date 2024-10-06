@@ -23,20 +23,20 @@ function getIp() {
 }
 
 const capacitorConfig = {
-	appId: "tz.co.crotchety",
-	appName: "Crotchety",
+	appId: "tz.co.crotchet",
+	appName: "Crotchet",
 	webDir: "docs",
 	server: {
 		androidScheme: "https",
 	},
 	electron: {
-		customUrlScheme: "crotchety",
+		customUrlScheme: "crotchet",
 		trayIconAndMenuEnabled: true,
 		splashScreenEnabled: false,
 		splashScreenImageName: "splash.png",
 		hideMainWindowOnLaunch: false,
 		deepLinkingEnabled: true,
-		deepLinkingCustomProtocol: "crotchety",
+		deepLinkingCustomProtocol: "crotchet",
 	},
 };
 

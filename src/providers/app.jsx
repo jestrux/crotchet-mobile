@@ -34,6 +34,8 @@ import DataPreviewer from "@/components/DataPreviewer";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import AlertsWrapper from "@/components/Alerts";
 import FormPage from "@/components/Pages/FormPage";
+import useDataLoader from "../hooks/useDataLoader";
+import { getPreference, getThemeProps } from "../utils";
 
 const AppContext = createContext({
 	dataSources: {},
@@ -164,6 +166,17 @@ const getSocket = () => {
 export default function AppProvider({ children }) {
 	const socket = useRef();
 	const [bottomSheets, setBottomSheets] = useState([]);
+	useDataLoader({
+		handler: async () => {
+			const theme = await getPreference("crotchet-app-theme", {
+				colorScheme: "light",
+			});
+			const themeProps = getThemeProps(theme);
+			window.__crotchet["crotchet-app-theme"] = themeProps;
+			dispatch("crotchet-app-theme-set");
+		},
+		listenForUpdates: "crotchet-app-theme-updated",
+	});
 
 	const setupSocket = () => {
 		if (onDesktop()) {

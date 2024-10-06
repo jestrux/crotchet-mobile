@@ -52,7 +52,7 @@ const createMainWindow = () => {
 		true
 	);
 
-	//const openDevTools = false;
+	const openDevTools = false;
 	if (isDev) {
 		const devtools = typeof openDevTools == "boolean";
 		if (devtools) {

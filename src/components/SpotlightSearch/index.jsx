@@ -54,6 +54,7 @@ const commandProps = (item, section, favorites) => {
 				? item.actions
 				: []),
 			{
+				section: "Command",
 				label: faved ? "Remove from favorites" : "Add to favorites",
 				handler: () => {
 					window.__crotchet.withLoader(
@@ -70,6 +71,7 @@ const commandProps = (item, section, favorites) => {
 				},
 			},
 			{
+				section: "Command",
 				label: "Move to top",
 				handler: () => {
 					window.__crotchet.withLoader(
@@ -84,6 +86,7 @@ const commandProps = (item, section, favorites) => {
 				},
 			},
 			{
+				section: "Command",
 				label: "Reset Ranking",
 				handler: () => {
 					window.__crotchet.withLoader(
@@ -98,7 +101,7 @@ const commandProps = (item, section, favorites) => {
 				},
 			},
 			{
-				section: "Clear",
+				section: "Crotchet",
 				label: "Clear Favorites",
 				handler: () => {
 					window.__crotchet.withLoader(

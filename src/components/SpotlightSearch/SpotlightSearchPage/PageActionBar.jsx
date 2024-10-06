@@ -7,11 +7,10 @@ import { dispatch, isValidAction } from "@/utils";
 import { onActionClick, Loader } from "@/crotchet";
 import SpotLightPageMenu from "./SpotLightPageMenu";
 import clsx from "clsx";
-import ThemeOverlay from "@/components/ThemeOverlay";
+import ThemeBg from "../../ThemeBg";
 
 export default function PageActionBar() {
 	const {
-		page,
 		pageData,
 		pageResolving,
 		pageStatus,
@@ -21,6 +20,7 @@ export default function PageActionBar() {
 		mainAction: _mainAction,
 		secondaryAction: _secondaryAction,
 		actions: _actions,
+		contextInfo,
 	} = useSpotlightPageContext();
 	const { confirm } = useAlerts();
 	const actionsButtonRef = useRef();
@@ -42,11 +42,11 @@ export default function PageActionBar() {
 	});
 
 	onSecondaryActionClick(() => {
-		handleSecondaryAction({ page, pageData });
+		handleSecondaryAction(contextInfo);
 	});
 
 	onMainActionClick(() => {
-		handleMainAction({ page, pageData });
+		handleMainAction(contextInfo);
 	});
 
 	const mainActionSet = () => {
@@ -125,7 +125,7 @@ export default function PageActionBar() {
 					size="sm"
 					variant="ghost"
 					colorScheme={secondaryAction.destructive && "red"}
-					onClick={() => handleSecondaryAction({ page, pageData })}
+					onClick={() => handleSecondaryAction(contextInfo)}
 				>
 					<span className="mr-0.5 capitalize text-sm">
 						{secondaryAction.label}
@@ -166,79 +166,79 @@ export default function PageActionBar() {
 	};
 
 	return (
-		<div className="rounded-b-xl bg-card/[0.985] fixed bottom-0 inset-x-0 h-11 px-3 flex gap-4 items-center border-t z-10">
-			<ThemeOverlay height="44px" />
+		<div className="bg-black/[0.05] dark:bg-black/[0.2] rounded-b-xl fixed bottom-0 inset-x-0 border-t z-10">
+			<ThemeBg overlay className="h-11 px-3 flex gap-4 items-center">
+				{!pageResolving && (
+					<>
+						<div className="relative h-full flex-1 flex items-center gap-4">
+							{renderSecondaryContent()}
+						</div>
 
-			{!pageResolving && (
-				<>
-					<div className="relative h-full flex-1 flex items-center gap-4">
-						{renderSecondaryContent()}
-					</div>
+						{mainActionSet() && (
+							<Button
+								className="gap-1"
+								onClick={() => handleMainAction(contextInfo)}
+								rounded="md"
+								size="sm"
+								variant="ghost"
+							>
+								<span className="mr-0.5 capitalize text-sm">
+									{mainAction?.label || "Submit"}
+								</span>
+								<CommandKey label={mainAction.shortcut} />
+							</Button>
+						)}
 
-					{mainActionSet() && (
-						<Button
-							className="gap-1"
-							onClick={() => handleMainAction({ page, pageData })}
-							rounded="md"
-							size="sm"
-							variant="ghost"
-						>
-							<span className="mr-0.5 capitalize text-sm">
-								{mainAction?.label || "Submit"}
-							</span>
-							<CommandKey label={mainAction.shortcut} />
-						</Button>
-					)}
+						{mainActionSet() && actions?.length > 0 && (
+							<div className="h-full border-l-2 border-content/15 max-h-5"></div>
+						)}
 
-					{mainActionSet() && actions?.length > 0 && (
-						<div className="h-full border-l-2 border-content/15 max-h-5"></div>
-					)}
+						{actions?.length > 0 && (
+							<SpotLightPageMenu
+								width="250px"
+								plain
+								choices={actions}
+								onChange={(value) => {
+									if (!value) return;
 
-					{actions?.length > 0 && (
-						<SpotLightPageMenu
-							width="250px"
-							plain
-							choices={actions}
-							onChange={(value) => {
-								if (!value) return;
-
-								const action = actions.find((action) =>
-									[
-										action,
-										action?.label,
-										action?.value,
-									].includes(value)
-								);
-
-								if (action) {
-									dispatch("action-selected", value);
-
-									onActionClick(action)(
-										{ pageData },
-										window.__crotchet
+									const action = actions.find((action) =>
+										[
+											action,
+											action?.label,
+											action?.value,
+										].includes(value)
 									);
+
+									if (action) {
+										dispatch("action-selected", value);
+
+										onActionClick(action)(
+											{ pageData },
+											window.__crotchet
+										);
+									}
+								}}
+								trigger={
+									<Button
+										as="div"
+										ref={actionsButtonRef}
+										className="gap-1 w-auto"
+										rounded="md"
+										size="sm"
+										variant="ghost"
+									>
+										<span className="mr-0.5 capitalize text-sm">
+											Actions
+										</span>
+										<CommandKey label="Cmd" />
+										<CommandKey label="K" />
+									</Button>
 								}
-							}}
-							trigger={
-								<Button
-									as="div"
-									ref={actionsButtonRef}
-									className="gap-1 w-auto"
-									rounded="md"
-									size="sm"
-									variant="ghost"
-								>
-									<span className="mr-0.5 capitalize text-sm">
-										Actions
-									</span>
-									<CommandKey label="Cmd" />
-									<CommandKey label="K" />
-								</Button>
-							}
-						/>
-					)}
-				</>
-			)}
+							/>
+						)}
+					</>
+				)}
+			</ThemeBg>
 		</div>
 	);
 }

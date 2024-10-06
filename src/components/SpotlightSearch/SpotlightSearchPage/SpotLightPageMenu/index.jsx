@@ -11,6 +11,7 @@ import {
 import { usePopper } from "./usePopper";
 import clsx from "clsx";
 import { sectionedChoices } from "@/utils";
+import ThemeBg from "@/components/ThemeBg";
 
 const SpotLightPageMenuContent = forwardRef(function SpotLightPageMenuContent(
 	{ idRef, choices, width, selected, onSelect, onOpen, onClose },
@@ -93,13 +94,14 @@ const SpotLightPageMenuContent = forwardRef(function SpotLightPageMenuContent(
 	};
 
 	return (
-		<div
+		<ThemeBg
+			overlay
 			id="menuContent"
-			className="z-10 absolute w-56 rounded-md overflow-hidden bg-card border shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none text-xs"
+			className="z-10 absolute w-56 rounded-md overflow-hidden border border-content/20 focus:outline-none text-xs"
 			style={{ width }}
 			ref={containerRef}
 		>
-			<div className="sticky top-0 bg-card z-10 border-b border-content/10">
+			<div className="sticky top-0 z-10 border-b border-content/10">
 				<input
 					ref={inputRef}
 					type="text"
@@ -176,7 +178,7 @@ const SpotLightPageMenuContent = forwardRef(function SpotLightPageMenuContent(
 					);
 				})}
 			</div>
-		</div>
+		</ThemeBg>
 	);
 });
 

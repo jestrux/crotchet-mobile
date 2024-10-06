@@ -145,6 +145,33 @@ export const KeyMap = {
 	AudioRandom: 133,
 };
 
+export const getThemeProps = ({ colorScheme = "system", ...theme } = {}) => {
+	const baseTheme =
+		!colorScheme || colorScheme == "system"
+			? {}
+			: colorScheme == "dark"
+			? {
+					"--canvas-color": " 0 0 0",
+					"--card-color": " 20 20 20",
+					"--stroke-color": " 53 53 53",
+					"--content-color": " 255 255 255",
+					"--overlay-color": " rgba(0,0,0,0.2)",
+			  }
+			: {
+					"--canvas-color": " 240 240 240",
+					"--card-color": " 255 255 255",
+					"--stroke-color": " 226 232 240",
+					"--content-color": " 0 0 0",
+					"--overlay-color": " rgba(0,0,0,0.035)",
+			  };
+
+	return {
+		...baseTheme,
+		colorScheme,
+		...theme,
+	};
+};
+
 export const appendScript = (filepath) => {
 	return new Promise((resolve) => {
 		if (document.querySelector('head script[src="' + filepath + '"]'))
@@ -1122,7 +1149,7 @@ export const readNetworkFile = (url, props = {}) => {
 
 		dispatch("read-network-file", [ref, { url, ...props }]);
 	});
-}
+};
 
 const readFile = async (props) => {
 	const key = "getFile" + randomId();
