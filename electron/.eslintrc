@@ -4,6 +4,9 @@
         "es6": true,
         "node": true
     },
+    "rules": {
+        "no-mixed-spaces-and-tabs": "off"
+    },
     "globals": {
         "appDir": "readonly",
         "buildDir": "readonly",
