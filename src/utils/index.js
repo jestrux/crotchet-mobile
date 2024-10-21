@@ -697,7 +697,7 @@ export const copyToClipboard = (
 		.catch((e) => showToast(`Copy failed: ${e}`));
 };
 
-export const copyFromUrl = async (url, { withToast = true } = {}) => {
+export const copyFromUrl = async (url, { withToast = false } = {}) => {
 	return copyToClipboard(
 		await fetch(url).then((response) => response.text()),
 		{ withToast }
@@ -716,7 +716,7 @@ export const fetchImage = async (url) => {
 	});
 };
 
-export const copyImage = async (url, { withToast = true } = {}) => {
+export const copyImage = async (url, { withToast = false } = {}) => {
 	const image = await fetchImage(url);
 	if (onDesktop()) {
 		socketEmit("copy-image", image);
