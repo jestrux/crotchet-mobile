@@ -58,7 +58,7 @@ export default function FormPage({ page }) {
 		});
 	});
 
-	const horizontalLayout = !preview() && !page?.fullWidth;
+	const horizontalLayout = !preview && !page?.fullWidth;
 
 	return (
 		<div

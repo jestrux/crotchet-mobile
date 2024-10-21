@@ -373,7 +373,9 @@ export default function SpotlightSearchPage({
 							? content(contextInfo)
 							: content;
 					},
-					preview: () => {
+					get preview() {
+						if(!open) return null;
+						
 						let pagePreview = preview || page?.preview;
 						return typeof pagePreview == "function"
 							? pagePreview(contextInfo)

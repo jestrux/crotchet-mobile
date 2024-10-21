@@ -611,6 +611,11 @@ registerAction("addToYoutubeClips", {
 	context: "share",
 	icon: appIcon,
 	match: ({ url }) => url?.toString().length && getYoutubeId(url),
+	preview: (video) => (
+		<div className="aspect-[16/10] bg-black">
+			<YoutubePlayer _id={getYoutubeId(video.url || video)} />
+		</div>
+	),
 	handler: addClip,
 });
 

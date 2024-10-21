@@ -57,6 +57,8 @@ export default function SearchPage({ children }) {
 		pageDataVersion,
 		setMainAction,
 		setActions,
+		preview,
+		setPreview,
 		onClose,
 		fallbackSearchResults,
 		onPop,
@@ -100,7 +102,7 @@ export default function SearchPage({ children }) {
 		const choice = objectFieldChoices(results).find(
 			(choice) => choice.value == value
 		);
-		let action, actions;
+		let action, actions, preview;
 
 		if (choice) {
 			action = choice.action
@@ -116,9 +118,15 @@ export default function SearchPage({ children }) {
 				: typeof page.entryActions == "function"
 				? page.entryActions(choice)
 				: null;
+
+			preview = choice.preview
+				? choice.preview
+				: typeof page.entrypreview == "function"
+				? page.entryPreview(choice)
+				: null;
 		}
 
-		return [action, actions];
+		return [action, actions, preview];
 	};
 
 	const handleSelect = (value) => {
@@ -132,9 +140,11 @@ export default function SearchPage({ children }) {
 
 		activeChoiceIndexRef.current = index;
 
-		const [action, actions] = getActionForValue(value);
+		const [action, actions, preview] = getActionForValue(value);
+
 		setMainAction(action);
 		setActions(actions);
+		setPreview(preview);
 	};
 
 	onClick(() => {
@@ -301,124 +311,142 @@ export default function SearchPage({ children }) {
 
 			<div
 				id="scrollArea"
-				className="relative overflow-auto"
+				className="relative overflow-auto grid grid-cols-12"
 				style={{ height: "calc(100vh - 100px)" }}
 			>
-				{Children.count(children) ? (
-					children
-				) : (
-					<>
-						{!searchResults?.length && query?.length > 0 && (
-							<div className="rounded relative cursor-default select-none py-2 truncate text-[14px] text-content/30 text-center font-medium">
-								No results
-							</div>
-						)}
-						{searchResults.map(([section, choices], idx) => {
-							if (grid) {
-								return (
-									<SpotlightGrid
-										key={
-											section + "" + idx + pageDataVersion
-										}
-										aspectRatio={aspectRatio}
-										columns={columns}
-										choices={choices}
-										selected={activeChoice}
-										onSelect={handleSelect}
-									/>
-								);
-							}
-
-							return (
-								<div
-									key={section + "" + idx}
-									className={clsx({
-										"border-b border-content/5":
-											idx != searchResults.length - 1,
-									})}
-								>
-									{section && section != "undefined" && (
-										<span
-											className={clsx(
-												"mt-5 mb-1 tracking-wide text-xs font-semibold opacity-50 px-4 flex items-center",
-												{
-													uppercase:
-														choiceSections?.length,
-												}
-											)}
-										>
-											{section}
-										</span>
-									)}
-
-									{choices.map((choice) => {
-										const { icon, image, video } = choice;
-
-										return (
-											<SpotlightListItem
-												key={choice.__id}
-												className="cursor-default"
-												trailing={
-													icon?.length ? (
-														<div
-															className="mr-2"
-															dangerouslySetInnerHTML={{
-																__html: icon,
-															}}
-														/>
-													) : (
-														(image?.length ||
-															video?.length) && (
-															<div className="mr-2 h-8 relative flex-shrink-0 bg-content/10 border border-content/10 overflow-hidden aspect-[1.3/1] rounded">
-																<img
-																	className={
-																		"absolute size-full object-cover"
-																	}
-																	src={
-																		image?.length
-																			? image
-																			: video
-																	}
-																	alt=""
-																/>
-
-																{video?.length && (
-																	<div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-																		<div className="relative size-3 flex items-center justify-center rounded-full overflow-hidden bg-card">
-																			<div className="absolute inset-0 bg-content/60"></div>
-																			<svg
-																				className="size-3 ml-0.5 relative text-canvas"
-																				viewBox="0 0 24 24"
-																				fill="currentColor"
-																			>
-																				<path
-																					strokeLinecap="round"
-																					strokeLinejoin="round"
-																					d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
-																				/>
-																			</svg>
-																		</div>
-																	</div>
-																)}
-															</div>
-														)
-													)
-												}
-												label={choice.label}
-												value={choice.value}
-												focused={
-													activeChoice == choice.value
-												}
-												onClick={() =>
-													handleSelect(choice.value)
-												}
-											/>
-										);
-									})}
+				<div className={preview?.type ? "col-span-5" : "col-span-12"}>
+					{Children.count(children) ? (
+						children
+					) : (
+						<>
+							{!searchResults?.length && query?.length > 0 && (
+								<div className="rounded relative cursor-default select-none py-2 truncate text-[14px] text-content/30 text-center font-medium">
+									No results
 								</div>
-							);
-						})}
-					</>
+							)}
+							{searchResults.map(([section, choices], idx) => {
+								if (grid) {
+									return (
+										<SpotlightGrid
+											key={
+												section +
+												"" +
+												idx +
+												pageDataVersion
+											}
+											aspectRatio={aspectRatio}
+											columns={columns}
+											choices={choices}
+											selected={activeChoice}
+											onSelect={handleSelect}
+										/>
+									);
+								}
+
+								return (
+									<div
+										key={section + "" + idx}
+										className={clsx({
+											"border-b border-content/5":
+												idx != searchResults.length - 1,
+										})}
+									>
+										{section && section != "undefined" && (
+											<span
+												className={clsx(
+													"mt-5 mb-1 tracking-wide text-xs font-semibold opacity-50 px-4 flex items-center",
+													{
+														uppercase:
+															choiceSections?.length,
+													}
+												)}
+											>
+												{section}
+											</span>
+										)}
+
+										{choices.map((choice) => {
+											const { icon, image, video } =
+												choice;
+
+											return (
+												<SpotlightListItem
+													key={choice.__id}
+													className="cursor-default"
+													trailing={
+														icon?.length ? (
+															<div
+																className="mr-2"
+																dangerouslySetInnerHTML={{
+																	__html: icon,
+																}}
+															/>
+														) : (
+															(image?.length ||
+																video?.length) && (
+																<div className="mr-2 h-8 relative flex-shrink-0 bg-content/10 border border-content/10 overflow-hidden aspect-[1.3/1] rounded">
+																	<img
+																		className={
+																			"absolute size-full object-cover"
+																		}
+																		src={
+																			image?.length
+																				? image
+																				: video
+																		}
+																		alt=""
+																	/>
+
+																	{video?.length && (
+																		<div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+																			<div className="relative size-3 flex items-center justify-center rounded-full overflow-hidden bg-card">
+																				<div className="absolute inset-0 bg-content/60"></div>
+																				<svg
+																					className="size-3 ml-0.5 relative text-canvas"
+																					viewBox="0 0 24 24"
+																					fill="currentColor"
+																				>
+																					<path
+																						strokeLinecap="round"
+																						strokeLinejoin="round"
+																						d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
+																					/>
+																				</svg>
+																			</div>
+																		</div>
+																	)}
+																</div>
+															)
+														)
+													}
+													label={choice.label}
+													value={choice.value}
+													focused={
+														activeChoice ==
+														choice.value
+													}
+													onClick={() =>
+														handleSelect(
+															choice.value
+														)
+													}
+												/>
+											);
+										})}
+									</div>
+								);
+							})}
+						</>
+					)}
+				</div>
+				{preview?.type && (
+					<div className="col-span-7 overflow-hidden p-0.5">
+						<div className="fixed top-14 bottom-0 right-0 w-7/12">
+							<div className="h-full w-full border-l border-content/10 overflow-x-hidden overflow-y-auto">
+								{preview}
+							</div>
+						</div>
+					</div>
 				)}
 			</div>
 		</div>

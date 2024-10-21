@@ -6,6 +6,16 @@ const unsplashIcon = (
 	</svg>
 );
 
+registerAction("UnsplashImage", {
+	context: "share",
+	icon: unsplashIcon,
+	match: ({ url }) =>
+		url?.toString().length &&
+		url.startsWith("https://images.unsplash.com/"),
+	preview: (image) => <img src={image} className="w-full" />,
+	handler: ({ url } = {}, { openUrl }) => openUrl(url),
+});
+
 const searchUnsplash = async (searchQuery) => {
 	const clientId = import.meta.env.VITE_unsplashClientId;
 	const page = random([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
@@ -41,7 +51,12 @@ registerAction("unsplash", {
 				handler: async (_, { copyToClipboard, withLoader }) => {
 					withLoader(async () => {
 						const images = await searchUnsplash();
-						copyToClipboard(random(images).urls.regular.replace("w=1080", "w=600"));
+						copyToClipboard(
+							random(images).urls.regular.replace(
+								"w=1080",
+								"w=600"
+							)
+						);
 					}, "Image copied");
 				},
 			},
@@ -50,7 +65,12 @@ registerAction("unsplash", {
 				handler: async (_, { copyToClipboard, withLoader }) => {
 					withLoader(async () => {
 						const images = await searchUnsplash("face");
-						copyToClipboard(random(images).urls.regular.replace("w=1080", "w=90"));
+						copyToClipboard(
+							random(images).urls.regular.replace(
+								"w=1080",
+								"w=90"
+							)
+						);
 					}, "Face copied");
 				},
 			},

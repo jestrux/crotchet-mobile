@@ -47,6 +47,7 @@ const commandProps = (item, section, favorites) => {
 	const props = {
 		section: faved ? "Favorites" : section,
 		pinned: favorites.indexOf(item.name),
+		preview: item.preview,
 		actions: (...payload) => [
 			...(typeof item.actions == "function"
 				? item.actions(...payload)
@@ -244,6 +245,12 @@ export function SpotlightSearchWrapper({ open, children }) {
 							},
 						},
 					],
+					preview: () =>
+						typeof item.preview == "function"
+							? item.preview(searchQuery)
+							: item.preview
+							? item.preview
+							: null,
 				};
 			});
 		},

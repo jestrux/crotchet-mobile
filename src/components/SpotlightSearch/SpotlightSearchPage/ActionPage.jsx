@@ -1,4 +1,4 @@
-import { Children, cloneElement, useRef } from "react";
+import { Children, cloneElement } from "react";
 import useAlerts from "@/components/Alerts/useAlerts";
 import { useSpotlightPageContext } from "./SpotlightPageContext";
 import { onActionClick } from "@/crotchet";
@@ -6,7 +6,7 @@ import { onActionClick } from "@/crotchet";
 export default function ActionPage({ page, children }) {
 	const {
 		pageData,
-		preview: _preview,
+		preview,
 		onSecondaryActionClick,
 		onMainActionClick,
 		setMainAction,
@@ -17,7 +17,6 @@ export default function ActionPage({ page, children }) {
 
 	const secondaryAction = _secondaryAction();
 	const mainAction = _mainAction();
-	const preview = _preview();
 
 	const onSubmit = (callback) => {
 		setMainAction({

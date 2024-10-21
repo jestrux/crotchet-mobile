@@ -22,7 +22,7 @@ const SpotlightPageContext = createContext({
 	title: null,
 	content: () => {},
 	fallbackSearchResults: () => [],
-	preview: () => {},
+	preview: null,
 	setPreview: () => {},
 	pageFilter: null,
 	setPageFilter: () => {},
