@@ -380,10 +380,7 @@ const getActions = (payload) => {
 					playOnDesktop: {
 						icon: appIcon,
 						match: (_, { onDesktop }) => !onDesktop(),
-						url: clipUrl.replace(
-							"crotchet://app/youtubeClips",
-							"crotchet://app/youtubeClips/desktop/"
-						),
+						handler: () => openOnDesktop(clipUrl),
 					},
 			  }),
 		playOnYoutube: {

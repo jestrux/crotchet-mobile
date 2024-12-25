@@ -1,10 +1,43 @@
-import { random, registerAction } from "@/crotchet";
+import { getShareUrl, random, registerAction, registerDataSource } from "@/crotchet";
 
 const unsplashIcon = (
 	<svg viewBox="0 0 24 24" fill="currentColor">
 		<path d="M7.5 6.75V0h9v6.75h-9zm9 3.75H24V24H0V10.5h7.5v6.75h9V10.5z" />
 	</svg>
 );
+
+registerDataSource("unsplash", "unsplash", {
+	mapEntry: (entry) => ({
+		...entry,
+		collection: entry.search,
+		title: entry.alt_description,
+		subtitle: entry.description,
+		image: entry.urls.regular,
+		share: getShareUrl(
+			{
+				preview: entry.urls.regular,
+				title: entry.alt_description,
+				url: entry.links.html,
+				download: entry.urls.full,
+				image: entry.urls.full,
+			},
+			"object"
+		),
+		url: `crotchet://copy-image/${entry.urls.regular}`,
+	}),
+	searchable: true,
+	layoutProps: {
+		layout: "masonry",
+		columns: "sm:2,2xl:3,4xl:4",
+	},
+	searchProps: {
+		debounce: 500,
+	},
+});
+
+registerDataSource("crotchet://unsplash", "themeWallpapers", {
+	collection: "wallpaper",
+});
 
 registerAction("UnsplashImage", {
 	context: "share",
@@ -16,7 +49,7 @@ registerAction("UnsplashImage", {
 	handler: ({ url } = {}, { openUrl }) => openUrl(url),
 });
 
-const searchUnsplash = async (searchQuery) => {
+export const searchUnsplash = async (searchQuery) => {
 	const clientId = import.meta.env.VITE_unsplashClientId;
 	const page = random([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 	let url = `https://api.unsplash.com/photos?client_id=${clientId}&page=${page}&per_page=30`;
